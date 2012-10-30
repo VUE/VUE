@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -78,13 +78,13 @@ public class LWComponent
 
         /** include only default, conceptually significant chilren, leaving out items such a slides, layers and pathways */
         PROPER, // might better be termed what is a "user" or "user-content" object
-            
+
         /** VISIBLE is PROPER, excluding those that are not currently visible */
         VISIBLE,
 
         /** EDITABLE is VISIBLE, excluding those that are currently locked */
         EDITABLE
-            
+
        // VIRTUAL -- would be *just* what ANY currently adds, and exclude PROPER -- currently unsupported
     }
 
@@ -96,14 +96,14 @@ public class LWComponent
             DEPTH
     };
 
-    
+
 
     /*
     // need an IntegerPreference and/or an IntegerRangePreference (that ImagePreference could also use)
     private static final VuePreference SlideIconPref =
         IntegerPreference.create(edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
-			"slideIconSize", 
-			"Slide Icon Size", 
+			"slideIconSize",
+			"Slide Icon Size",
 			"Size of Slide icons displayed on the map",
 			true);
 
@@ -112,7 +112,7 @@ public class LWComponent
     private static final Object CAUSE_DEFAULT = "cause_default";
     private static final Object CAUSE_PATHWAY = "cause_pathway";
     //private static final Object CAUSE_PERSIST = "cause_persist";
-    
+
 
     public enum HideCause {
         /** each subclass of LWComponent can use this for it's own purposes */
@@ -150,7 +150,7 @@ public class LWComponent
         DELETED,
             /** we've been hidden due to filtering -- note that this isn't a hide-bit in that children may still be visible even when
              * this is set*/
-            FILTERED, 
+            FILTERED,
             /** is in the process of being deleted */
             DELETING,
             /** is in the process of being un-deleted (undo) */
@@ -173,41 +173,41 @@ public class LWComponent
             EVENT_SILENT,
             /** this component is in a "collapsed" or closed view state */
             COLLAPSED
-            
+
             /** for links: this is data-relation link */
             , DATA_LINK
             /** for links: this is data-relation link and ALSO a data-count link */
             , DATA_COUNT
-            
+
             /** currently used for marking LWImage's as being node-icons */
             , ICON
-            
+
             /** for subclasses that want to distinguish between a default size and a validated size (e.g., LWImage)
              * "default size" could actually mean any suggested or invalid size before a final definite size */
             , UNSIZED
-            
+
             /** lets us know this is in the process of duplicating */
             , DUPLICATING
-            
+
             /** this is part of a pruned map sub-graph */
             , PRUNED
-            
+
             /** this is link with head pruned */
             , PRUNE_HEAD
             /** this is link with tail pruned */
             , PRUNE_TAIL
-            
+
             ;
 
         // do we want a generalized LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link?
-            
+
         public final int bit = 1 << ordinal();
 
         final Object type;
 
         Flag(Object typeKey) { type = typeKey; }
         Flag() { this(FLAG_DEFAULT); }
-        
+
     }
 
 
@@ -216,19 +216,19 @@ public class LWComponent
     {
         /** a map/layer has been auto-clustered by a data-drop */
         HAS_AUTO_CLUSTERED
-            
+
             /** a map/layer has been auto-clustered by a data-drop */
             , PRUNED
-            
+
             ;
-            
+
         final int bit = 1 << ordinal();
         final boolean persist;
 
         State(boolean p) { persist = p; }
         State() { persist = false; }
     }
-    
+
 
     /** context codes for LWContainer.addChildren */
 
@@ -238,19 +238,19 @@ public class LWComponent
     public static final Object ADD_PRESORTED = "sorted";
     public static final Object ADD_MERGE = "merge";
     public static final Object ADD_CHILD_TO_SIBLING = "child-to-sibling";
-    
+
     //Static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
 
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(LWComponent.class);
-    
+
     public static final int MIN_SIZE = 10;
     public static final Size MinSize = new Size(MIN_SIZE, MIN_SIZE);
     public static final float NEEDS_DEFAULT = Float.MIN_VALUE;
     public static final java.util.List<LWComponent> NO_CHILDREN = Collections.EMPTY_LIST;
-     	
+
     public static final boolean COLLAPSE_IS_GLOBAL = true;
-    
+
     protected static boolean isGlobalCollapsed = false;
 
     static void toggleGlobalCollapsed() {
@@ -262,7 +262,7 @@ public class LWComponent
     public interface Listener extends java.util.EventListener {
         public void LWCChanged(LWCEvent e);
     }
-    
+
     /*
      * Meta-data persistant information
      */
@@ -270,7 +270,7 @@ public class LWComponent
     private String notes = null;
     private Resource resource = null;
     private String mLabelFormat; // if there's a data-format, it's stored here
-    
+
     /*
      * Persistent information
      */
@@ -281,14 +281,14 @@ public class LWComponent
     // keep a Point2D.Float bounds up to date (and can skip creating
     // a rectangles constantly).  (Might also keep a mapBounds?)
 
-    private float x;
-    private float y;
+    protected float x;
+    protected float y;
     // TODO: if we want to support some kind of keep-relative alignment for an object
     // (in it's parent), we couldn't just use a special object on a generic x/y value
     // ptr -- we still need ACTUAL x/y values to render, but we could have an
     // xAnchor/yAnchor, which could even be a list of actions to perform every time the
     // object is laid out, or it's parent resizes.
-    
+
     //private MetadataList metadataList = new MetadataList();
     private MetadataList metadataList = null;
     private static final NodeFilter NEEDS_NODE_FILTER = new NodeFilter();
@@ -302,7 +302,7 @@ public class LWComponent
 
     /** cached affine transform for use by getZeroTransform() */
     private transient final AffineTransform _zeroTransform = new AffineTransform();
-    private transient double scale = 1.0;
+    protected transient double scale = 1.0;
     private transient AffineTransform mTemporaryTransform;
 
     protected transient TextBox labelBox = null;
@@ -321,29 +321,29 @@ public class LWComponent
 
     /** list of links that contain us as an endpoint */
     private transient List<LWLink> mLinks;
-    
+
     /** list of pathways that we are a member of */
     private transient List<LWPathway> mPathways;
     /** list of all pathway entries that refer to us (one for each time we appear on an individual pathway) */
     protected transient List<LWPathway.Entry> mEntries;
-    
+
     /** properties for use by model clients (e.g., UI components) */
     protected transient HashMap mClientData;
     // need MetaMap (a multi-map) for XML data-sets that can have more than one value per key
     protected transient MetaMap mDataMap;
-    
+
     // todo memory perf: mEntries should subclass ArrayList and implement this iter
     // so they can be allocated together, instead of leaving this slot here unused
     // for ever node w/out pathway entries.
     private SlideIconIter mVisibleSlideIconIterator;
-    
+
     private transient long mSupportedPropertyKeys;
 
     // TODO PERFORMANCE: change support could be handled generically, and we could at least lazy-create
     protected transient final LWChangeSupport mChangeSupport = new LWChangeSupport(this);
 
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore?
-    
+
     protected transient BufferedImage mImageBuffer;
 
     public static final Comparator XSorter = new Comparator<LWComponent>() {
@@ -364,7 +364,7 @@ public class LWComponent
                     return XSorter.compare(c1, c2);
                 else
                     return YSorter.compare(c1, c2);
-                
+
             }
         };
 
@@ -382,7 +382,7 @@ public class LWComponent
         }
 
     }
-    
+
 //     /** for internal proxy instances only */
 //     private LWComponent(String label) {
 //         setLabel(label);
@@ -399,7 +399,7 @@ public class LWComponent
         else
             return false;
     }
-    
+
     /** @return true if the given property is currently supported on this component */
     public boolean supportsProperty(Key key) {
         return (mSupportedPropertyKeys & key.bit) != 0;
@@ -408,7 +408,7 @@ public class LWComponent
     public void disableProperty(Key key) {
         disablePropertyBits(key.bit);
     }
-    
+
     public void enableProperty(Key key) {
         enablePropertyBits(key.bit);
     }
@@ -416,23 +416,23 @@ public class LWComponent
     protected void disablePropertyBits(long bits) {
         mSupportedPropertyKeys &= ~bits;
     }
-    
+
     protected void enablePropertyBits(long bits) {
         mSupportedPropertyKeys |= bits;
     }
-    
+
     protected void disablePropertyTypes(KeyType type) {
         for (Key key : Key.AllKeys)
             if (key.type == type || (type == KeyType.STYLE && key.type == KeyType.SUB_STYLE))
                 disableProperty(key);
     }
-    
-    
+
+
     /** Apply all style properties from styleSource to this component */
     public void copyStyle(LWComponent styleSource) {
         copyStyle(styleSource, ~0L);
     }
-    
+
     public void copyStyle(LWComponent styleSource, long permittedPropertyBits) {
         if (DEBUG.STYLE || styleSource == null) {
             System.out.println("COPY STYLE of " + Util.tags(styleSource) + " ==>> " + Util.tags(this) + " permitBits=" + Long.bitCount(permittedPropertyBits));
@@ -451,13 +451,13 @@ public class LWComponent
             if ((propertyBits & key.bit) != 0 && source.supportsProperty(key))
                 key.copyValue(source, this);
     }
-    
+
 
     public void applyCSS(edu.tufts.vue.style.Style cssStyle)
     {
         System.out.println("Applying CSS style " + cssStyle.getName() + ":");
         for (Map.Entry<String,String> se : cssStyle.getAttributes().entrySet()) {
-            
+
             final String cssName = se.getKey().trim().toLowerCase(); // todo: shouldn't have to trim this
             final String cssValue = se.getValue().trim();
             boolean applied = false;
@@ -467,19 +467,19 @@ public class LWComponent
                               '\'' + cssName + '\'',
                               '\"' + cssValue + '\"'
                               );
-            
+
             for (Key key : Key.AllKeys) {
                 if (key.cssName == null)
                     continue;
                 //out("Checking key [" + cssName + "] against [" + key.cssName + "]");
-                                
+
                 if(key.cssName.indexOf(";") > 0)
                 {
                     String[] names = key.cssName.split(";");
                     for(int i=0;i<names.length;i++)
                     {
                         if(supportsProperty(key) && names[i].equals(cssName))
-                        {    
+                        {
                           applied = key.setValueFromCSS(this,names[i],cssValue);
                         }
                     }
@@ -528,7 +528,7 @@ public class LWComponent
     // the need for casts in the method.
 
     public enum KeyType { Default, STYLE, SUB_STYLE, DATA };
-            
+
     // todo: TValue may be overkill -- may want to revert to using just Object
     public static class Key<TSubclass extends LWComponent,TValue> {
         /** A name for this key (used for undo labels & debugging) */
@@ -553,7 +553,7 @@ public class LWComponent
 
         private static int InstanceCount; // increment for each key instance, to establish the appropriate bit
         private static final java.util.Map<Class,Long> ClassProperties = new java.util.HashMap<Class,Long>();
-        
+
         /** Get the supported property bit mask for the given class in the LWComponent inheritance tree
          * This will only return accurate results after all Key's in the codebase have been initialized. */
         static long PropertyMaskForClass(Class<? extends LWComponent> clazz) {
@@ -592,7 +592,7 @@ public class LWComponent
         public boolean isStyleProperty() {
             return type == KeyType.STYLE;
         }
-        
+
         public Key(String name) {
             this(name, KeyType.Default);
         }
@@ -624,11 +624,11 @@ public class LWComponent
             // Now be sure to mix in all properties found in all super-classes:
             for (Class c = clazz; c != null; c = c.getSuperclass())
                 propMaskForClass |= PartialPropertyMaskForClass(c);
-            
+
             ClassProperties.put(clazz, propMaskForClass);
 
             if (DEBUG.INIT || DEBUG.STYLE)
-                Log.debug(String.format("KEY %-20s %-11s %-22s bit#%2d; %25s now has %2d properties", 
+                Log.debug(String.format("KEY %-20s %-11s %-22s bit#%2d; %25s now has %2d properties",
                                         name,
                                         //isStyleProperty ? "STYLE;" : "",
                                         keyType,
@@ -640,7 +640,7 @@ public class LWComponent
             InstanceCount++;
 
             //System.out.println("BITS FOR " + LWImage.class + " " + PropertyMaskForClass(LWImage.class));
-            
+
             // Could build list of all key (and thus slot) values here for each subclass,
             // but where would we attach it?  Would need to pass in the class variable
             // in the constructor, and hash it to a list for the class.  Then the
@@ -725,8 +725,8 @@ public class LWComponent
                 slot.set(value);
             }
         }
-        
-        
+
+
         private Property getSlotSafely(TSubclass c) {
             Property slot = null;
             try {
@@ -743,7 +743,7 @@ public class LWComponent
             //if (slot == NO_SLOT_PROVIDED) tufts.Util.printStackTrace(this + ": no slot provided");
             return slot;
         }
-        
+
 
         /** non slot-based property keys can override this */
         String getStringValue(TSubclass c) {
@@ -773,7 +773,7 @@ public class LWComponent
             } else
                 return slot.asString();
         }
-        
+
         void setStringValue(TSubclass c, String stringValue) {
             Property slot = getSlotSafely(c);
             if (slot != NO_SLOT_PROVIDED) {
@@ -814,13 +814,13 @@ public class LWComponent
             }
             return false;
         }
-        
+
 
         /** @return true if the value for this Key in LWComponent is equivalent to otherValue
          * Override to provide non-standard equivalence.
          * The default provided here uses Object.equals to compare the values.
          */
-        boolean valueEquals(TSubclass c, Object otherValue) 
+        boolean valueEquals(TSubclass c, Object otherValue)
         {
             final TValue value = getValue(c);
             return value == otherValue || (otherValue != null && otherValue.equals(value));
@@ -867,7 +867,7 @@ public class LWComponent
      * etc.
      */
     protected abstract class Property<T> {
-        
+
         final Key key;
         protected T value;
 
@@ -880,18 +880,18 @@ public class LWComponent
         public void setTo(T newValue) {
             set(newValue);
         }
-        
+
         boolean isChanged(T newValue)
         {
             if (this.value == newValue || (newValue != null && newValue.equals(this.value)))
                 return false;
-            else 
+            else
                 return true;
         }
-        
+
         void set(T newValue) {
             //final Object old = get(); // if "get" actually does anything tho, this is a BAD idea; if needbe, create a "curValue"
-         
+
             if (!isChanged(newValue))
                 return;
             final Object oldValue = this.value;
@@ -901,7 +901,7 @@ public class LWComponent
             // RAISE CHANGE EVENT (for observers -- e.g., repaint, UndoManager, editors, etc)
             // maybe: if (alive()) ?
             LWComponent.this.notify(this.key, oldValue);
-            
+
             // note: if could handle event raising in Key class, we could make this class static.
             // Tho then to bind to a particular property on a particular LWComponent, you'd need a
             // Binding object.  Do we actually bind directly to individual Property instance's
@@ -956,7 +956,7 @@ public class LWComponent
         public String toString() {
             return key + "[" + value + "]";
         }
-        
+
     }
 
     public class EnumProperty<T extends Enum> extends Property<T> {
@@ -970,10 +970,10 @@ public class LWComponent
             // note: value can never be null, or we'll need to store the Enum class reference elsewhere
             // (e.g., in the Key -- better there anyway, where we could provide a generic "values"
             // to list the supported values)
-            set((T) Enum.valueOf(value.getClass(), s.trim())); 
+            set((T) Enum.valueOf(value.getClass(), s.trim()));
         }
     }
-    
+
     private static final String _DefaultString = "";
     public class StringProperty extends Property<java.lang.String> {
         StringProperty(Key key) {
@@ -991,21 +991,21 @@ public class LWComponent
         BooleanProperty(Key key) {
            this(key, Boolean.FALSE);
         }
-        
+
         void setBy(String s) { set(Boolean.valueOf(s)); }
     }
-    
+
     abstract public class NumberProperty<T> extends Property<T> {
         NumberProperty(Key key) { super(key); }
-            
+
         void setFromCSS(String cssKey, String value) {
             if (value.endsWith("pt") || value.endsWith("px"))
                 setBy(value.substring(0, value.length()-2));
             else
                 throw new IllegalArgumentException("unhandled CSS number conversion for [" + value + "]");
-                      
+
         }
-        
+
     }
 
 
@@ -1015,10 +1015,10 @@ public class LWComponent
         }
     }
 
-    
-    
+
+
     private static final Integer _DefaultInteger = new Integer(0);
-    
+
     public class IntProperty extends NumberProperty<java.lang.Integer> {
         IntProperty(Key key, Integer defaultValue) {
             super(key);
@@ -1027,10 +1027,10 @@ public class LWComponent
         IntProperty(Key key) {
             this(key, _DefaultInteger);
         }
-        
+
         void setBy(String s) { set(new Integer(s)); }
     }
-    
+
     private static final Float _DefaultFloat = new Float(0f);
     public class FloatProperty extends NumberProperty<java.lang.Float> {
         FloatProperty(Key key) {
@@ -1045,20 +1045,20 @@ public class LWComponent
             super(key);
             value = VueConstants.FONT_DEFAULT;
         }
-        final void setBy(String s) { 
+        final void setBy(String s) {
         	//check for underline
-        	
+
         	String p = s.substring(s.indexOf("-")+1,s.length());
         	p = p.substring(0,p.indexOf("-"));
-        	
+
         	if (p.endsWith("underline"))
         	{	//do something
         		LWComponent.this.mFontUnderline.set("underline");
         		s= s.replaceAll(p, p.substring(0,p.indexOf("underline")));
-        	}	
+        	}
         	Font f = Font.decode(s);
-        	
-        	set(f); 
+
+        	set(f);
         	}
         final String asString() {
             //if (this.font == null || this.font == getParent().getFont())
@@ -1066,13 +1066,13 @@ public class LWComponent
 
             final Font font = get();
             String strStyle;
-            
+
             if (font.isBold()) {
                 strStyle = font.isItalic() ? "bolditalic" : "bold";
             } else {
                 strStyle = font.isItalic() ? "italic" : "plain";
             }
-            
+
             if (LWComponent.this.mFontUnderline.get().equals("underline"))
             	strStyle = strStyle.concat("underline");
             return font.getName() + "-" + strStyle + "-" + font.getSize();
@@ -1105,7 +1105,7 @@ public class LWComponent
                 setBy(value.substring(0, value.length()-2));
             else
                 throw new IllegalArgumentException("unhandled CSS font size [" + value + "]");
-                      
+
         }
     }
     */
@@ -1117,17 +1117,17 @@ public class LWComponent
             setBy(value);
         }
     }
-    
 
-    
-    
-    
-    
+
+
+
+
+
     public class ColorProperty extends Property<java.awt.Color> {
         private static final short ALPHA_NOT_PERMITTED = Short.MIN_VALUE;
         private static final short NO_ALPHA_SET = -1;
         private short fixedAlpha = NO_ALPHA_SET;
-        
+
         ColorProperty(Key key) { super(key); }
         ColorProperty(Key key, Color defaultValue) {
             this(key);
@@ -1137,7 +1137,7 @@ public class LWComponent
         public boolean isTransparent() {
             return value == null || value.getAlpha() == 0;
         }
-    
+
         public boolean isTranslucent() {
             return value == null || value.getAlpha() != 0xFF;
         }
@@ -1180,7 +1180,7 @@ public class LWComponent
                 super.set(newColor);
             }
         }
-        
+
         @Override
         void take(Color c) {
             if (fixedAlpha < NO_ALPHA_SET && (c == null || c.getAlpha() != 0xFF))
@@ -1232,12 +1232,12 @@ public class LWComponent
             return ColorToString(get());
         }
     }
-    
+
     public static Color StringToColor(final String s)
     {
         if (s.trim().length() < 1)
             return null;
-        
+
         Color c = null;
         try {
             c = VueResources.parseColor(s);
@@ -1246,7 +1246,7 @@ public class LWComponent
         }
         return c;
     }
-    
+
     private static String ColorToDebugString(final Color c) {
         final String s = ColorToString(c);
         if (s == null)
@@ -1254,14 +1254,14 @@ public class LWComponent
         else
             return s;
     }
-        
+
     public static String ColorToString(final Color c)
     {
         // if null, or no hue and no alpha, return null
         //if (c == null || ((c.getRGB() & 0xFFFFFF) == 0 && c.getAlpha() == 255))
         if (c == null)
             return null;
-        
+
         if (c.getAlpha() == 255) // opaque: only bother to save hue info
             return String.format("#%06X", c.getRGB() & 0xFFFFFF);
         else
@@ -1269,7 +1269,7 @@ public class LWComponent
     }
 
     public enum Alignment { LEFT, CENTER, RIGHT }
-    
+
     public static final Key KEY_FillColor   = new Key("fill.color", "background")       { final Property getSlot(LWComponent c) { return c.mFillColor; } };
     public static final Key KEY_TextColor   = new Key("text.color", "font-color")       { final Property getSlot(LWComponent c) { return c.mTextColor; } };
     public static final Key KEY_StrokeColor = new Key("stroke.color", "border-color")   { final Property getSlot(LWComponent c) { return c.mStrokeColor; } };
@@ -1284,7 +1284,7 @@ public class LWComponent
     /* font.size: point size for font */
     /* font.style: @See java.awt.Font 0x0=Plain, 0x1=Bold On, 0x2=Italic On */
     /* font.name: family name of the font */
-    
+
     /** Aggregate font key, which represents the combination of it's three sub-properties */
     public static final Key KEY_Font = new Key("font", KeyType.STYLE)                   { final Property getSlot(LWComponent c) { return c.mFont; } };
     public static final Key KEY_FontSize  = new Key("font.size", KeyType.SUB_STYLE)     { final Property getSlot(LWComponent c) { return c.mFontSize; } };
@@ -1311,9 +1311,9 @@ public class LWComponent
             return new Date(c.getCreated()).toString();
         }
     };
-    
-    
-    
+
+
+
     public final ColorProperty mFillColor = new ColorProperty(KEY_FillColor);
     public final ColorProperty mTextColor = new ColorProperty(KEY_TextColor, java.awt.Color.black) {
             //{ color = java.awt.Color.black; } // default value
@@ -1337,7 +1337,7 @@ public class LWComponent
             DASHED (2,2),
             DASH2 (3,2),
             DASH3 (5,3);
-            
+
         private final float[] dashPattern = new float[2];
 
         StrokeStyle(float dashOn, float dashOff) {
@@ -1348,7 +1348,7 @@ public class LWComponent
         public BasicStroke makeStroke(double width) {
             return makeStroke((float) width);
         }
-        
+
         public BasicStroke makeStroke(float width) {
             if (this == SOLID)
                 return new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
@@ -1364,7 +1364,7 @@ public class LWComponent
                                        , 0f); // dash-phase (offset to start of pattern -- apparently pixels, not index)
         }
         // todo opt: better: could cache the strokes here for each dash pattern/size
-        
+
     }
 
     private void rebuildStroke() {
@@ -1385,24 +1385,24 @@ public class LWComponent
         layout();*/
     }
 
-  
+
     public final IntProperty mFontStyle = new CSSFontStyleProperty(KEY_FontStyle)       { void onChange() { rebuildFont(); } };
     public final IntProperty mFontSize = new IntProperty(KEY_FontSize)                  { void onChange() { rebuildFont(); } };
     public final StringProperty mFontName = new CSSFontFamilyProperty(KEY_FontName)     { void onChange() { rebuildFont(); } };
-    
-    public final StringProperty mFontUnderline = new StringProperty(KEY_FontUnderline) {  
+
+    public final StringProperty mFontUnderline = new StringProperty(KEY_FontUnderline) {
     	boolean isChanged(String newValue) {
     		return true;
-    	} 
-    	
+    	}
+
     	@Override void onChange() {
             rebuildFont();
             if (labelBox != null) {
                 labelBox.copyStyle(LWComponent.this);
                 layout(this.key); // could make this generic: add a key bit that says "layout needed on-change";
             }
-    	} 
-    	
+    	}
+
     	};
 
     private boolean fontIsRebuilding; // todo: use a bit flag
@@ -1412,19 +1412,19 @@ public class LWComponent
         try  {
             Font f =new Font(mFontName.get(), mFontStyle.get(), mFontSize.get());
             mFont.set(f);
-           
+
         } finally {
             fontIsRebuilding = false;
         }
     }
-    
+
     public final FontProperty mFont = new FontProperty(KEY_Font) {
             @Override void onChange() {
                 if (!fontIsRebuilding) {
                     final Font f = get();
-                
+
                     mFontStyle.take(f.getStyle());
-                    
+
                     mFontSize.take(f.getSize());
                     mFontName.take(f.getName());
                 }
@@ -1460,23 +1460,23 @@ public class LWComponent
     //===================================================================================================
 
     // for debug
-    private static String vtag(Object key, Object val, Property p) 
+    private static String vtag(Object key, Object val, Property p)
     {
         if (val == null) {
             return key + "(null)";
         } else if (val.getClass() == String.class) {
             return key + "(\"" + val + "\")";
         }
-        
+
         String typeName = val.getClass().getName();
         String valType = typeName.substring(typeName.lastIndexOf('.') + 1);
         String valRep = (p == null ? val.toString() : p.asString());
 
         String extra = "";
-        
+
         //if (p != null) extra = val.toString();
         //valType += "@" + Integer.toHexString(val.hashCode());
-        
+
         return key + " " + valType + "(" + valRep + ")" + extra + "";
     }
 
@@ -1492,7 +1492,7 @@ public class LWComponent
     }
 
     // maybe rename these store/fetchProperty
-    
+
     /** set a generic property in the model -- users of this API need to ensure the keys
      * they're using are unique with respect to any other potential users of this API.
      * Setting a property value to null removes the property. This is basically "cookies"
@@ -1524,19 +1524,19 @@ public class LWComponent
         setClientData(o.getClass(), o);
         return o;
     }
-    
+
     public Object getClientData(Object key) {
         return mClientData == null ? null : mClientData.get(key);
     }
-    
+
     public void setClientData(Class classKey, String subKey, Object o) {
         setClientData(classKey.getName() + "/" + subKey, o);
     }
-    
+
     public boolean hasClientData(Object o) {
         return getClientData(o) != null;
     }
-    
+
     public void flushAllClientData() {
         if (mClientData != null) {
             if (DEBUG.DATA && mClientData.size() > 0) {
@@ -1546,17 +1546,17 @@ public class LWComponent
             mClientData = null;
         }
     }
-    
+
 //     public void setInstanceProperty(String subKey, Object o) {
 //         setClientProperty(o.getClass().getName() + "/" + subKey, o);
 //     }
-    
+
 //     public void setInstanceProperty(Object o) {
 //         setClientProperty(o.getClass(), o);
 //     }
-    
+
     // todo: support client data via arbitrary ENUM values (e.g., with EnumMap, and maybe bits via an EnumSet)
-    
+
     /** convenience typing fetch when using a Class as a property key, that returns a value casted to the class type */
     public <A> A getClientData(Class<A> classKey, String subKey) {
         final Object o = getClientData(classKey.getName() + "/" + subKey);
@@ -1571,7 +1571,7 @@ public class LWComponent
         return (A) getClientData((Object)classKey);
     }
 
-    
+
     /**
      * Get the named property value from this component.
      * @param key property key (see LWKey)
@@ -1599,7 +1599,7 @@ public class LWComponent
         if (key == LWKey.Location)      return getLocation();
         if (key == LWKey.Size)          return new Size(this.width, this.height);
         if (key == LWKey.Hidden)        return isHidden() ? Boolean.TRUE : Boolean.FALSE;
-             
+
         Log.warn(this + " getPropertyValue; unsupported property [" + key + "] (returning null)");
         if (key == null) Util.printStackTrace("key was null");
         //throw new RuntimeException("Unknown property key[" + key + "]");
@@ -1613,11 +1613,11 @@ public class LWComponent
     void undoProperty(Object key, Object val) {
         setPropertyImpl(key, val, PROPERTY_SET_UNDO);
     }
-    
+
     public final void setProperty(final Object key, final Object val) {
         setPropertyImpl(key, val, PROPERTY_SET_DEFAULT);
     }
-    
+
     protected void setPropertyImpl(final Object key, final Object val, final Object context)
     {
         if (DEBUG.TOOL||DEBUG.UNDO) Log.debug("setPropertyImpl[" + context + "] " + this + " " + vtag(key, val, null));
@@ -1640,7 +1640,7 @@ public class LWComponent
             // mapLocationChanged calls on all descendents (for absolute map location
             // objects; e.g. LWLink's).  Location changes as a result of these calls
             // were already recorded as events and will be undone on their own.
-            
+
             final Point2D.Float loc = (Point2D.Float) val;
             setLocation(loc.x, loc.y, this, false);
             //setLocation( (Point2D) val);
@@ -1692,29 +1692,29 @@ public class LWComponent
         }
 
         //public Collection getCopies() { return mCopies.values(); }
-        
+
         public void reconnectLinks() {
-            
+
             // Find all LWLink instances in the set of copied
             // objects, and fix their endpoint pointers to
             // point to the right object within the copied set.
-            
+
             for (LWComponent c : mCopies.values()) {
                 if (!(c instanceof LWLink))
                     continue;
 
                 final LWLink linkCopy = (LWLink) c;
                 final LWLink linkOriginal = (LWLink) mOriginals.get(linkCopy);
-                
+
                 final LWComponent headCopy = mCopies.get(linkOriginal.getHead());
                 final LWComponent tailCopy = mCopies.get(linkOriginal.getTail());
-                
+
                 if (DEBUG.DND)
                     Log.debug("LinkPatcher: reconnecting " + linkCopy + " endpoints:"
                               + "\n\t" + headCopy
                               + "\n\t" + tailCopy
                               );
-                
+
                 linkCopy.setHead(headCopy);
                 linkCopy.setTail(tailCopy);
             }
@@ -1747,12 +1747,12 @@ public class LWComponent
     protected void copySupportedProperties(LWComponent c) {
         mSupportedPropertyKeys = c.mSupportedPropertyKeys;
     }
-    
-    
+
+
     public boolean canDuplicate() {
         return true;
     }
-    
+
     public LWComponent duplicate() {
         return duplicate(new CopyContext());
     }
@@ -1793,7 +1793,7 @@ public class LWComponent
         c.mXMLRestoreUnderway = true; // todo: this flag really "initUnderway" -- need to double-check all our semantics tho...
 
         c.copySupportedProperties(this);
-        
+
         c.x = this.x;
         c.y = this.y;
         c.width = this.width;
@@ -1806,7 +1806,7 @@ public class LWComponent
         c.copyStyle(this); // this copies over all compatiable Property values
 
         c.setAutoSized(isAutoSized()); // may be sensitive to order of operations during init
-        
+
         if (c instanceof LWText) {
             c.label=this.label;
             ((LWText)c).getRichLabelBox().setText(((LWText)this).getRichLabelBox().getRichText());
@@ -1814,7 +1814,7 @@ public class LWComponent
             c.setLabelImpl(this.label, true, false);
             c.getLabelBox().setSize(getLabelBox().getSize());
         }
-        
+
         if (hasResource())
             c.setResource(getResource());
         if (hasNotes())
@@ -1826,11 +1826,11 @@ public class LWComponent
         c.mXMLRestoreUnderway = false;
         c.layout("duplicate");
         c.clearFlag(Flag.DUPLICATING);
-                
+
         return c;
     }
 
-    private void copyMetaData(final LWComponent source)
+    protected void copyMetaData(final LWComponent source)
     {
         if (source.metadataList != null) {
             // duplicate original style meta-data list
@@ -1909,7 +1909,7 @@ public class LWComponent
 //             MapDepth--;
 //             return m;
             return parent.getMap();
-            
+
         }
     }
 
@@ -1925,7 +1925,7 @@ public class LWComponent
         addCleanupTask(task, this);
         //addCleanupTask(task, this, null);
     }
-    
+
     //    protected void addCleanupTask(Runnable task, Object taskKey, Object srcMsg) {
     protected void addCleanupTask(Runnable task, Object taskKey) {
         final UndoManager um = getUndoManager();
@@ -1942,20 +1942,20 @@ public class LWComponent
                     Util.printStackTrace("warning: adding cleanup task when deleted");
                     debug = true;
                 }
-                
+
 //                 if (debug) {
-//                     System.out.println(TERM_RED + "ADDING CLEANUP TASK: " + task 
+//                     System.out.println(TERM_RED + "ADDING CLEANUP TASK: " + task
 //                                        + (srcMsg==null?"":("on " + srcMsg))
 //                                        + (task == this ? "" : (" for " + this))
 //                                        + TERM_CLEAR);
 //                 }
-                
+
                 um.addCleanupTask(this, task);
             }
         }
     }
-    
-    
+
+
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
 
     public static final String EnumeratedValueKey = "@ValueOf";
@@ -1993,7 +1993,7 @@ public class LWComponent
     public void setPersistDataMap(MetaMap dataMap) {
         mDataMap = dataMap;
     }
-    
+
     /** replace ALL data on this node at once, generating events for undo */
     public void setDataMap(MetaMap dataMap) {
         if (mDataMap == dataMap)
@@ -2006,7 +2006,7 @@ public class LWComponent
         }
     }
 
-    
+
 //     public Collection<Map.Entry<String,Object>> getPersistDataMap() {
 //         if (mXMLRestoreUnderway)
 //             return getDataMap().entries();
@@ -2034,7 +2034,7 @@ public class LWComponent
         // able to edit them?  Of course, what we really want is to get rid of the
         // VueMetaDataElement and related MetadataList classes completely.
         // ----------------------------------------------------------------------------------------
-        
+
         getMetadataList().add(map.entries()); // duplicate in old meta-data for now
     }
 
@@ -2044,16 +2044,16 @@ public class LWComponent
 
         // just leave this:
         getDataMap().add(key, value);
-    }    
+    }
 
     public String getDataValue(String key) {
         if (mDataMap == null)
             return null;
         return mDataMap.getString(key);
-        
+
 //         VueMetadataElement vme = getMetadataList().get(key);
 //         return vme == null ? null : vme.getValue();
-            
+
     }
 
     // TODO: rename all these getDataValue* to getSingleValue*
@@ -2063,7 +2063,7 @@ public class LWComponent
             return null;
 
         String fieldName = mDataMap.getString(EnumeratedValueKey);
-        
+
 //         //-----------------------------------------------------------------------------
 //         // backward compat before @schema.field stored, and
 //         // only @schema was stored.  The first entry should always be
@@ -2073,7 +2073,7 @@ public class LWComponent
 //             fieldName = firstEntry.getKey().toString();
 //         }
 //         //-----------------------------------------------------------------------------
-        
+
         return fieldName;
     }
 
@@ -2083,30 +2083,30 @@ public class LWComponent
             return null;
 
         String fieldName = getDataValueFieldName();
-        
+
         if (fieldName != null)
             return mDataMap.getSchema().getField(fieldName);
         else
             return null;
     }
-    
-    
+
+
     /** @return true if the data-set data for this node represents a SINGLE VALUE from a field (e.g., one of an enumeration)
      * Should always return the opposite of isDataRow */
     public boolean isDataValueNode() {
         return mDataMap != null && mDataMap.hasKey(EnumeratedValueKey);
     }
-    
+
     /** @return true if this is a single value data node of the given name from *any* schema */
     public boolean isDataValueNode(String name) {
         return name.equals(getDataValueFieldName());
     }
-    
+
     /** @return true if this is a single value data node for the given Field in it's Schema */
     public boolean isDataValueNode(Field field) {
         return getDataSchema() == field.getSchema() && field.getName().equals(getDataValueFieldName());
     }
-    
+
     /**
      * @return true if this is a data-row node from the given schema.
      * todo: schema checking is currently weak -- only checks for key field
@@ -2115,7 +2115,7 @@ public class LWComponent
         //return hasDataKey(schema.getKeyField().getName()) && !isDataValueNode();
         return getDataSchema() == schema && !isDataValueNode();
     }
-    
+
     public boolean isDataRowNode() {
         return getDataSchema() != null && !isDataValueNode();
     }
@@ -2142,11 +2142,11 @@ public class LWComponent
 
     /** @return true if a schema-handle was turned into a live schema reference */
     boolean validateSchemaReference() {
-        
+
         final MetaMap data = getRawData();
         if (data == null)
             return false;
-        
+
         final Schema schema = data.getSchema();
         if (schema != null) {
             Schema liveSchema = Schema.lookupAuthority(schema);
@@ -2156,11 +2156,11 @@ public class LWComponent
                 return true;
             }
         }
-        
+
         return false;
     }
-    
-    
+
+
     /** @return null -- this is only needed for LWMap, but is implemented here to force
      * the order of persistance based on the castor mapping, so schemas can persist
      * before nodes in the LWMap, which overrides this to return schemas included in the
@@ -2170,7 +2170,7 @@ public class LWComponent
     public Collection<tufts.vue.ds.Schema> getIncludedSchemas() {
         return null;
     }
-    
+
 
     public boolean hasDataValue(String key, CharSequence value) {
         return mDataMap != null && mDataMap.hasEntry(key, value);
@@ -2181,13 +2181,13 @@ public class LWComponent
 // //         VueMetadataElement vme = getMetadataList().get(key);
 // //         return vme == null ? false : value.equals(vme.getValue());
     }
-    
-    
+
+
 //     public void containsMetaData(String key, Object value) {
 //         getMetadataList().add(key, value.toString());
 //     }
 
-    
+
     /**
      * Metadata List for use with RDF Index It is sufficient for the minimal RDF functionality to
      * be able to retrieve this list from the LWComponent using this method and add elements
@@ -2220,7 +2220,7 @@ public class LWComponent
     public boolean hasMetaData(int type) {
         if (metadataList != null)
             return metadataList.hasMetadata(type);
-        else 
+        else
             return false;
        // return ( (metadataList != null) && (getMetaDataAsHTML().length() > 0) );
     }
@@ -2237,7 +2237,7 @@ public class LWComponent
         else
             return "";
     }
-    
+
     /**
      * @return true if should not be drawn due to a currently applied filter, false if not.
      * Note that FILTERING is diffrent than HIDING via a HideCause.  A hidden node
@@ -2265,8 +2265,8 @@ public class LWComponent
 //             notify(LWKey.Hidden);
 //         //notify(LWKey.Hidden, wasHidden); // if we need it to be undoable
 //     }
-    
-    
+
+
     protected boolean alive() {
         // "internal" objects should always report events (e.g., special styles, such as data-styles)
         return parent != null
@@ -2283,7 +2283,7 @@ public class LWComponent
         mCreated = time;
 
     }
-    
+
     public long getCreated() {
         return mCreated;
     }
@@ -2314,12 +2314,12 @@ public class LWComponent
             // will have it's ID re-set when it's added to a new map.  This is often
             // still the fall-back though: LWContainer will apply the exact same stamp
             // to collections of nodes that are newly added at the same time.
-            
+
             if (mCreated == 0) {
                 if (DEBUG.WORK) Log.debug("fallback timestamp: " + this);
                 setCreated(System.currentTimeMillis());
             }
-            
+
             notifyForce(LWKey.Created, new Undoable() {
                     void undo() {
                         // parent may already have deleted it for us, so only delete if need be
@@ -2331,14 +2331,14 @@ public class LWComponent
         }
     }
 
-    
-    
+
+
 
 //     /** set the ID string, no questions asked */
 //     protected void takeID(String ID) {
 //         this.ID = ID;
 //     }
-    
+
     public void setLabel(String label)
     {
         setLabelImpl(label, true, true);
@@ -2357,13 +2357,13 @@ public class LWComponent
     public void setLabelFormat(String s) {
         if (s == mLabelFormat || (s != null && s.equals(mLabelFormat)))
             return;
-        
+
         final Object old = mLabelFormat;
         mLabelFormat = s;
         if (alive()) notify(KEY_LabelFormat, old);
         //if (alive()) notify("label.format", new Undoable(oldFormat) { void undo() { setLabelFormat(oldFormat); }} );
     }
-    
+
     public void setLabelTemplate(String s) {
         setLabelImpl(s, false, false);
     }
@@ -2384,7 +2384,7 @@ public class LWComponent
      * label as the actual format (e.g.  we just computed filled data
      * and now want to set the label for real, or this is an undo).
      */
-    private void setLabelImpl
+    protected void setLabelImpl
         (String newLabel,
          final boolean setDocument,
          final boolean allowDataFill)
@@ -2393,11 +2393,11 @@ public class LWComponent
         newLabel = cleanControlChars(newLabel);
 
         if (!mXMLRestoreUnderway && allowDataFill && !isStyling(LWKey.Label)) {
-            
+
             // If we're "styling" the label, DATA_STYLE is set -- if this is a
             // DATA_STYLE, we never want to attempt a template fill -- this is a styling
             // node where templates themseleves are stored.
-            
+
             if (isDataFormatString(newLabel)) {
                 final String filled = fillLabelFormat(newLabel);
                 setLabelFormat(newLabel);
@@ -2408,14 +2408,14 @@ public class LWComponent
             }
         }
 
-        
+
         if (this.label == newLabel)
             return;
         if (this.label != null && this.label.equals(newLabel))
             return;
 
         Object old = this.label;
-        
+
         if (newLabel == null || newLabel.length() == 0) {
             this.label = null;
             if (labelBox != null)
@@ -2477,13 +2477,13 @@ public class LWComponent
                     final String value = findLabelFormatDataValue(keyName);
                     if (value != null) {
                         //Log.debug("got value[" + value + "]");
-                        
+
                         // replace ${someDataKey} with the value found
                         buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(value));
-                        
+
                         // include untouched any/all text found after the '}'
                         buf.append(s.substring(braceClose + 1, s.length()));
-                        
+
                         noValueFound = false;
                         anyReplacement = true;
                     }
@@ -2507,7 +2507,7 @@ public class LWComponent
             else
                 Log.debug(this + " FILL; NO REPLACEMENTS MADE in " + Util.tags(fmt));
         }
-        
+
         return anyReplacement
             ? Util.formatLines(buf.toString(), MaxLabelLineLength)
             : fmt;
@@ -2519,16 +2519,16 @@ public class LWComponent
 
         if (value == null && hasResource())
             value = getResource().getProperty(key);
-        
+
         if (value == null) {
             VueMetadataElement vme = getMetadataList().get(key);
             value = (vme == null ? null : vme.getValue());
         }
-        
+
         return tufts.vue.ds.Field.valueText(value);
     }
 
-    
+
 
     protected tufts.vue.TextBox getLabelBox()
     {
@@ -2543,7 +2543,7 @@ public class LWComponent
             //Util.printStackTrace(t, "failed to init labelBox for " + this);
             Log.error("failed to init labelBox for " + this, t);
         }
-            
+
 
         return this.labelBox;
     }
@@ -2586,11 +2586,11 @@ public class LWComponent
         return this.category;
     }
     */
-    
+
     public void takeResource(Resource resource) {
         this.resource = resource;
     }
-    
+
     public void setResource(Resource resource)
     {
         if (DEBUG.CASTOR) out("SETTING RESOURCE TO " + (resource==null?"":resource.getClass()) + " [" + resource + "]");
@@ -2599,7 +2599,7 @@ public class LWComponent
         layout();
         if (DEBUG.CASTOR) out("NOTIFYING");
         notify(LWKey.Resource, old);
-        
+
         /*
         try {
             layout();u
@@ -2609,7 +2609,7 @@ public class LWComponent
         }
         */
     }
-    
+
     public Resource getResource() {
         return this.resource;
     }
@@ -2621,7 +2621,7 @@ public class LWComponent
         else
             return map.getResourceFactory();
     }
- 
+
     /** convenience delegate to resource factory */
     public void setResource(String spec) {
         setResource(getResourceFactory().get(spec));
@@ -2638,7 +2638,7 @@ public class LWComponent
     public void setResource(java.io.File file) {
         setResource(getResourceFactory().get(file));
     }
-        
+
 //     public void setResource(String urn)
 //     {
 //         if (urn == null || urn.length() == 0)
@@ -2647,7 +2647,7 @@ public class LWComponent
 //             setResource(new MapResource(urn));
 //     }
 
-    
+
     public String getID() {
         return this.ID;
     }
@@ -2663,7 +2663,7 @@ public class LWComponent
 //             // special case for internal use objects, marked with '<' as initial character
 //             return -1;
 //         }
-        
+
         int id = -1;
         try {
             id = Integer.parseInt(idStr);
@@ -2674,29 +2674,29 @@ public class LWComponent
         }
         return id;
     }
-    
-    
+
+
   /*  public String getStyledLabel()
     {
     	return this.label;
-    	
+
     }*/
     public String getLabel() {
     	return this.label;
     	/*
     	if (this.label == null)
     		return null;
-    	
+
     	String noHTMLString = this.label.replaceAll("\\<.*?\\>","");
     	noHTMLString = noHTMLString.replaceAll("\\&.*?\\;","");
     	noHTMLString = noHTMLString.replaceAll("\n","");
     	noHTMLString = noHTMLString.replaceAll("\\<!--.*?--\\>","");
     	noHTMLString = noHTMLString.replaceAll(" {2,}", " ").trim();
-        
+
     	return noHTMLString;*/
     }
 
-    
+
     /**
      * @return a label suitable for displaying in a list: if this component
      * has no label set, generate a unique name for it, and if the label has any newlines
@@ -2717,7 +2717,7 @@ public class LWComponent
     public static String tag(LWComponent c) {
         return c == null ? "" : c.getUniqueComponentTypeLabel();
     }
-    
+
     public String getDiagnosticLabel() {
         if (hasLabel()) {
             return getUniqueComponentTypeLabel() + ": " + getLabel().replace('\n', ' ');
@@ -2729,7 +2729,7 @@ public class LWComponent
     public String getUniqueComponentTypeLabel() {
         return getComponentTypeLabel() + " #" + getID();
     }
-    
+
     /** return a type name for this LWComponent */
     public String getComponentTypeLabel() {
         final String name = getClass().getName();
@@ -2747,8 +2747,8 @@ public class LWComponent
         else
             return getComponentTypeLabel() + "[" + getLabel() + "]";
     }
-    
-    
+
+
     /** @deprecated
      * left in for (possible future) backward file compatibility
      * do nothing with this data anymore for now.
@@ -2767,7 +2767,7 @@ public class LWComponent
     public void setXMLnodeFilter(NodeFilter nodeFilter) {
         this.nodeFilter = nodeFilter;
     }
-    
+
     /** @deprecated -- return null if the node filter is empty, so we don't bother with entry in the save file */
     public NodeFilter getXMLnodeFilter() {
         if (mXMLRestoreUnderway) {
@@ -2788,7 +2788,7 @@ public class LWComponent
     // TODO: change these "supports" calls to an arbitrary property list
     // that could have arbitrary properties added to it by plugged-in non-standard tools
     public boolean supportsUserResize() { return false; }
-    
+
     /** @return false: subclasses (e.g. containers), override to return true if allows children dragged in and out
      * by a user.
      */
@@ -2796,7 +2796,7 @@ public class LWComponent
 
     /** @Return true: subclasses (e.g. containers), override to return false if you never want this component
         reparented by users */
-    // todo: handle via API that LWGroup can declare    
+    // todo: handle via API that LWGroup can declare
     public boolean supportsReparenting() { return parent instanceof LWGroup == false; }
 
     /** @return true: by default, all objects can be selected with other objects at the same time */
@@ -2807,7 +2807,7 @@ public class LWComponent
 
     /** @return false by default -- override to initiate dupe and system drag */
     public boolean supportsCopyOnDrag() { return false; }
-    
+
 
     /** @return true if we allow a link to the target, and the target allows a link to us.
      * Eventually we can use this to check ontology information.
@@ -2817,13 +2817,13 @@ public class LWComponent
     public boolean canLinkTo(LWComponent target) {
         return canLinkToImpl(target) && (target == null || target.canLinkToImpl(this));
     }
-    
-    
+
+
     /** @return true -- subclass impl's can override */
     protected boolean canLinkToImpl(LWComponent target) {
         return hasFlag(Flag.LOCKED) == false;
     }
-    
+
     public boolean hasLabel() {
         return this.label != null && this.label.length() > 0;
     }
@@ -2873,7 +2873,7 @@ public class LWComponent
         for (LWPathway p : mPathways)
             if (p == path)
                 return true;
-        
+
         return false;
     }
 
@@ -2893,15 +2893,15 @@ public class LWComponent
                 singleVisible = p;
             }
         }
-        
+
         return singleVisible;
     }
-    
+
 
     public List<LWPathway> getPathways() {
         return mPathways == null ? java.util.Collections.EMPTY_LIST : mPathways;
     }
-    
+
     /**
      * @return true if this component is in a pathway that is
      * drawn with decorations (e.g., not a reveal-way)
@@ -2929,7 +2929,7 @@ public class LWComponent
     public List<LWPathway.Entry> getEntries() {
         return mEntries;
     }
-    
+
 
     protected void addEntryRef(LWPathway.Entry e) {
         if (mEntries == null) {
@@ -2950,8 +2950,8 @@ public class LWComponent
             Util.printStackTrace(this + "; Warning: didn't contain entry " + e);
         removePathwayRef(e.pathway);
     }
-    
-    
+
+
     private void addPathwayRef(LWPathway p)
     {
         if (mPathways == null)
@@ -2961,12 +2961,12 @@ public class LWComponent
             // todo: too late, UNDELETING flag already cleared (call is from pathway on pathway undelete)
             // okay for now: re-layout on undo should be harmless, but generates lots
             // of needless location events that clog up event debugging when doing undo's
-            if (!hasFlag(Flag.UNDELETING) && LWIcon.IconPref.getPathwayIconValue()) 
+            if (!hasFlag(Flag.UNDELETING) && LWIcon.IconPref.getPathwayIconValue())
                 layout();
         }
         //notify("pathway.add");
     }
-    
+
     private void removePathwayRef(LWPathway p)
     {
         if (mPathways == null) {
@@ -2987,7 +2987,7 @@ public class LWComponent
         //notify("pathway.remove");
     }
 
-    
+
 
     /** @deprecated - not really deprecated, but intended for persistance only */
     public java.awt.Dimension getXMLtextBox() {
@@ -3000,7 +3000,7 @@ public class LWComponent
             return this.labelBox.getSize();
         */
     }
-    
+
     /** @deprecated - not really deprecated, intended for persistance only */
     public void setXMLtextBox(java.awt.Dimension d) {
         //this.textSize = d;
@@ -3022,7 +3022,7 @@ public class LWComponent
         setLabel(unEscapeNewlines(text));
         //this.label = unEscapeNewlines(text);
         //getLabelBox().setText(this.label);
-        // we want to make sure layout() is not called, 
+        // we want to make sure layout() is not called,
         // and currently there's no need to do notify's during init.
     }
 
@@ -3061,7 +3061,7 @@ public class LWComponent
         // (it doesn't indent new text lines with white space
         // even after wrapping them), but we still need this
         // here to deal with old save files.
-        
+
         text = text.replaceAll("\n[ \t]*%nl;", "%nl;");
         text = text.replaceAll("\n[ \t]*", " ");
         return unEscapeWhitespace(text);
@@ -3082,7 +3082,7 @@ public class LWComponent
     {
         if (text == null)
             return null;
-        else { 
+        else {
             return text.replaceAll("%nl;", "\n");
         }
 
@@ -3104,7 +3104,7 @@ public class LWComponent
     {
         if (text == null)
             return null;
-        else { 
+        else {
             text = unEscapeNewlines(text);
             text = text.replaceAll("%tab;", "\t");
             text = text.replaceAll("%sp;", " ");
@@ -3113,7 +3113,7 @@ public class LWComponent
     }
 
     private static final Object LAYOUT_DEFAULT = "default";
-    
+
     /** Layout this component and all children, if any.  Normally this would only be called on an
      * LWMap, but in some cases, any component might effectively be "at the top level" while in an
      * intermediate state, such as components in a cut-buffer before they've been pasted out to a
@@ -3121,7 +3121,7 @@ public class LWComponent
     public void layoutAll(Object triggerKey) {
         layout(triggerKey);
     }
-    
+
     /**
      * If this component supports special layout for it's children,
      * or resizes based on font, label, etc, do it here.
@@ -3130,12 +3130,12 @@ public class LWComponent
         if (mXMLRestoreUnderway == false)
             layout(LAYOUT_DEFAULT);
     }
-    
+
     final void layout(Object triggerKey) {
         if (mXMLRestoreUnderway == false) {
-            
+
             layoutImpl(triggerKey);
-            
+
             if (triggerKey == LWMap.NODE_INIT_LAYOUT) {
                 validateInitialValues();
                 layoutSlideIcons(null);
@@ -3156,7 +3156,7 @@ public class LWComponent
         // Note that if ANY component in the map has a NaN coordinate or dimension,
         // it can put the AWT graphics routines into an unrecoverable state that
         // may prevent the entire map from drawing sanely or at all.
-        
+
         if (Float.isNaN(x)) {
             Log.warn("bad x " + this);
             x = 0;
@@ -3188,7 +3188,7 @@ public class LWComponent
     }
 
     protected void layoutImpl(Object triggerKey) {}
-    
+
     /** @return true: default is always autoSized */
     //public boolean isAutoSized() { return true; }
     public boolean isAutoSized() { return false; } // LAYOUT-NEW
@@ -3198,20 +3198,20 @@ public class LWComponent
     public void setToNaturalSize() {
         setAutoSized(false);
     }
-    
-    
+
+
     private static boolean eq(Object a, Object b) {
         return a == b || (a != null && a.equals(b));
     }
-    
+
     public boolean isTransparent() {
         return mFillColor.isTransparent();
     }
-    
+
     public boolean isTranslucent() {
         return mFillColor.isTranslucent();
     }
-    
+
     /**
      * Color to use at draw time. LWNode overrides to provide darkening of children.
      * We also use this for the background color in active on-map text edits.
@@ -3238,7 +3238,7 @@ public class LWComponent
             else if (dc != null)
                 return dc.getBackgroundFill();
             else
-                return null;            
+                return null;
         } else
             return getFillColor();
     }
@@ -3266,7 +3266,7 @@ public class LWComponent
         }
     }
 
-    
+
 
     //private LWPathway lastPriorit;
 
@@ -3281,8 +3281,8 @@ public class LWComponent
         //return getRenderFillColor(dc);
     }
 
-    
-    
+
+
     void takeFillColor(Color color) {
         mFillColor.take(color);
     }
@@ -3293,7 +3293,7 @@ public class LWComponent
 
     public float        getStrokeWidth()                { return mStrokeWidth.get(); }
     public void         setStrokeWidth(float w)         { mStrokeWidth.set(w); }
-    
+
     /** @return null for SOLID (ordinal 0, the default, as for old save files), or otherwise, the ordinal of the style enum
      * Castor will not bother to generate the attribute/element when it's value is null. */
     public Integer getXMLstrokeStyle() {
@@ -3309,32 +3309,32 @@ public class LWComponent
             }
         }
     }
-    
+
     public Color        getFillColor()                  { return mFillColor.get(); }
     public void         setFillColor(Color c)           { mFillColor.set(c); }
     public String       getXMLfillColor()               { return mFillColor.asString(); }
     public void         setXMLfillColor(String xml)     { mFillColor.setFromString(xml); }
-    
+
     public Color        getTextColor()                  { return mTextColor.get(); }
     public void         setTextColor(Color c)           { mTextColor.set(c); }
     public String       getXMLtextColor()               { return mTextColor.asString(); }
     public void         setXMLtextColor(String xml)     { mTextColor.setFromString(xml); }
-    
+
     public Color        getStrokeColor()                { return mStrokeColor.get(); }
     public void         setStrokeColor(Color c)         { mStrokeColor.set(c); }
     public String       getXMLstrokeColor()             { return mStrokeColor.asString(); }
     public void         setXMLstrokeColor(String xml)   { mStrokeColor.setFromString(xml); }
-        
+
     public Font         getFont()               { return mFont.get(); }
     public void         setFont(Font font)      { mFont.set(font); }
     public String       getXMLfont()            { return mFont.asString(); }
     public void         setXMLfont(String xml)  { mFont.setFromString(xml); }
 
 
-    
-    /** 
+
+    /**
      * The first time a TextBox is created for edit, it may not have been laid out
-     * by it's parent, which is where it normally gets it's location.  This 
+     * by it's parent, which is where it normally gets it's location.  This
      * initializes the location of the TextBox for first usage.  The default
      * impl here centers the TextBox in the LWComponent.
      */
@@ -3356,7 +3356,7 @@ public class LWComponent
         else
             return parent.getLayer();
     }
-    
+
     /**
      * for castor persistance
      * @return null if we are not a child of a layer, or the layer if it's our immediate parent  */
@@ -3387,14 +3387,14 @@ public class LWComponent
         else
             return parent.indexOf(this);
     }
-    
+
 
     protected void setParent(LWContainer newParent)
     {
 
         if (DEBUG.UNDO) System.err.println("*** SET-PARENT: " + newParent + " for " + this);
 
-        
+
         //final boolean linkNotify = (!mXMLRestoreUnderway && parent != null);
         if (parent == newParent) {
             // This is normal.
@@ -3425,35 +3425,35 @@ public class LWComponent
         // live with it.  A combination of calling this in restoreToModel (for undo),
         // and only calling this here if parent was previously null (persistance,
         // cut/paste), should handle that.
-        
+
         if (!mXMLRestoreUnderway) {
             // handled specially during restored
             validateSchemaReference();
         }
         //-----------------------------------------------------------------------------
-        
+
         parent = newParent;
 
         //layout(); // for preference change updates
-        
-        
+
+
 //         if (linkNotify && mLinks.size() > 0)
 //             for (LWLink link : mLinks)
 //                 link.notifyEndpointReparented(this);
     }
-    
+
     //protected void reparentNotify(LWContainer parent) {}
 
     /**
      * for now (2007-11-30) just records sync source in case we want to use it later,
-     * but does not set up data synchronization (as per Melanie 2007-11-14) 
+     * but does not set up data synchronization (as per Melanie 2007-11-14)
      */
     public void setSyncSource(LWComponent source) {
 
         mSyncSource = source;
-        
+
         if (true) return; // all dynamic data syncing disabled for now as per Melanie -- SMF 2007-11-14
-        
+
         if (mSyncClients != null) {
             out("blowing away sync clients on syncSource set");
             // just in case
@@ -3490,7 +3490,7 @@ public class LWComponent
     void takeStyle(LWComponent parentStyle) {
         mParentStyle = parentStyle;
     }
-    
+
 
     /** for castor persist */
     public LWComponent getStyle() {
@@ -3501,12 +3501,12 @@ public class LWComponent
         return hasFlag(Flag.STYLE);
         //return isStyle;
     }
-    
+
     /** @return Boolean.TRUE if this component is serving as an active style for other objects, null otherwise */
     public Boolean getPersistIsStyle() {
         return isStyle() ? Boolean.TRUE : null;
     }
-    
+
     public void setPersistIsStyle(Boolean b) {
         setFlag(Flag.STYLE, b.booleanValue());
 
@@ -3516,7 +3516,7 @@ public class LWComponent
     public Boolean getPersistIsSlideStyled() {
         return hasFlag(Flag.SLIDE_STYLE) ? Boolean.TRUE : null;
     }
-    
+
     public void setPersistIsSlideStyled(Boolean b) {
         setFlag(Flag.SLIDE_STYLE, b.booleanValue());
 
@@ -3554,7 +3554,7 @@ public class LWComponent
         else
             return defaultPickImpl(pc);
     }
-    
+
     protected LWComponent defaultPickImpl(PickContext pc) {
         return this;
     }
@@ -3573,11 +3573,11 @@ public class LWComponent
         else
             return this;
     }
-    
+
     public boolean isOrphan() {
         return this.parent == null;
     }
-    
+
     public boolean atTopLevel() {
         return parent != null && parent.isTopLevel();
     }
@@ -3596,7 +3596,7 @@ public class LWComponent
     public boolean fullyContainsChildren() {
         return false;
     }
-    
+
     public boolean hasChild(LWComponent c) {
         return false;
     }
@@ -3604,7 +3604,7 @@ public class LWComponent
     public boolean isLaidOut() {
         return isManagedLocation();
     }
-    
+
     public boolean isManagedLocation() {
         return (parent != null && parent.isManagingChildLocations()) || (isSelected() && isAncestorSelected());
     }
@@ -3632,8 +3632,8 @@ public class LWComponent
     public boolean isExternalResourceLinkForPresentations() {
         return false;
     }
-    
-    
+
+
     public final void addChild(LWComponent c) {
         addChildren(Collections.singletonList(c), ADD_DEFAULT);
     }
@@ -3641,7 +3641,7 @@ public class LWComponent
     public final void dropChild(LWComponent c) {
         addChildren(Collections.singletonList(c), ADD_DROP);
     }
-    
+
     public final void pasteChild(LWComponent c) {
         addChildren(Collections.singletonList(c), ADD_PASTE);
     }
@@ -3672,7 +3672,7 @@ public class LWComponent
     public int numChildren() {
         return 0;
     }
-    
+
     /** @deprecated - use getChildren */
     public java.util.List<LWComponent> getChildList()
     {
@@ -3694,7 +3694,7 @@ public class LWComponent
     public LWComponent getChild(int index) {
         return null;
     }
-    
+
     public boolean hasPicks() {
         return (hasChildren() && !isCollapsed()) || hasEntries();
     }
@@ -3708,7 +3708,7 @@ public class LWComponent
         DrawContext dc;
         LWPathway activePathway;
         LWPathway.Entry activeEntry;
-        
+
         private SlideIconIter() {
             //System.out.println("\nSlideIter, entries=" + mEntries.size());
             advance();
@@ -3734,7 +3734,7 @@ public class LWComponent
                     }
                 }
             }
-            
+
             nextIndex = i + 1;
 
             // if we're at the end, provide the selected (if there was one)
@@ -3743,7 +3743,7 @@ public class LWComponent
                 onTop = null;
             }
         }
-        
+
         public boolean hasNext() {
             final boolean t = (nextSlide != null);
             //out("hasNext " + t);
@@ -3754,7 +3754,7 @@ public class LWComponent
             return t;
             //return nextSlide != null;
         }
-        
+
         public LWSlide next() {
             if (nextSlide == null) {
                 if (DEBUG.Enabled) Util.printStackTrace(this + "; next at end of SlideIconIter; entries=" + mEntries);
@@ -3765,7 +3765,7 @@ public class LWComponent
             //out("return " + s);
             return s;
         }
-        
+
         public void remove() { throw new UnsupportedOperationException(); }
 
         public Iterator<LWSlide> iterator() {
@@ -3824,9 +3824,9 @@ public class LWComponent
         } else
             return (List) getChildren();
     }
-    
-    
-    
+
+
+
     public java.util.Iterator<? extends LWComponent> getChildIterator() {
         return EmptyIterator;
     }
@@ -3843,7 +3843,7 @@ public class LWComponent
     }
 
 
-    
+
 
     public Collection<LWComponent> getAllDescendents(final ChildKind kind) {
         if (kind == ChildKind.PROPER)
@@ -3851,11 +3851,11 @@ public class LWComponent
         else
             return getAllDescendents(kind, new java.util.ArrayList(), Order.TREE);
     }
-    
+
     public final Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag) {
         return getAllDescendents(kind, bag, Order.TREE);
     }
-    
+
     /** @return bag -- a noop -- this is meant to be overriden */
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag, Order order) {
         return bag;
@@ -3865,7 +3865,7 @@ public class LWComponent
     public <A extends LWComponent> Iterable<A> getDescendentsOfType(Class<A> clazz) {
         return getDescendentsOfType(ChildKind.PROPER, clazz);
     }
-    
+
     /** @see LWContainer (this impl EmptyIterator) */
     public <A extends LWComponent> Iterable<A> getDescendentsOfType(ChildKind kind, Class<A> clazz) { return EmptyIterable; }
     /** @see LWContainer (this impl EmptyIterator) */
@@ -3878,7 +3878,7 @@ public class LWComponent
     public Iterator<LWNode> getChildNodeIterator()    { return EmptyIterator; }
     /** @see LWContainer (this impl EmptyIterator) */
     public Iterator<LWLink> getChildLinkIterator()    { return EmptyIterator; }
-    
+
 
 
     /** for tracking who's linked to us */
@@ -3905,7 +3905,7 @@ public class LWComponent
         clearHidden(HideCause.PRUNE); // todo: ONLY clear this if we were pruned by the given link!
         notify(LWKey.LinkRemoved, link); // informational only event
     }
-    
+
     /** @return us all the links who have us as one of their endpoints */
     public List<LWLink> getLinks(){
         return mLinks == null ? Collections.EMPTY_LIST : mLinks;
@@ -3918,7 +3918,7 @@ public class LWComponent
         List<LWLink> incomingLinks = new ArrayList<LWLink>();
 
         for (LWLink link : getLinks()) {
-            int     arrowState = link.getArrowState();    
+            int     arrowState = link.getArrowState();
             boolean arrowHead = arrowState == LWLink.ARROW_HEAD,
                     arrowTail = arrowState == LWLink.ARROW_TAIL,
                     arrowNonDirectional = arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE;
@@ -3944,7 +3944,7 @@ public class LWComponent
         List<LWLink> outgoingLinks = new ArrayList<LWLink>();
 
         for (LWLink link : getLinks()) {
-            int     arrowState = link.getArrowState();    
+            int     arrowState = link.getArrowState();
             boolean arrowHead = arrowState == LWLink.ARROW_HEAD,
                     arrowTail = arrowState == LWLink.ARROW_TAIL,
                     arrowNonDirectional = arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE;
@@ -4006,13 +4006,13 @@ public class LWComponent
         for (LWLink l : links)
             if (l.isDataCountLink())
                 dcl++;
-        
+
         if (dcl == 0 || dcl == links.size())
             return getLinked(links, new HashSet(links.size()));
         else
             return getLinked(getPriorityDataLinks(getLinks()), new HashSet(dcl));
     }
-    
+
     /** @return list will only contain LWLink */
     private static Collection<LWLink> getPriorityDataLinks(Collection<LWLink> links)
     {
@@ -4029,7 +4029,7 @@ public class LWComponent
         // For now, we just ignore count-links entirely, even tho they
         // produce FANTASTIC clustering in certian special cases.
         // (e.g., all the countries clustering around a region they're in)
-            
+
         //final Collection<LWLink> countDataLinks = new ArrayList();
         final Collection<LWLink> normalDataLinks = new ArrayList(links.size());
 
@@ -4038,21 +4038,21 @@ public class LWComponent
         for (LWLink l : links) {
             if (l.isDataCountLink())
                 ;//countDataLinks.add(l);
-            else 
+            else
                 normalDataLinks.add(l);
         }
 
         return normalDataLinks;
-            
+
         //             if (countDataLinks.size() == 1 && otherDataLinks.size() > 0) {
         //                 return otherDataLinks;
         //             } else {
         //                 return links;
         //             }
     }
-    
 
-    
+
+
     /** @return all components directly connected to this one: for most components, this
      * is just all the LWLink's that connect to us.  For LWLinks, it's mainly it's endpoints,rg
      * plus also any LWLink that may be directly connected to the link itself
@@ -4060,12 +4060,12 @@ public class LWComponent
     public Collection<? extends LWComponent> getConnected() {
         return Collections.unmodifiableList(getLinks());
     }
-    
+
     /** @return a list of every component connected to this one via links, including the links themselves */
     public Collection<LWComponent> getLinkChain() {
         return getLinkChain(new HashSet(), null);
     }
-    
+
     /**
      * @return a list of every component connected to this one via links, including the links themselves
      * @param bag - the collection to store the results in.  Any component already in the bag will not
@@ -4078,22 +4078,22 @@ public class LWComponent
         if (DEBUG.LINK) Log.debug("getLinkChain: " + this);
         return getLinkChainImpl(bag, backstop, 0);
     }
-    
+
     private static void tabout(int depth, String s) {
         for (int x = 0; x < depth; x++) System.out.print("    ");
         System.out.println(s);
     }
-    
+
     private Collection<LWComponent> getLinkChainImpl(Collection bag, LWComponent backstop, int depth)
     {
         if (!bag.add(this)) {
-            // already added to the set with all connections -- don't process again            
-            if (DEBUG.LINK) tabout(depth, "    (dupe)" + this);            
+            // already added to the set with all connections -- don't process again
+            if (DEBUG.LINK) tabout(depth, "    (dupe)" + this);
             return bag;
         }
 
         if (DEBUG.LINK) tabout(depth, "  DESCEND>" + this);
-        
+
         for (LWComponent c : getConnected()) {
             depth++; // for debug
             try {
@@ -4135,20 +4135,20 @@ public class LWComponent
             rect = getMapBounds();
         else
             rect.setRect(getMapBounds());
-            
+
         for (LWLink link : getLinks()) {
             final LWComponent head = link.getHead();
             final LWComponent tail = link.getTail();
 
             rect.add(link.getPaintBounds());
-            
+
             if (head != this) {
                 if (head != null)
                     rect.add(head.getPaintBounds());
             } else if (tail != this) {
                 if (tail != null)
                     rect.add(tail.getPaintBounds());
-            } 
+            }
         }
         return rect;
     }
@@ -4156,7 +4156,7 @@ public class LWComponent
     public Rectangle2D.Float getCenteredFanBounds() {
         return expandToCenteredBounds(getFanBounds());
     }
-    
+
 
     /** get bounds that are centered on this node that fully include the given bounds */
     public Rectangle2D.Float expandToCenteredBounds(Rectangle2D.Float r) {
@@ -4191,7 +4191,7 @@ public class LWComponent
         return r;
     }
 
-    
+
     /*
      * Return an iterator over all link endpoints,
      * which will all be instances of LWComponent.
@@ -4209,12 +4209,12 @@ public class LWComponent
                     LWLink l = (LWLink) i.next();
                     LWComponent head = l.getHead();
                     LWComponent tail = l.getTail();
-                    
+
                     // Every link, as it's connected to us, should have us as one of
                     // it's endpoints -- so return the opposite endpoint.  TODO: now
                     // that links can have null endpoints, this iterator can return null
                     // -- hasNext will have to get awfully fancy to handle this.
-                    
+
                     if (head == LWComponent.this)
                         return tail;
                     else
@@ -4226,9 +4226,9 @@ public class LWComponent
             };
     }
      */
-    
-    
-    /* include all links and far endpoints of links connected to this component 
+
+
+    /* include all links and far endpoints of links connected to this component
     public java.util.List getAllConnectedComponents()
     {
         List list = new java.util.ArrayList(mLinks.size());
@@ -4241,17 +4241,17 @@ public class LWComponent
             else
                 // todo: actually, I think we want to support these
                 throw new IllegalStateException("link to self on " + this);
-            
+
         }
         return list;
     }
 */
-    
+
     public int countLinksTo(LWComponent c)
     {
         if (c == null || mLinks == null)
             return 0;
-        
+
         int count = 0;
         for (LWLink link : mLinks)
             if (link.hasEndpoint(c))
@@ -4264,7 +4264,7 @@ public class LWComponent
     {
         if (c == null || mLinks == null)
             return false;
-        
+
         for (LWLink link : mLinks)
             if (link.hasEndpoint(c))
                 return true;
@@ -4275,7 +4275,7 @@ public class LWComponent
     {
         if (c == null || mLinks == null)
             return false;
-        
+
         for (LWLink link : mLinks)
         {
         	LWComponent tail = link.getTail();
@@ -4284,18 +4284,18 @@ public class LWComponent
         }
         return false;
     }
-    
+
     /** @return true if there are any links between us and the given component */
     public boolean hasMultipleLinksTo(LWComponent c)
     {
         if (c == null || mLinks == null)
             return false;
-        
+
         int count = 0;
         for (LWLink link : mLinks)
             if (link.hasEndpoint(c))
                 count++;
-        
+
         if (count >1)
         	return true;
         else
@@ -4308,8 +4308,8 @@ public class LWComponent
     public boolean isConnectedTo(LWComponent c) {
         return hasLinkTo(c);
     }
-    
-        
+
+
     public int countCurvedLinksTo(LWComponent c)
     {
         int count = 0;
@@ -4318,7 +4318,7 @@ public class LWComponent
                 count++;
         return count;
     }
-    
+
     /** supports ensure link paint order code */
     protected  LWComponent getParentWithParent(LWContainer parent)
     {
@@ -4355,13 +4355,13 @@ public class LWComponent
     public boolean hasAncestorOfType(Class clazz) {
         return getParentOfType(clazz) != null;
     }
-    
+
 
     /** @return the first ancestor, EXCLUDING this component (starting with the parent), that is of the given type, or null if none found */
     public <T extends LWComponent> T getParentOfType(Class<T> clazz) {
         return getParentOfType(clazz, null);
     }
-    
+
     /** never ascend above root */
     public <T extends LWComponent> T getParentOfType(Class<T> clazz, LWComponent root) {
         LWComponent parent = getParent();
@@ -4370,13 +4370,13 @@ public class LWComponent
         else
             return parent.getAncestorOfType(clazz, root);
     }
-    
+
     /** @return the first ancestor, INCLUDING this component, that is of the given type, or null if none found */
     // TODO: including this component is confusing...
     public <T extends LWComponent> T getAncestorOfType(Class<T> clazz) {
         return getAncestorOfType(clazz, null);
     }
-    
+
     /** never ascend above root */
     public <T extends LWComponent> T getAncestorOfType(Class<T> clazz, LWComponent root) {
         if (clazz.isInstance(this))
@@ -4390,7 +4390,7 @@ public class LWComponent
     public LWComponent getTopMostAncestorOfType(Class clazz) {
         return getTopMostAncestorOfType(clazz, null);
     }
-    
+
     /** never ascend above root */
     public LWComponent getTopMostAncestorOfType(Class clazz, LWComponent root) {
         LWComponent topAncestor = getAncestorOfType(clazz, root);
@@ -4406,10 +4406,10 @@ public class LWComponent
                 //if (DEBUG.PICK) out("nextAncestor of type " + clazz + ": " + topAncestor);
             }
         }
-        
+
         return topAncestor;
     }
-    
+
 
     /** @return by default, return the class object as returned by getClass().  Subclasses can override to provide differentiation between runtime sub-types.
      * E.g., a node class could return getClass() by default, but the constant string "textNode" for runtime instances that we
@@ -4429,12 +4429,12 @@ public class LWComponent
     public int getFocalMargin() {
         return 30;
     }
-    
+
     protected void takeScale(double newScale) {
         if (DEBUG.LAYOUT) out("takeScale " + newScale);
         this.scale = newScale;
     }
-    
+
     protected void setScale(double newScale)
     {
         if (this.scale == newScale)
@@ -4443,17 +4443,17 @@ public class LWComponent
         //if (DEBUG.LAYOUT) out("setScale " + newScale);
         //if (DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue", "setScale " + scale);
         takeScale(newScale);
-        
+
         // can only do this via debug inspector right now, and is causing lots of
         // suprious events during init:
         //if (LWLink.LOCAL_LINKS && !mXMLRestoreUnderway)
         if (!mXMLRestoreUnderway)
             notify(LWKey.Scale, oldScale); // todo: make scale a real property
-        
+
         updateConnectedLinks(null);
         //System.out.println("Scale set to " + scale + " in " + this);
     }
-    
+
     /**
      * @return the scale value relative to it's parent.  So for a 50% scale in it's parent,
      * it just returns 0.5.  E.g., this would mean if the parent was also scaled at 50%,
@@ -4463,7 +4463,7 @@ public class LWComponent
     {
         return this.scale;
     }
-    
+
     /** @return the on-map scale at 100% map scale (the concatentation of our scale plus all parent scales) */
     public double getMapScale()
     {
@@ -4475,13 +4475,13 @@ public class LWComponent
 
     /** Convenience for returning float */ public final float getScaleF() { return (float) getScale(); }
     /** Convenience for returning float */ public final float getMapScaleF() { return (float) getMapScale(); }
-    
-    
+
+
 
     public Size getMinimumSize() {
         return MinSize;
     }
-    
+
     public void setFrame(Rectangle2D r)
     {
         setFrame((float)r.getX(), (float)r.getY(),
@@ -4514,7 +4514,7 @@ public class LWComponent
     public void userSetFrame(float x, float y, float w, float h) {
         setFrame(x, y, w, h);
     }
-    
+
     protected void userSetFrame(float x, float y, float w, float h, MapMouseEvent e) {
         userSetFrame(x, y, w, h);
     }
@@ -4523,7 +4523,7 @@ public class LWComponent
     public void setMoveable(boolean moveable) {
         setFlag(Flag.FIXED_LOCATION, !moveable);
     }
-        
+
     public boolean isMoveable() {
         return hasFlag(Flag.FIXED_LOCATION) == false;
     }
@@ -4532,8 +4532,8 @@ public class LWComponent
     public boolean isPathwayOwned() {
         return false;
     }
-    
-        
+
+
 
     //private boolean linkNotificationDisabled = false;
     protected void takeLocation(float x, float y) {
@@ -4558,11 +4558,11 @@ public class LWComponent
             this.y = y;
         }
     }
-    
+
 //     public void userTranslate(float dx, float dy) {
 //         translate(dx, dy);
 //     }
-    
+
     /** Translate this component within it's parent by the given amount */
     public void translate(float dx, float dy) {
         setLocation(this.x + dx,
@@ -4574,7 +4574,7 @@ public class LWComponent
         takeLocation(this.x + dx,
                      this.y + dy);
     }
-    
+
 
 //     // moved to LWGroup -- currently only usage point
 //     /** translate across the map in absolute map coordinates */
@@ -4597,11 +4597,11 @@ public class LWComponent
 //             dx /= scale;
 //             dy /= scale;
 //         }
-        
+
 //         translate((float) dx, (float) dy);
-        
+
 //     }
-    
+
     /** set the absolute map location -- meant to be overriden for special cases (e.g., the special selection group) */
     public void setMapLocation(double x, double y) {
         throw new UnsupportedOperationException("unimplemented in " + this);
@@ -4617,7 +4617,7 @@ public class LWComponent
 //         } else
 //             setLocation((float) x, (float) y);
     }
-    
+
     /**
      * Set the location of this object within it's parent. E.g., if the parent is a group or a slide,
      * setLocation(0,0) would move the component to the upper left corner of it's parent.  If the
@@ -4628,19 +4628,19 @@ public class LWComponent
         setLocation(x, y, this, true);
     }
 
-    
+
     /** Special setLocation to permit event notification during coordinate system changes for objects not yet added to the map */
     protected void setLocation(float x, float y, LWComponent hearableEventSource, boolean issueMapLocationChangeCalls)
     {
         if (this.x == x && this.y == y)
             return;
-        
+
         final Point2D.Float oldValue = new Point2D.Float(this.x, this.y);
         takeLocation(x, y);
-        
+
         //if (!linkNotificationDisabled)
         //    updateConnectedLinks();
-        
+
         if (hearableEventSource != this)
             hearableEventSource.notifyProxy(new LWCEvent(hearableEventSource, this, LWKey.Location, oldValue));
         else //if (hearableEventSource != null) // if null, skip event delivery
@@ -4659,11 +4659,11 @@ public class LWComponent
             // we get here, the below code should always work.  Or, we could
             // even have establishLocalCoordinates call us here with extra info... (oldMapX/oldMapY)
             // or, we could implement the general setMapLocation and have establishLocalCoords call that...
-            
+
             // This code only works if we're moving within a single parent: no coordinate system changes!
 
             // Would be better to merge this somehow with notifyHierarchChanged?
-            
+
             final double scale;
             if (parent != null)
                 scale = parent.getMapScale(); // we move within the scale of our parent
@@ -4700,8 +4700,8 @@ public class LWComponent
 //     void setFocal(boolean isFocal) {
 //         this.isFocal = isFocal;
 //     }
-    
-    
+
+
     /** a notification to the component that it's absolute map location has changed by the given absolute map dx / dy */
     // todo: may be better named ancestorMoved or ancestorTranslated or some such
     protected void notifyMapLocationChanged(LWComponent movingSrc, double mdx, double mdy) {
@@ -4714,15 +4714,15 @@ public class LWComponent
 
 //     /** A notification to the component that it or some ancestor is about to change parentage */
 //     public void notifyHierarchyChanging() {}
-    
+
     /** A notification to the component that it or some ancestor changed parentage */
     public void notifyHierarchyChanged() {
         if (mLinks != null && mLinks.size() > 0)
             for (LWLink link : mLinks)
                 link.notifyEndpointHierarchyChanged(this);
-        
+
     }
-    
+
     public final void setLocation(double x, double y) {
         setLocation((float) x, (float) y);
     }
@@ -4734,11 +4734,11 @@ public class LWComponent
     public void userSetLocation(float x, float y) {
         setLocation(x, y);
     }
-    
+
     public void setCenterAt(Point2D p) {
         setCenterAt(p.getX(), p.getY());
     }
-    
+
     public void setCenterAt(double x, double y) {
         setLocation((float) x - getWidth()/2,
                     (float) y - getHeight()/2);
@@ -4748,7 +4748,7 @@ public class LWComponent
     {
         return new Point2D.Float(getX(), getY());
     }
-    
+
     /** set component to this many pixels in size, quietly, with no event notification */
     protected void takeSize(float w, float h)
     {
@@ -4764,12 +4764,12 @@ public class LWComponent
         mAspect = aspect;
         if (DEBUG.IMAGE) out("setAspect " + aspect);
     }
-    
+
     /** set component to this many pixels in size */
     public final void setSize(float w, float h) {
         setSizeImpl(w, h, false);
     }
-    
+
     /** set component to this many pixels in size
      * @param intetrnal -- if true, the event is not undoable
      */
@@ -4777,13 +4777,13 @@ public class LWComponent
     {
         if (this.width == w && this.height == h)
             return;
-        
+
         if (DEBUG.LAYOUT) out("*** setSize  (LWC)  " + w + "x" + h);
 
         final boolean quiet = (this.width == NEEDS_DEFAULT);
 
         //final boolean skipUndo = internal;
-        
+
         final boolean skipUndo;
         if (!internal && !javax.swing.SwingUtilities.isEventDispatchThread()) {
             // There was a reason this was important to do -- I think in some cases this could
@@ -4796,7 +4796,7 @@ public class LWComponent
         } else {
             skipUndo = internal;
         }
-        
+
         final Object old = skipUndo ? LWCEvent.NO_OLD_VALUE : new Size(width, height);
 
         if (mAspect > 0) {
@@ -4819,7 +4819,7 @@ public class LWComponent
     {
         if (DEBUG.IMAGE) Log.debug("constrainToAspect " + aspect + " " + w + "x" + h);
         // Given width & height are MINIMUM size: expand to keep aspect
-            
+
         if (w <= 0) w = 1;
         if (h <= 0) h = 1;
         double tmpAspect = w / h; // aspect we would have if we did not constrain it
@@ -4837,7 +4837,7 @@ public class LWComponent
         //                 h = (float) (w / mAspect);
         //             } else if (w == this.width) {
         //                 out("case1");
-        //                 w = (float) (h * mAspect); 
+        //                 w = (float) (h * mAspect);
         //             } else
         if (tmpAspect > aspect) {
             //out("case2: expand height");
@@ -4866,10 +4866,10 @@ public class LWComponent
           w = (float) (h * mAspect);
           }
         */
-                
+
     }
 
-    
+
     /** default calls setSize -- override to provide constraints */
     public void userSetSize(float w, float h) {
         setSize(w, h);
@@ -4877,7 +4877,7 @@ public class LWComponent
     protected void userSetSize(float w, float h, MapMouseEvent e) {
         userSetSize(w, h);
     }
-        
+
     /* set on screen visible component size to this many pixels in size -- used for user set size from
      * GUI interaction -- takes into account any current scale factor
      * (do we still need this? I think this should be deprecated -- SMF)
@@ -4889,7 +4889,7 @@ public class LWComponent
 //         setSize(w / getScaleF(), h / getScaleF());
 //         //setSize(w / getMapScaleF(), h / getMapScaleF());
 //     }
-    
+
     /** for XML restore only -- issues no event updates */
     public void setX(float x) { this.x = x; }
     /** for XML restore only -- issues no event updates */
@@ -4898,7 +4898,7 @@ public class LWComponent
     public void setWidth(float w) { this.width = w; }
     /** for castor restore -- will not trigger any events */
     public void setHeight(float h) { this.height = h; }
-    
+
 
     /*
      * getMapXXX methods are for values in absolute map positions and scales (needed for VUE.RELATIVE_COORDS == true)
@@ -4907,7 +4907,7 @@ public class LWComponent
      * "Map" values are absolute on-screen values that are true for any component in a map rendered at 100% scale (the size & location)
      * (better naming scheme might be "getRenderXXX" or "getAbsoluteXX" ?)
      */
-    
+
     public float getX()         { return this.x; }
     public float getY()         { return this.y; }
     public float getWidth()     { return this.width; }
@@ -4917,7 +4917,7 @@ public class LWComponent
     public float getLocalWidth()       { return (float) (this.width * getScale()); }
     /** @return the height inside the local parent (height * scale) */
     public float getLocalHeight()      { return (float) (this.height * getScale()); }
-    
+
     /** @return on-map width when viewed at 100% */
     public float getMapWidth()          { return (float) (this.width * getMapScale()); }
     /** @return on-map height when viewed at 100% */
@@ -4932,7 +4932,7 @@ public class LWComponent
     public Size getSize() {
         return new Size(this.width, this.height);
     }
-    
+
 
 
     protected double getMapXPrecise()
@@ -4960,7 +4960,7 @@ public class LWComponent
     public float getMapX() {
         return (float) getMapXPrecise();
     }
-    
+
     public float getMapY() {
         return (float) getMapYPrecise();
     }
@@ -5006,12 +5006,12 @@ public class LWComponent
             if (DEBUG.Enabled)
                 Util.printStackTrace("debug: " + this + " is computing link connetion center relative to itself");
             //final float scale = getMapScaleF();
-            
+
             point.x = getZeroCenterX();
             point.y = getZeroCenterY();
             //point.x = getZeroCenterX() * scale;
             //point.y = getZeroCenterY() * scale;
-            
+
         } else if (relative == null) {
       //} else if (relative == null || relative == parent) {
 
@@ -5046,7 +5046,7 @@ public class LWComponent
             if (DEBUG.LINK) out("     MapCenter: " + point);
             relative.transformMapToZeroPoint(point, point);
             if (DEBUG.LINK) out("RelativeCenter: " + point + " to " + relative);
-            
+
         } else {
 
             // note that this is the NET scale -- scale effective at the map level
@@ -5083,7 +5083,7 @@ public class LWComponent
                     }
                 }
             }
-            
+
 
             relative.transformMapToZeroPoint(point, point);
         }
@@ -5097,7 +5097,7 @@ public class LWComponent
     protected float getZeroCenterY() {
         return getHeight() / 2;
     }
-    
+
 
 
     //-----------------------------------------------------------------------------
@@ -5108,7 +5108,7 @@ public class LWComponent
     // Oh tho -- I think in LWLink we need the mapX of US, plus the mapX of the target
     // (if KEEP the ancestor code, implement generically so can pass in any value: e.g, LWLink.mCurveCenterX)
     //-----------------------------------------------------------------------------
-    
+
 
     protected double getAncestorX(LWContainer ancestor) {
         if (ancestor == parent) // quick check for the common case
@@ -5119,7 +5119,7 @@ public class LWComponent
         } else
             return parent.getAncestorX(ancestor) + getX() * parent.getMapScale();
     }
-    
+
     protected double getAncestorY(LWContainer ancestor) {
         if (ancestor == parent) // quick check for the common case
             return getY();
@@ -5129,7 +5129,7 @@ public class LWComponent
         } else
             return parent.getAncestorY(ancestor) + getY() * parent.getMapScale();
     }
-    
+
 
 //     protected double ancestorY(double y, LWContainer ancestor) {
 //         if (ancestor == parent) // quick check for the common case
@@ -5140,13 +5140,13 @@ public class LWComponent
 //         } else
 //             return parent.ancestorY(y, ancestor) + getY() * parent.getMapScale();
 //     }
-    
 
-    
+
+
     //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
-    
+
 
     /**
      * @return java.net.URI
@@ -5167,15 +5167,15 @@ public class LWComponent
         }
         return uri;
     }
-    
+
     public void setURI(URI uri) {
 //         if (isStyle) {
 //             VUE.Log.warn("attempt to set URI on a style: " + this + "; uri=" + uri);
 //             return;
 //         }
-        this.uri = uri; 
+        this.uri = uri;
     }
-    
+
      /* Methods to persist url through castor
      * We don't want to save URI object
      *
@@ -5191,13 +5191,13 @@ public class LWComponent
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t, "Failed to set an uri for  "+label);
         }
-        
+
     }
-    
+
     public String getURIString() {
         return getURI().toString();
     }
-    
+
     /*
     public void setShape(Shape shape)
     {
@@ -5214,7 +5214,7 @@ public class LWComponent
     public RectangularShape getMapShape()
     {
         // Will not work for shapes like RoundRect when scaled -- e..g, corner scaling will be off
-            
+
         final Shape s = getZeroShape();
         //        if (getMapScale() != 1f && s instanceof RectangularShape) { // todo: do if any transform, not just scale
         if (s instanceof RectangularShape) {
@@ -5236,7 +5236,7 @@ public class LWComponent
     }
 
 
-    
+
     /** @return the raw shape of this object, not including any shape (the stroke is laid on top of the raw shape).
         This is the zero based non-scaled shape (always at 0,0) */
     private Shape getShape()
@@ -5254,7 +5254,7 @@ public class LWComponent
         mZeroBounds.height = getHeight();
         return mZeroBounds;
     }
-    
+
     /**
      * @return the raw, zero based, non-scaled bounds.
      *
@@ -5270,15 +5270,15 @@ public class LWComponent
 //     protected Size getZeroPaintSize() {
 
 //         final float strokeWidth = getStrokeWidth()l
-        
+
 //         if (strokeWidth > 0) {
 //             return new Size(getWidth() + strokeWidth, getHeight() + strokeWidth);
 //         } else {
 //             return new Size(getWidth(), getHeight());
 //         }
 //     }
-    
-    
+
+
     /** @return the PARENT based bounds  -- this is the local component x,y  width*scale,height*scale, where scale
      * is any local scale this component has (not the total map scale: the scale that includes the scaling of all ancestors) */
     public Rectangle2D.Float getLocalBounds() {
@@ -5296,13 +5296,13 @@ public class LWComponent
     public Rectangle2D.Float getLocalBorderBounds() {
         return addLocalStrokeToBounds(getLocalBounds());
     }
-    
+
 
     /** @return the PARENT based, non-scaled bounds including all extra-shape artifacts, such as a stroke */
     public Rectangle2D.Float getLocalPaintBounds() {
         return addStrokeToBounds(getLocalBounds(), 0f);
     }
-    
+
     /** @return getMapBounds() -- map-coord (absolute) bounds of the stroke shape (not including any stroke width) */
     public final Rectangle2D.Float getBounds()
     {
@@ -5314,7 +5314,7 @@ public class LWComponent
     {
         return new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
     }
-    
+
 
     /**
      * Return absolute map bounds for hit detection & clipping.  This will vary
@@ -5338,9 +5338,9 @@ public class LWComponent
     public Rectangle2D.Float getFocalBounds() {
         // do not include any slide icons
         return addStrokeToBounds(getMapBounds(), this instanceof LWImage ? 0 : 25);
-        //return getFanBounds(new Rectangle2D.Float());        
+        //return getFanBounds(new Rectangle2D.Float());
     }
-    
+
 
     /**
      * Return absolute map bounds including any border stroke -- used by Groups.
@@ -5349,14 +5349,14 @@ public class LWComponent
     {
         return addStrokeToBounds(getMapBounds(), 0);
     }
-    
 
-    
+
+
     /** take the given map bounds, and add the scaled stroke width plus any extra if given */
     private Rectangle2D.Float addStrokeToBounds(Rectangle2D.Float r, float extra)
     {
         float strokeWidth = getStrokeWidth() + extra;
-        
+
         if (strokeWidth > 0) {
             strokeWidth *= getMapScale();
             final float exteriorStroke = strokeWidth / 2;
@@ -5365,21 +5365,21 @@ public class LWComponent
             r.width += strokeWidth;
             r.height += strokeWidth;
         }
-        
+
         // we need this adjustment for repaint optimzation to
         // work properly -- would be a bit cleaner to compensate
         // for this in the viewer
         //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
         //    strokeWidth += STROKE_INDICATION.getLineWidth();
 
-        
+
         return r;
     }
 
     private Rectangle2D.Float addLocalStrokeToBounds(Rectangle2D.Float r)
     {
         float strokeWidth = getStrokeWidth();
-        
+
         if (strokeWidth > 0) {
             strokeWidth *= getScale();
             final float exteriorStroke = strokeWidth / 2;
@@ -5390,7 +5390,7 @@ public class LWComponent
         }
         return r;
     }
-    
+
     /** @return an AffineTransform that when applied to a graphics context, will have us drawing properly
      * relative to this component, including any applicable scaling.  So after this is applied,
      * 0,0 will draw in the upper left hand corner of the component */
@@ -5417,7 +5417,7 @@ public class LWComponent
             return transformDownA(parent.loadZeroTransform(a));
         }
     }
-    
+
 
     /**
      * @return the transform that takes us from the given ancestor down to our local coordinate space/scale
@@ -5448,7 +5448,7 @@ public class LWComponent
 
         //linkNotificationDisabled = isZoomedFocus;
     }
-    
+
     //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
     //
@@ -5459,7 +5459,7 @@ public class LWComponent
     //
     //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
-    
+
     /**
      * Transform the given AffineTransform down from our parent to us, the child.
      */
@@ -5472,10 +5472,10 @@ public class LWComponent
             if (this.scale != 1)
                 a.scale(this.scale, this.scale);
         }
-        
+
         return a;
     }
-    
+
     /** transform relative to the child after already being transformed relative to the parent */
     protected void transformDownG(final Graphics2D a)
     {
@@ -5504,23 +5504,23 @@ public class LWComponent
 //     private static final int RotSteps = 180;
 //     private static final double RotStep = Math.PI * 2 / RotSteps;
 //     private static int RotCount = 0;
-    
+
 //     /**
 //      * Transform the given AffineTransform down from our parent to us, the child.
 //      */
 //     protected AffineTransform transformDownA(final AffineTransform a)
 //     {
 //         if (ROTATE_TEST && parent instanceof LWMap) {
-            
+
 //             // rotate around center (relative to map-bounds)
-            
+
 //             final double hw = getWidth() / 2;
 //             final double hh = getHeight() / 2;
 //             a.translate(getX() + hw, getY() + hh);
 //             a.scale(scale, scale);
 //             a.rotate(Math.PI / 8);
 //             a.translate(-hw, -hh);
-            
+
 //         } else {
 
 //             if (isZoomedFocus) {
@@ -5535,7 +5535,7 @@ public class LWComponent
 //                 } else {
 
 //                     // Zoom on-center.
-                    
+
 //                     // To make this simple, we first translate to the local center (our
 //                     // center location in parent coords, compensating for any of our own
 //                     // scale), then apply the new zoomed scale, then translate back out
@@ -5557,22 +5557,22 @@ public class LWComponent
 //                         if (++RotCount >= RotSteps)
 //                             RotCount = 0;
 //                     }
-                    
+
 //                     // Set the super-zoom scale:
 //                     //a.scale(ZoomRolloverScale, ZoomRolloverScale);
 //                     a.translate(-halfWidth, -halfHeight);
 //                 }
 //             } else {
-                
+
 //                 //-------------------------------------------------------
 //                 // This is the default, standard case:
 //                 //-------------------------------------------------------
-                
+
 //                 a.translate(this.x, this.y);
 //                 if (this.scale != 1)
 //                     a.scale(this.scale, this.scale);
 //             }
-            
+
 //         }
 //         return a;
 //     }
@@ -5598,7 +5598,7 @@ public class LWComponent
 // //         GCAP.g = g; // not exactly thread-safe -- this temporary while we work on this code (cut/paste duplicate when done)
 // //         transformDownA(GCAP);
 // //     }
-    
+
 
 
 //     /** transform relative to the child after already being transformed relative to the parent */
@@ -5611,18 +5611,18 @@ public class LWComponent
 //         // of AffineTransform -- we only call methods common to both classes.
 //         // (and we don't return the passed in argument in this method)
 //         //-----------------------------------------------------------------------------
-        
+
 //         if (ROTATE_TEST && parent instanceof LWMap) {
-            
+
 //             // rotate around center (relative to map-bounds)
-            
+
 //             final double hw = getWidth() / 2;
 //             final double hh = getHeight() / 2;
 //             a.translate(getX() + hw, getY() + hh);
 //             a.scale(scale, scale);
 //             a.rotate(Math.PI / 8);
 //             a.translate(-hw, -hh);
-            
+
 //         } else {
 
 //             if (false && isZoomedFocus) {
@@ -5632,7 +5632,7 @@ public class LWComponent
 //                 } else {
 
 //                     // Zoom on-center.
-                    
+
 //                     // To make this simple, we first translate to the local center (our
 //                     // center location in parent coords, compensating for any of our own
 //                     // scale), then apply the new zoomed scale, then translate back out
@@ -5654,22 +5654,22 @@ public class LWComponent
 //                         if (++RotCount >= RotSteps)
 //                             RotCount = 0;
 //                     }
-                    
+
 //                     // Set the super-zoom scale:
 //                     //a.scale(ZoomRolloverScale, ZoomRolloverScale);
 //                     a.translate(-halfWidth, -halfHeight);
 //                 }
 //             } else {
-                
+
 //                 //-------------------------------------------------------
 //                 // This is the default, standard case:
 //                 //-------------------------------------------------------
-                
+
 //                 a.translate(this.x, this.y);
 //                 if (this.scale != 1)
 //                     a.scale(this.scale, this.scale);
 //             }
-            
+
 //         }
 //     }
 
@@ -5677,23 +5677,23 @@ public class LWComponent
     /** Will transform all the way from the the map down to the component, wherever nested/scaled.
      * So drawing at 0,0 will draw in the upper left of the component. */
     public void transformZero(final Graphics2D g) {
-        
+
         // todo: need a relative to parent transform only for cascading application during drawing
         // (and ultimate picking when impl is optimized)
-            
+
         if (parent == null) {
             ;
         } else {
             parent.transformZero(g);
         }
-        
+
         transformDownG(g);
     }
 
     public Point2D.Float transformMapToZeroPoint(Point2D.Float mapPoint) {
         return (Point2D.Float) transformMapToZeroPoint(mapPoint, mapPoint);
     }
-    
+
     /**
      * @param mapPoint, a point in map coordinates to transform to local coordinates
      * @param zeroPoint the destination Point2D to place the resulting transformed coordinate -- may be
@@ -5709,7 +5709,7 @@ public class LWComponent
 //             zeroPoint.y = mapPoint.y - this.y;
 //             return zeroPoint;
 //         }
-        
+
         try {
             getZeroTransform().inverseTransform(mapPoint, zeroPoint);
         } catch (java.awt.geom.NoninvertibleTransformException e) {
@@ -5727,11 +5727,11 @@ public class LWComponent
 //             mapPoint.y = zeroPoint.y + this.y;
 //             return mapPoint;
 //         }
-        
+
         getZeroTransform().transform(zeroPoint, mapPoint);
         return mapPoint;
     }
-    
+
 
     /**
      * @param mapRect -- incoming rectangle to transform to be relative to 0,0 of this component
@@ -5761,9 +5761,9 @@ public class LWComponent
         // entirely and using the map shape in intersects, etc) Of course, crap, we
         // couldn't do all this for links, could we?  Tho maybe via special handing in an
         // override... tho that would only work for the transform, not the shape, as the
-        // parent shape is useless to the link. FYI, currently, we only use this 
+        // parent shape is useless to the link. FYI, currently, we only use this
         // for doing intersections of links and non-rectangular nodes
-        
+
 //         final double[] points = new double[8];
 //         final double width = zeroRect.getWidth();
 //         final double height = zeroRect.getHeight();
@@ -5809,7 +5809,7 @@ public class LWComponent
                          );
 
         return zeroRect;
-        
+
     }
 
     /**
@@ -5820,7 +5820,7 @@ public class LWComponent
     public Rectangle2D transformZeroToMapRect(Rectangle2D zeroRect) {
         return transformZeroToMapRect(zeroRect, zeroRect);
     }
-    
+
     /**
      * This will take the given zeroRect rectangle in local coordinates, and transform it
      * into map coordinates, setting mapRect and returning it.  If mapRect is null,
@@ -5830,7 +5830,7 @@ public class LWComponent
     {
         final AffineTransform tx = getZeroTransform();
         final double[] points = new double[4];
-        
+
         points[0] = zeroRect.getX();
         points[1] = zeroRect.getY();
         points[2] = points[0] + zeroRect.getWidth();
@@ -5839,18 +5839,18 @@ public class LWComponent
 
         if (mapRect == null)
             mapRect = new Rectangle2D.Float();
-        
+
         mapRect.setRect(points[0],
                         points[1],
                         points[2] - points[0],
                         points[3] - points[1]
                         );
-        
+
         return mapRect;
 
-        
-        
-// Non-rotating & non-transform using version:        
+
+
+// Non-rotating & non-transform using version:
 //         final double scale = getMapScale();
 //         // would this be right? scale the x/y first?
 //         if (scale != 1) {
@@ -5869,10 +5869,10 @@ public class LWComponent
 //             rect.x += getMapX();
 //             rect.y += getMapY();
 //         }
-        
+
     }
-                
-    
+
+
     /**
      * Default implementation: checks bounding box
      * Subclasses should override and compute via shape.
@@ -5896,7 +5896,7 @@ public class LWComponent
         //Util.printClassTrace("tufts.vue.LW", "INTERSECTS " + this);
         return hit;
     }
-    
+
     public boolean requiresPaint(DrawContext dc)
     {
         return requiresPaintImpl(dc) != null;
@@ -5914,7 +5914,7 @@ public class LWComponent
 
         if (isZoomedFocus())
             return null;
-        
+
         // if filtered, don't draw, unless has children, in which case
         // we need to draw just in case any of the children are NOT filtered.
         //if (isHidden() || (isFiltered() && !hasChildren()))
@@ -5948,16 +5948,16 @@ public class LWComponent
             // has already determined it needs to paint, and if that's the case,
             // and it fully contains it's children, if the parent is likely to
             // be fully on-screen, we should just go ahead and paint all the children.
-            
+
             if (parent != null && dc.focal != parent && dc.zoom <= 1.0 && parent.fullyContainsChildren()) {
                 //return "parentIsLikelySlideIcon " + dc.zoom;
                 return "parentIsLikelySlideIcon";
             }
-            
+
             //-----------------------------------------------------------------------------
 
             if (hasEntries() && !(this instanceof LWImage)) {
-                
+
                 // HACK: for now, if we have ANY pathway entries, we say we have to draw, so
                 // that if they're needed, any slide icons will draw (even if the parent
                 // node is clipped: this is because the slide icons lie outside the
@@ -5977,37 +5977,37 @@ public class LWComponent
                 // full image representation which takes up tons of memory.  Images
                 // don't display slide icons, so I don't think we ever needed it
                 // for those anyway.
-                
+
                 return "hasEntriesHack";
             }
-            
+
             if (intersects(dc.getMasterClipRect()))
                 return "inClipRegion";
-            
+
 //             if (isDrawingSlideIcon())
 //                 return getMapSlideIconBounds().intersects(dc.getMasterClipRect());
 //             else
-            
+
             return null;
-            
+
         } else {
-            
+
             // Not clip optimized means don't bother to check the master clip to see if
             // we need to draw: just always draw everything no matter where it is
             // (unless it was hidden, etc).  E.g., if we're drawing to generate an
             // image, or drawing a zoomed rollover, we already know we just need to draw
             // the component no matter what.
-            
+
             // More examples: when drawing raw, always draw everything, don't check
             // against the master "map" clip rect, as that's only for drawing map
             // elements (e.g., we may be drawing a LWComponent that's a decoration or
             // GUI element, like a navigation node, or a master slide background).
-            
+
             return "noClip";
         }
 
     }
-    
+
 
 
 //     /**
@@ -6087,20 +6087,20 @@ public class LWComponent
 //         float dy = cy - y;
 //         return dx*dx + dy*dy;
 //     }
-    
+
 //     public float distanceToCenter(float x, float y)
 //     {
 //         return (float) Math.sqrt(distanceToCenterSq(x, y));
 //     }
-    
+
 //     public void drawPathwayDecorations(DrawContext dc)
 //     {
 //         if (mPathways == null)
 //             return;
-        
+
 //         if (LWPathway.PathwayAsDots || this instanceof LWLink)
 //             LWPathway.drawPathwayDot(dc.create(), this);
-        
+
 //         if (!LWPathway.PathwayAsDots && isTransparent()) {
 //             for (LWPathway path : mPathways) {
 //                 //if (!dc.isFocused && path.isDrawn()) {
@@ -6120,7 +6120,7 @@ public class LWComponent
 //             if (p != null && p.isVisible() && p.getCurrentNode() == this) {
 //                 // SPECIAL CASE:
 //                 // as the current element on the current pathway draws a huge
-//                 // semi-transparent stroke around it, skip drawing our fat 
+//                 // semi-transparent stroke around it, skip drawing our fat
 //                 // transparent selection stroke on this node.  So we just
 //                 // do nothing here.
 //             } else {
@@ -6131,7 +6131,7 @@ public class LWComponent
 //             }
 //         }
 //     }
-    
+
 
     /** @return true if the given x/y (already transformed to our local coordinate space), is within our shape */
     public final boolean contains(float x, float y, PickContext pc) {
@@ -6157,7 +6157,7 @@ public class LWComponent
     protected boolean containsImpl(float x, float y, PickContext pc)
     {
         final float stroke = getStrokeWidth() / 2;
-        
+
         return x >= -stroke
             && y >= -stroke
             && x <= getWidth() + stroke
@@ -6176,7 +6176,7 @@ public class LWComponent
             && x <= (this.x+getLocalWidth())
             && y <= (this.y+getLocalHeight());
     }
-    
+
 
     public static final float SlideIconScale = 0.125f;
 //     private Rectangle2D.Float mSlideIconBounds;
@@ -6221,7 +6221,7 @@ public class LWComponent
 //         final float height = LWSlide.SlideHeight * SlideIconScale;
 
 //         Point2D.Float corner = getZeroCorner();
-        
+
 //         float xoff = corner.x - 60;
 //         float yoff = corner.y - 60;
 
@@ -6241,14 +6241,14 @@ public class LWComponent
 //                      yoff,
 //                      width,
 //                      height);
-        
+
 //         return rect;
 //     }
 
     private Point2D.Float getSlideIconStackLocation()
     {
         final Point2D corner = getZeroSouthEastCorner();
-        
+
         float xoff = (float) corner.getX() - 60;
         float yoff = (float) corner.getY() - 60;
 
@@ -6262,10 +6262,10 @@ public class LWComponent
         return new Point2D.Float(xoff, yoff);
 
     }
-    
+
     //protected final Rectangle2D debugZeroRect = new Rectangle2D.Double();
 
-    
+
     /**
      * Intended for use in an LWContainer where the parent has already
      * been drawn, and the DrawContext is currently transformed to the
@@ -6293,14 +6293,14 @@ public class LWComponent
 
         if (this instanceof LWLink)
             return;
-        
+
         dc.g.setTransform(zeroTransform);
-                
+
         dc.setAbsoluteStroke(1);
-                
+
         //dc.g.setColor(Color.blue);
         //dc.g.draw(debugZeroRect);
-                
+
         // scaling testing -- draw an exactly 8x8 pixel (rendered) box
         dc.g.setColor(Color.green);
         dc.g.drawRect(0,0,7,7);
@@ -6331,7 +6331,7 @@ public class LWComponent
             dc.g.draw(yaxis);
         }
     }
-    
+
 
     /**
      *
@@ -6367,11 +6367,11 @@ public class LWComponent
 //             }
         }
     }
-    
+
     public final void drawZero(DrawContext dc)
     {
         final AffineTransform zeroTransform = DEBUG.PDF ? dc.g.getTransform() : null;
-        
+
         dc.checkComposite(this);
         if (DEBUG.Enabled) dc.recordDebug(this);
 
@@ -6381,13 +6381,13 @@ public class LWComponent
                 // TODO: this should be a flag set up in the DrawContext
             	if(VUE.getInteractionToolsPanel() != null ){
                 final double alpha = VUE.getInteractionToolsPanel().getAlpha();
-                if (alpha != 1 && !selectedOrParent()) 
+                if (alpha != 1 && !selectedOrParent())
                     dc.setAlpha(alpha); // fade nodes not in selection
             	}
             }
 
             drawImpl(dc);
-            
+
         } catch (RuntimeException e) {
             Log.error("drawImpl failed: " + e);
             try {
@@ -6407,7 +6407,7 @@ public class LWComponent
             dc.g.setColor(Color.yellow);
             dc.g.fill(getZeroShape());
         }
-        
+
         if (DEBUG.PDF && DEBUG.META && this instanceof LWLink == false) {
             dc = dc.create();
             dc.g.setTransform(zeroTransform);
@@ -6420,14 +6420,14 @@ public class LWComponent
             if (c1 == null || !c1.equals(c2))
                 dc.g.drawString(fmt(c2), 0, 20);
         }
-        
+
     }
 
 //     public void drawFit(java.awt.Graphics g, int xoff, int yoff) {
 //         //drawFit(dc, dc.getMasterClipRect(), borderGap);
 //         drawFit(new DrawContext(g, this), 0);
 //     }
-    
+
     /** fit and center us into the total clip bounds of the given dc -- border gap pixels will multiplied by final scale value */
     public void drawFit(DrawContext dc, int borderGap) {
         drawFit(dc, dc.getMasterClipRect(), borderGap);
@@ -6452,11 +6452,11 @@ public class LWComponent
         dc.setClipOptimized(false);
         drawZero(dc);
     }
-    
-    
+
+
     //private static final double PathwayOnTopZoomThreshold = 1.5;
     public static final double PathwayOnTopZoomThreshold = 3;
-    
+
     /**
      * Draw any needed pathway decorations and related slide icons,
      * before/after calling drawZero, depending on desired impl.
@@ -6476,7 +6476,7 @@ public class LWComponent
         } else {
             drawZero(dc);
         }
-        
+
         // see VUE-896 (and VUE-892) only show slide icon if node is not filtered
         if (drawSlides && mEntries != null && !isFiltered())
             drawSlideIconStack(dc);
@@ -6495,7 +6495,7 @@ public class LWComponent
 //             else
 //                 path = null;
 //         }
-            
+
 //         if (path != null && path.isShowingSlides()) {
 //             final LWPathway.Entry entry = path.getCurrentEntry();
 //             // This is just in case the node is in the pathway more than once: if it is,
@@ -6522,17 +6522,17 @@ public class LWComponent
         if (DEBUG.WORK) out("corner=" + p);
         farthestVisibleSlideCorner = p;
     }
-    
-    
+
+
     /** @return a slide to be drawn last, or null if none in particular */
-    
+
     // TODO: need to do this as part of layout: need to trigger layout if any pathway
     // visibility or membership changes.  Currently, the paint bounds falls behind as
     // farthestVisibleCorner doesn't update till draw time... We special case a call to
     // this during the init (restore) layout, so at least auto-fit at startup works, but
     // if we ever hava a viewer that's implementing a constant auto-fit feature, it will
     // fall behind until we handle this in proper model/view split fashion.
-    
+
     private final void layoutSlideIcons(DrawContext dc) {
         if (mEntries == null)
             return;
@@ -6543,7 +6543,7 @@ public class LWComponent
         float yoff = corner.y;
 
 //         if (false && dc != null && dc.isPresenting()) {
-//             // if presenting, let the position the active pathway slide as the last slide in the stack            
+//             // if presenting, let the position the active pathway slide as the last slide in the stack
 //             for (LWSlide slide : seenSlideIcons(dc)) {
 //                 slide.takeLocation(xoff, yoff);
 //                 yoff += slide.getLocalHeight() / 6;
@@ -6555,12 +6555,12 @@ public class LWComponent
             // of the pathway list (TODO: entries order isn't synced with this...)
 
             LWSlide lastSlide = null;
-        
+
             for (LWPathway.Entry e : mEntries) {
                 if (e.hasVisibleSlide()) {
                     final LWSlide slide = e.getSlide();
                     lastSlide = slide;
-                    
+
                     // TODO BUG: during a presentation, if you use 'p' to change to exclusive
                     // pathway display mode and back, it actually results in the movement of the
                     // slide icons -- so unless the slide you're on happens to be the first slide
@@ -6575,7 +6575,7 @@ public class LWComponent
                     // the viewer would just ignore the location on focals...
                     // slide.setLocation(xoff, yoff); // No good: if slide's parent moves, the slide moves..
                     slide.takeLocation(xoff, yoff);
-                
+
                     final float scaledSlideWidth = slide.getLocalWidth();
                     final float scaledSlideHeight = slide.getLocalHeight();
                     yoff += scaledSlideWidth / 6;
@@ -6603,7 +6603,7 @@ public class LWComponent
             }
             //}
     }
-    
+
     private void drawSlideIconStack(final DrawContext dc)
     {
         layoutSlideIcons(dc);
@@ -6623,7 +6623,7 @@ public class LWComponent
         new BasicStroke((float) (LWPathway.PathBorderStrokeWidth / SlideIconScale),
                         BasicStroke.CAP_ROUND,
                         BasicStroke.JOIN_ROUND);
-    
+
 
     private void drawSlideIcon(final DrawContext dc, final LWSlide slide)
     {
@@ -6642,7 +6642,7 @@ public class LWComponent
 //         } else {
 //             drewBorder = false;
 //         }
-            
+
 //         final AffineTransform zeroTransform = dc.g.getTransform();
 //         final Shape curClip = dc.g.getClip();
 //         dc.g.clip(slide.getZeroShape());
@@ -6657,13 +6657,13 @@ public class LWComponent
 //             dc.g.setStroke(STROKE_FIVE);
 //             dc.g.draw(slide.getZeroShape());
 //         }
-        
-        
+
+
     }
 
 
 
-    
+
 
     /*
     protected final void drawDecorated(DrawContext dc)
@@ -6680,7 +6680,7 @@ public class LWComponent
             drawZero(dc);
 
             final LWSlide slide = entry.getSlide();
-            
+
             //double slideX = getCenterX() - (slide.getWidth()*slideScale) / 2;
             //double slideY = getCenterY() - (slide.getHeight()*slideScale) / 2;
             //dc.g.translate(slideX, slideY);
@@ -6696,7 +6696,7 @@ public class LWComponent
             // A hack so that when LWLinks (hasAbsoluteMapLocation) pop to map drawing, they
             // don't pop up beyond this point.
             //dc.mapTransform = dc.g.getTransform();
-            
+
             //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
             //entry.pathway.getMasterSlide().drawImpl(dc);
             slide.drawImpl(dc);
@@ -6734,11 +6734,11 @@ public class LWComponent
                     dc.g.fill(toFill);
                 }
             }
-            
+
             drawZero(dc);
         }
     }
-    */      
+    */
 
     /** default impl: does nothing -- meant to be overriden */
     protected void drawImpl(DrawContext dc) {}
@@ -6756,7 +6756,7 @@ public class LWComponent
             c.preCacheImpl();
         }
     }
-    
+
     protected LWChangeSupport getChangeSupport() {
         return mChangeSupport;
     }
@@ -6783,14 +6783,14 @@ public class LWComponent
         if (newSource != null)
             newSource.addLWCListener(listener);
     }
-    
+
     public synchronized void removeAllLWCListeners() {
         mChangeSupport.removeAllListeners();
     }
 
     private boolean isStyling(Key key) {
         return supportsProperty(key)
-            //&& (key.isStyleProperty() || key == LWKey.Label); 
+            //&& (key.isStyleProperty() || key == LWKey.Label);
         && (key.isStyleProperty() || (key == LWKey.Label && hasFlag(Flag.DATA_STYLE)));
     }
 
@@ -6805,7 +6805,7 @@ public class LWComponent
 
         if (hasFlag(Flag.EVENT_SILENT))
             return;
-        
+
 //         //if (e.key.isSignal || e.key == LWKey.Location && e.source == this) {
 //         if (e.key == LWKey.UserActionCompleted || e.key == LWKey.Location && e.source == this) {
 //             // only keep if the location event is on us:
@@ -6828,12 +6828,12 @@ public class LWComponent
 
             if (isStyle() && isStyling(key))
                 updateStyleWatchers(key, e);
-            
+
             // sync sources not in use: never do this 2007-11-30 SMF
             //if (key.type == KeyType.DATA)
             //  syncUpdate(key);
         }
-        
+
 //         if (isStyle() && getParent() == null)
 //             ; // ignore events from non-embedded style objects (e.g., EditorManager constructs)
 //         else
@@ -6845,7 +6845,7 @@ public class LWComponent
 
 //             if (isStyle() && key.isStyleProperty)
 //                 updateStyleWatchers(key, e);
-            
+
 //             // sync sources not in use: never do this 2007-11-30 SMF
 //             //if (key.type == KeyType.DATA)
 //             //  syncUpdate(key);
@@ -6859,14 +6859,14 @@ public class LWComponent
         return hasFlag(Flag.INTERNAL);
     }
 
-    
+
     /** Copy the value for the given key either back to our sync source, or to our sync clients */
     private boolean syncUnderway = false;
     private void syncUpdate(Key key) {
 
         if (syncUnderway)
             return;
-        
+
         syncUnderway = true;
         try {
             doSyncUpdate(key);
@@ -6874,7 +6874,7 @@ public class LWComponent
             syncUnderway = false;
         }
     }
-    
+
     protected void doSyncUpdate(Key key) {
         // currently we only allow one or the other: you can be a source, or a client
         // this is all we need for now (a node can be synced to nodes on multiple
@@ -6886,7 +6886,7 @@ public class LWComponent
                 key.copyValue(this, mSyncSource);
 
         } else if (mSyncClients != null && !mSyncClients.isEmpty()) {
-            
+
             for (LWComponent c : mSyncClients) {
                 Log.debug("[" + key + "] UPDATING SYNC CLIENT: " + this + " -> " + c);
                 //Util.printStackTrace("SYNCTRACE " + this);
@@ -6909,17 +6909,17 @@ public class LWComponent
         // knows how to get/set/copy values, we can now just find all the
         // components "listening" to this style (pointing to it), and copy over
         // the value that just changed on the style object.
-        
+
         if (DEBUG.Enabled) out("\nSTYLE OBJECT UPDATING STYLED CHILDREN with " + key + "; value " + Util.tags(e.getOldValue()));
         //final LWPathway path = ((MasterSlide)getParent()).mOwner;
-        
+
         // We can traverse all objects in the system, looking for folks who
         // point to us.  But once slides are owned by the pathway, we'll have a
         // list of all slides here from the pathway, and we can just traverse
         // those and check for updates amongst the children, as we happen
         // to know that this style object only applies to slides
         // (as opposed to ontology style objects)
-        
+
         // todo: this not a fast way to traverse & find what we need to change...
         for (LWComponent dest : findPotentialStyleWatchers()) {
             // we should never be point back to ourself, but we check just in case
@@ -6954,8 +6954,8 @@ public class LWComponent
         return map.getAllDescendents(ChildKind.ANY);
         //return getMap().getAllDescendents(ChildKind.ANY);
     }
-    
-    
+
+
     /**
      * A third party can ask this object to raise an event
      * on behalf of the source.
@@ -6964,11 +6964,11 @@ public class LWComponent
     {
         notifyLWCListeners(new LWCEvent(source, this, what));
     }
-    
+
     void notifyProxy(LWCEvent e) {
         notifyLWCListeners(e);
     }
-    
+
 //     /** This generates an event with NO COMPONENT IN IT: we just want access to the model hierarchy at
 //      * this point, but the component itself is not interesting here.
 //      */
@@ -6990,12 +6990,12 @@ public class LWComponent
 //         // should speed things up when creating hundreds/thousands(!) of nodes, including
 //         // during map restores -- we can skip creating an event that will never be delievered
 //         // for ever property set that happens
-//         if (hasFlag(Flag.EVENT_SILENT)) 
+//         if (hasFlag(Flag.EVENT_SILENT))
 //             return;
         if (alive())
             notifyLWCListeners(new LWCEvent(this, this, what, oldValue));
     }
-    
+
     /** same as notify(String, Object), but will do notification even if the LWComponent isn't "alive" yet */
     protected void notifyForce(String what, Object oldValue)
     {
@@ -7007,7 +7007,7 @@ public class LWComponent
         if (alive())
             notifyLWCListeners(new LWCEvent(this, this, key, oldValue));
     }
-    
+
     protected void notify(Key key, boolean oldValue)
     {
         if (alive())
@@ -7019,7 +7019,7 @@ public class LWComponent
         // todo: we still need both src & component? (this,this)
         notifyLWCListeners(new LWCEvent(this, this, what, LWCEvent.NO_OLD_VALUE));
     }
-    
+
     /**a notify with an array of components
        added by Daisuke Fujiwara
      */
@@ -7039,7 +7039,7 @@ public class LWComponent
         else
             Log.debug("attempt to delete already deleted: " + this);
     }
-    
+
 
     /**
      * Do final cleanup needed now that this LWComponent has
@@ -7078,9 +7078,9 @@ public class LWComponent
         // Also, would want to split this in to a final restoreToModel and
         // an overridable restoreToModelImpl wrapped by the calls that
         // force having the UNDELETING bit set, if we really want to rely on it.
-        
+
         setFlag(Flag.UNDELETING);
-        
+
         if (DEBUG.PARENTING||DEBUG.EVENTS) out("restoreToModel: " + this);
 
         if (!isDeleted()) if (DEBUG.Enabled) out("FYI: already restored");
@@ -7089,7 +7089,7 @@ public class LWComponent
         // model -- otherwise nothing could have happened to this component to change it.  Any
         // possible size/location events that could happen as a result will be ignored as this
         // component doesn't have it's parent set yet.
-        layout(); 
+        layout();
 
         setDeleted(false);
 
@@ -7099,7 +7099,7 @@ public class LWComponent
     public boolean isDeleted() {
         return hasFlag(Flag.DELETED);
     }
-    
+
     private void setDeleted(boolean deleted) {
         if (deleted) {
             //mHideBits |= HideCause.DELETED.bit; // direct set: don't trigger notify
@@ -7120,7 +7120,7 @@ public class LWComponent
         }
         clearHidden(HideCause.PRUNE);
      }
-    
+
 //     public void setSelected(boolean selected) {
 //         this.selected = selected;
 //     }
@@ -7138,7 +7138,7 @@ public class LWComponent
         return parent == null ? isSelected() : (isSelected() || parent.selectedOrParent());
         //return parent == null ? isSelected() : (parent.selectedOrParent() | isSelected());
     }
-    
+
     public final boolean isAncestorSelected() {
         return parent == null ? false : parent.selectedOrParent();
     }
@@ -7160,7 +7160,7 @@ public class LWComponent
         // arch: would be nice if all the stuff for dealing with bitfields was handled in a single
         // BooleanKey which could be used for multiple bit fields.
     };
-    
+
     public void setState(State s) {
         setState(s, true);
     }
@@ -7170,13 +7170,13 @@ public class LWComponent
             mState |= s.bit;
         else
             mState &= ~s.bit;
-        
-        
+
+
 // Problems getting below to fully work:
 //      (1) map not repainting when undoing a clear all pruning (should be easy)
 //      (2) LWLink internal head/tail prune states also need to be synced -- would need to make these
 //      state bits as well for being able to undo individual mouse-click prunes.
-        
+
 //         if (s == State.PRUNED) {
 //             // this is a hack, but could make this work for undo:
 //             if (on) {
@@ -7187,11 +7187,11 @@ public class LWComponent
 //                 setHidden(HideCause.PRUNE, false);
 //             }
 //         }
-        
+
         if (mState != old)
             notify(KEY_State, Integer.valueOf(old));
     }
-    
+
     public boolean hasState(State s) {
         return (mState & s.bit) != 0;
     }
@@ -7212,12 +7212,12 @@ public class LWComponent
         else
             clearFlag(flag);
     }
-    
+
 
     public boolean hasFlag(Flag flag) {
         return (mFlags & flag.bit) != 0;
     }
-    
+
     public boolean hasAnyFlag(int bits) {
         return (mFlags & bits) != 0;
     }
@@ -7228,7 +7228,7 @@ public class LWComponent
             notify("locked");
         }
     }
-    
+
     public final boolean isLocked() {
         return hasFlag(Flag.LOCKED);
     }
@@ -7238,7 +7238,7 @@ public class LWComponent
         // Move up the LWNode impl (which is generic) if we want more
         // than just LWNode's to support a collapsed state.
     }
-    
+
     public boolean isCollapsed() {
         if (COLLAPSE_IS_GLOBAL)
             return false; // LWNode overrides
@@ -7252,7 +7252,7 @@ public class LWComponent
 //         if (COLLAPSE_IS_GLOBAL) {
 //             return isGlobalCollapsed;
 //         }
-        
+
         if (parent != null) {
             if (parent.isCollapsed())
                 return true;
@@ -7261,17 +7261,17 @@ public class LWComponent
         } else
             return false;
     }
-    
+
 
     public Boolean getXMLlocked() {
         return isLocked() ? Boolean.TRUE : null;
     }
-    
+
     public void setXMLlocked(Boolean b) {
         setLocked(b);
     }
-    
-    
+
+
 //     /** debug -- names of set HideBits */
 //     String getDescriptionOfSetBits() {
 //         StringBuffer buf = new StringBuffer();
@@ -7284,7 +7284,7 @@ public class LWComponent
 //         }
 //         return buf.toString();
 //     }
-    
+
     String getDescriptionOfSetBits() {
         String s = "";
         if (mHideBits != 0)
@@ -7296,7 +7296,7 @@ public class LWComponent
         }
         return s;
     }
-    
+
     String getDescriptionOfSetBits(Class enumType, long bits) {
         final StringBuilder buf = new StringBuilder();
         //buf.append(enumType.getSimpleName());
@@ -7316,24 +7316,24 @@ public class LWComponent
         buf.append(')');
         return buf.toString();
     }
-    
-    
+
+
     public void setVisible(boolean visible) {
         setHidden(HideCause.DEFAULT, !visible);
     }
-    
+
     public void setHidden(HideCause cause, boolean hide) {
         if (hide)
             setHidden(cause);
         else
             clearHidden(cause);
     }
-    
+
     public void setHidden(HideCause cause) {
         if (DEBUG.EVENTS) out("setHidden " + cause);
         setHideBits(mHideBits | cause.bit);
     }
-    
+
     public void clearHidden(HideCause cause) {
         //Log.debug(this, new Throwable("clearHidden"));
         if (DEBUG.EVENTS) out("clrHidden " + cause);
@@ -7361,11 +7361,11 @@ public class LWComponent
     public boolean isHidden(HideCause cause) {
         return (mHideBits & cause.bit) != 0;
     }
-    
+
     public boolean isVisible() {
         return mHideBits == 0;
     }
-    
+
     /** persist with value true only if HideCause.DEFAULT is set */
     public Boolean getXMLhidden() {
         return isHidden(HideCause.DEFAULT) ? Boolean.TRUE : null;
@@ -7387,33 +7387,33 @@ public class LWComponent
         // as when false it shouldn't be persisted at all
         setPruned(b.booleanValue());
     }
-    
+
 
     /** @deprecated -- use hasDraws() */
     public final boolean isDrawn() {
         return hasDraws();
     }
-    
+
     /** @return true if ths component is going to be painting itself (independent of any children may do so) */
     public boolean isPainted() {
         return isVisible() && !isFiltered();
     }
-    
+
     /** @return true if this node may have any drawing to do: (e.g., itself or children)
      * Note that a return of true does not guarantee that we will draw anything,
      * but if it returns false it does guarantee that nothing needs drawing */
     public boolean hasDraws() {
         if (isFiltered())
             return hasChildren();
-        else 
+        else
             return isVisible();
     }
-    
+
     protected boolean updatingLinks() {
         return !isZoomedFocus() || DEBUG.VIEWER;
     }
-    
-    
+
+
     public void mouseEntered(MapMouseEvent e)
     {
         if (DEBUG.ROLLOVER) System.out.println("MouseEntered:     " + this);
@@ -7443,7 +7443,7 @@ public class LWComponent
     {
         return false;
     }
-    
+
     /** pre-digested double-click
      * @return true if you do anything with it, otherwise
      * the viewer can/will provide default action.
@@ -7456,7 +7456,7 @@ public class LWComponent
             out("Displaying content for: " + getResource());
             getResource().displayContent();
             return true;
-        } 
+        }
         else if (this instanceof LWGroup)  // todo: in override
         {
             //} else if (this instanceof LWSlide || this instanceof LWGroup || this instanceof LWPortal)
@@ -7475,7 +7475,7 @@ public class LWComponent
     protected boolean doZoomingDoubleClick(MapMouseEvent e)
     {
     //	System.out.println("zooming double click");
-    	
+
         final MapViewer viewer = e.getViewer();
 
         if (viewer.getFocal() == this) {
@@ -7491,7 +7491,7 @@ public class LWComponent
         //final double viewerArea = viewerBounds.getWidth() * viewerBounds.getHeight();
         final double nodeArea = mapBounds.getWidth() * mapBounds.getHeight();
         final boolean clipped = overlapArea < nodeArea;
-        
+
         final double overlapWidth = mapBounds.getWidth() / viewerBounds.getWidth();
         final double overlapHeight = mapBounds.getHeight() / viewerBounds.getHeight();
 
@@ -7514,7 +7514,7 @@ public class LWComponent
             outf("overlapHeight %4.1f%%", overlapHeight * 100);
             outf("clipped=" + clipped);
         }
-        
+
         if (clipped) {
             focusNode = true;
         } else if (overlapWidth > 0.8 || overlapHeight > 0.8) {
@@ -7524,7 +7524,7 @@ public class LWComponent
 
         if (focusNode) {
             viewer.clearRollover();
-            
+
             if (SwapFocalOnSlideZoom) {
                 // loadfocal animate only currently works when popping (to a parent focal)
                 //viewer.loadFocal(this, true, AnimateOnZoom);
@@ -7543,7 +7543,7 @@ public class LWComponent
             // just re-fit to the map
             viewer.fitToFocal(AnimateOnZoom);
         }
-        
+
         return true;
     }
 
@@ -7556,19 +7556,19 @@ public class LWComponent
             name = "String[";
         else
             name = Util.tag(o);
-        
+
         if (s.length() > 1024)
             Log.info(this + " ignoring XML: " + name + "[" + s.substring(0,1024) + "...x" + s.length());
         else
             Log.info(this + " ignoring XML: " + name + s + "]");
     }
-    
+
 
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
     public void XML_initialized(Object context) {
         mXMLRestoreUnderway = true;
     }
-    
+
     public void XML_fieldAdded(Object context, String name, Object child) {
         if (DEBUG.XML && DEBUG.META) out("XML_fieldAdded <" + name + "> = " + child);
     }
@@ -7584,7 +7584,7 @@ public class LWComponent
         // to here may have unpredictable results... watch of bad states after restores.
         // The advantage of doing it here is that virtual children are handled,
         // and "off map" children, such as slide children are properly handled.
-        //layout("XML_addNotify"); 
+        //layout("XML_addNotify");
     }
 
     /** interface {@link XMLUnmarshalListener} -- call's layout */
@@ -7605,7 +7605,7 @@ public class LWComponent
             // What would break if the parent ref were just a LWComponent?
         }
         */
-        
+
         if (DEBUG.XML) System.out.println("XML_completed " + this);
         //layout(); need to wait till scale values are all set: so the LWMap needs to trigger this
     }
@@ -7626,7 +7626,7 @@ public class LWComponent
     protected BufferedImage getAsImage(double alpha, Dimension maxSize, double zoom) {
         return createImage(alpha, maxSize, (Color) null, zoom);
     }
-    
+
     public BufferedImage getAsImage(double alpha, Dimension maxSize) {
         return getAsImage(alpha, maxSize, 1.0);
     }
@@ -7647,10 +7647,10 @@ public class LWComponent
         final Rectangle2D.Float bounds = (Rectangle2D.Float) getPaintBounds().clone();
 
         int growth = 1; // just in case / rounding errors
-        
+
         if (this instanceof LWMap)
             growth += 15;
-        
+
         if (growth > 0)
             grow(bounds, growth);
 
@@ -7660,7 +7660,7 @@ public class LWComponent
     private static double computeZoomAndSize(Rectangle2D.Float bounds, Dimension maxSize, double zoomRequest, Size sizeResult)
     {
         double fitZoom = 1.0;
-        
+
         if (maxSize != null) {
             if (bounds.width > maxSize.width || bounds.height > maxSize.height) {
                 fitZoom = ZoomTool.computeZoomFit(maxSize, 0, bounds, null);
@@ -7675,10 +7675,10 @@ public class LWComponent
 
         return fitZoom;
     }
-    
 
-    
-    
+
+
+
     /**
      * Create a new buffered image, of max dimension maxSize, and render the LWComponent
      * (and all it's children), to it using the given alpha.
@@ -7705,7 +7705,7 @@ public class LWComponent
     // have the option of saving it / exporting it as a jpeg, and you can even adjust
     // the quality to your liking.
 
-    
+
     public BufferedImage createImage(double alpha, Dimension maxSize, Color fillColor, double zoomRequest)
     {
         final Rectangle2D.Float bounds = getImageBounds();
@@ -7722,7 +7722,7 @@ public class LWComponent
                 + TERM_CLEAR
                 );
         }
-        
+
         final Size imageSize = new Size(bounds);
         final double usedZoom = computeZoomAndSize(bounds, maxSize, zoomRequest, imageSize);
 
@@ -7743,7 +7743,7 @@ public class LWComponent
             imageType = BufferedImage.TYPE_INT_RGB;
             transparency = Transparency.OPAQUE;
         }
-        
+
 //        final boolean fillHasAlpha = (fillColor != null && fillColor.getAlpha() != 255);
 //         //if (alpha == OPAQUE && fillColor != null && fillColor.getAlpha() == 255) {
 //         if (alpha == OPAQUE && (fillColor == null || fillColor.getAlpha() == 255)) {
@@ -7757,9 +7757,9 @@ public class LWComponent
         final int width = imageSize.pixelWidth();
         final int height = imageSize.pixelHeight();
 
-        if (width >= 512 || height >= 512) 
+        if (width >= 512 || height >= 512)
             Log.info("creating large image: " + imageSize + " = approx " + Util.abbrevBytes(width * height * 4));
-        
+
         try {
             Log.info(this + "; createImage:"
                      + "\n\t requestSize: " + imageSize
@@ -7772,7 +7772,7 @@ public class LWComponent
         } catch (Throwable t) {
             Log.error("logging", t);
         }
-        
+
 //         if (DEBUG.IMAGE) out(TERM_CYAN
 //                              + "createImage:"
 //                              //+ "\n\tfinal size: " + width + "x" + height
@@ -7798,7 +7798,7 @@ public class LWComponent
 
                 mImageBuffer = tufts.vue.gui.GUI.getDeviceConfigForWindow(null)
                     .createCompatibleImage(width, height, transparency);
-                
+
             } catch (Throwable t) {
                 Log.error("creating image", t);
                 Log.error("creating image: failing node: " + Util.tags(this));
@@ -7809,7 +7809,7 @@ public class LWComponent
                 out(TERM_RED + "created image: " + mImageBuffer + TERM_CLEAR);
             else
                 Log.info("created image " + mImageBuffer);
-                
+
         }
 
         drawImage((Graphics2D) mImageBuffer.getGraphics(),
@@ -7842,7 +7842,7 @@ public class LWComponent
         final Rectangle clip = g.getClipBounds();
         final Size fillSize = new Size(bounds);
         final double zoom = computeZoomAndSize(bounds, maxSize, zoomRequest, fillSize);
-        
+
         if (DEBUG.IMAGE) out(TERM_GREEN
                              + "drawImage:"
                              + "\n\t   mapBounds: " + fmt(bounds)
@@ -7860,9 +7860,9 @@ public class LWComponent
 
         final int width = fillSize.pixelWidth();
         final int height = fillSize.pixelHeight();
-        
+
         final DrawContext dc = new DrawContext(g, this);
-        
+
         dc.setInteractive(false);
 
         if (alpha == OPAQUE) {
@@ -7871,7 +7871,7 @@ public class LWComponent
             // if alpha, assume drag image (todo: better specified as an argument)
             dc.setDraftQuality();
         }
-        
+
         dc.setBackgroundFill(getRenderFillColor(null)); // sure we want null here?
         dc.setClipOptimized(false); // always draw all children -- don't bother to check bounds
         if (DEBUG.IMAGE) out(TERM_GREEN + "drawImage: " + dc + TERM_CLEAR);
@@ -7884,7 +7884,7 @@ public class LWComponent
 //                 // alpha*alpha*alpha given our GC already has an alpha set.
 //                 fillColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha*alpha*255+0.5));
 //             }
-            if (alpha != OPAQUE) 
+            if (alpha != OPAQUE)
                 dc.setAlpha(alpha, AlphaComposite.SRC); // erase any underlying in cache
             if (DEBUG.IMAGE) out("drawImage: fill=" + fillColor);
             g.setColor(fillColor);
@@ -7897,7 +7897,7 @@ public class LWComponent
             dc.g.setComposite(AlphaComposite.Clear);
             g.fillRect(0, 0, width, height);
         }
-        
+
         //if (alpha != OPAQUE)
         dc.setAlpha(alpha, AlphaComposite.SRC);
 
@@ -7908,10 +7908,10 @@ public class LWComponent
         }
 
         final AffineTransform rawTransform = g.getTransform();
-            
+
         if (zoom != 1.0)
             dc.g.scale(zoom, zoom);
-                
+
         // translate so that the upper left corner of the map region
         // we're drawing is at 0,0 on the underlying image
 
@@ -7933,7 +7933,7 @@ public class LWComponent
             dc.g.setColor(Color.white);
             dc.g.fill(bounds);
         }
-        
+
 
         // render to the image through the DrawContext/GC pointing to it
         draw(dc);
@@ -7951,10 +7951,10 @@ public class LWComponent
         }
 
         if (DEBUG.IMAGE) out(TERM_GREEN + "drawImage: completed\n" + TERM_CLEAR);
-        
-        
+
+
     }
-    
+
     private String cleanControlChars(String s) {
     	if (s == null)
     		return null;
@@ -7968,19 +7968,19 @@ public class LWComponent
         /// = tab
         //(\\u000F)| = tab
         // = tab
-        patternString +=    "(\\u000B)|(\\u000F)|(\\u0010)|(\\u0011)|(\\u0012)|(\\u0013)|(\\u0014)";    
-        patternString +=    "(\\u0015)|(\\u0016)|(\\u0017)";    
-       
+        patternString +=    "(\\u000B)|(\\u000F)|(\\u0010)|(\\u0011)|(\\u0012)|(\\u0013)|(\\u0014)";
+        patternString +=    "(\\u0015)|(\\u0016)|(\\u0017)";
+
         Pattern control = Pattern.compile(patternString); // need to make this better
         Matcher m = control.matcher(s);
         s=  m.replaceAll("");
 
         // todo performance: if no modifications are made, pass
         // back the same passed in object
-        
+
         return s;
     }
-    
+
     /** subclasses override this to add info to toString()
      (return super.paramString() + new info) */
     public String paramString()
@@ -8004,7 +8004,7 @@ public class LWComponent
     protected void outf(String format, Object ... args) {
         Util.outf(Log, format, args);
     }
-    
+
     public String toString()
     {
         String typeName = getClass().getSimpleName();
@@ -8073,7 +8073,7 @@ public class LWComponent
         */
 
         // for debug: ensure basic LW types created first
-        
+
         new LWNode();
         new LWLink();
         new LWImage();
@@ -8081,7 +8081,7 @@ public class LWComponent
         //NodeTool.getTool();
 
         VueToolbarController.getController(); // make sure the tools are initialized
-        
+
         edu.tufts.vue.style.StyleReader.readStyles("compare.weight.css");
 
         java.util.Set<String> sortedKeys = new java.util.TreeSet<String>(edu.tufts.vue.style.StyleMap.keySet());
@@ -8094,18 +8094,18 @@ public class LWComponent
 
         new LWNode().applyCSS(edu.tufts.vue.style.StyleMap.getStyle("node.w1"));
         new LWLink().applyCSS(edu.tufts.vue.style.StyleMap.getStyle("link.w1"));
-        
+
     }
-    
+
 
     protected static final org.apache.log4j.Logger LWLog = org.apache.log4j.Logger.getLogger(LW.class);
-    
+
 }
 
 
 /** for debug */
 final class LW {}
-    
+
 
 
         /*
@@ -8123,7 +8123,7 @@ final class LW {}
             // then all our "traditional" setters (for hand-coding convenience, and at
             // least for save file backward compat) would need to use the Key to do the
             // setting for the appropriate triggers (except for "take" usage)
-            
+
             java.lang.reflect.Field f = null;
             if (fieldName != null) {
                 try {
