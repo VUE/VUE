@@ -32,17 +32,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-
-import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
-import javax.swing.JProgressBar;
 import javax.swing.ButtonGroup;
 
 import tufts.Util;
@@ -57,6 +52,7 @@ import static edu.tufts.vue.metadata.action.SearchAction.*;
 
 // Would be nice to have SearchBox that includes a SearchTextField + indeterminate progress bar.
 // public class SearchTextField extends javax.swing.JPanel {
+@SuppressWarnings("serial")
 public class SearchTextField extends JTextField implements FocusListener {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SearchTextField.class);
@@ -299,6 +295,7 @@ public class SearchTextField extends JTextField implements FocusListener {
     private void initForPlatformMacLeopardAndLater()
     {
         textField.setEditable(true);
+        this.inputField = this.textField;
         // search variant width will twiggle around if we don't set colums to something
         // (any value will apparently do)
         textField.setColumns(12);
