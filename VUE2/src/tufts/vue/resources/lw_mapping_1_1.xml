@@ -64,6 +64,7 @@
   <class name="tufts.vue.shape.RectangularPoly2D$Triangle"><map-to xml="triangle"/></class>
   <class name="tufts.vue.shape.RectangularPoly2D$Shield"><map-to xml="shield"/></class>
   <class name="tufts.vue.shape.RectangularPoly2D$Flag"><map-to xml="flag"/></class>
+  <class name="tufts.vue.shape.RectangularPoly2D$Flag2"><map-to xml="flag2"/></class>
   <class name="tufts.vue.shape.RectangularPoly2D$Diamond"><map-to xml="diamond"/></class>
   <class name="tufts.vue.shape.RectangularPoly2D$Hexagon"><map-to xml="hexagon"/></class>
   <class name="tufts.vue.shape.RectangularPoly2D$Pentagon"><map-to xml="pentagon"/></class>
