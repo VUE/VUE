@@ -1554,7 +1554,7 @@ VUEApplet.zip - ${appletMD5}
     
    <target name="installers" depends="release,linux-jar">
           <taskdef name="nsis" classname="net.sf.nsisant.Task">
-            <classpath location="/usr/local/jenkins/nsis/nsis-2.42/ant/nsisant-1.2.jar"/>
+            <classpath location="/usr/local/jenkins/nsis/nsis-2.46-src/ant/nsisant-1.2.jar"/>
            </taskdef>
 		  <copy todir="${nullsoftjre.home}">
   			<fileset dir="${jre.home}"/>
