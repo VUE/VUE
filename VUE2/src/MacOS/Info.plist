@@ -2,6 +2,8 @@
 <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
 <plist version="0.9">
 <dict>
+	<key>CFBundleIdentifer</key>
+	<string>edu.tufts.tts.ests.VUE</string>
 	<key>CFBundleName</key>
 	<string>VUE</string>
 	<key>CFBundleVersion</key>
