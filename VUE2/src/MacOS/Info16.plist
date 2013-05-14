@@ -30,6 +30,8 @@
 	<string>VUE.icns</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleIdentifier</key>
+	<string>edu.tufts.tts.ests.VUE</string>
 	<key>CFBundleName</key>
 	<string>VUE</string>
 	<key>CFBundlePackageType</key>
