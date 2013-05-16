@@ -65,7 +65,7 @@
   <property name="target.version" value="1.5"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
-  <property name="jre.home" value="/usr/local/jenkins/jre/jre6_u29/jre6"/>
+  <property name="jre.home" value="/usr/local/jenkins/jre/jre7"/>
   <property name="nullsoftjre.home" value="/usr/local/jenkins/jenkins/workspace/VUE/VUE2/Nullsoft-Installer/jre"/>
   <!-- NarraVision.jar is just a copy of VUE.jar.  On the PC, It detects via
        the classpath if it's called anything with "NarraVision" in the
