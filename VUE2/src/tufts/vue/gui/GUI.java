@@ -395,8 +395,13 @@ public class GUI
         
         ContentFace = new GUI.Face("Arial", Font.PLAIN, 14, null); // shows underscores below underline
         //ContentFace = new GUI.Face("Verdana", Font.PLAIN, 13, null); // underline hides underscores
+	
+	//Focus manager seems to be causing a lot of problems on windows 7 and 8 we've received numerous reports about windows not being 
+   	//clickable which I've tracked back to having Focus manager enabled going to try without it and see if there are any major 
+	//issues arise on win8
+	 if (!Util.isWindowsPlatform() && !Util.isUnixPlatform())
+       	   FocusManager.install();
 
-        FocusManager.install();
         //tufts.Util.executeIfFound("tufts.vue.gui.WindowManager", "install", null);
 
         org.apache.log4j.Level level = org.apache.log4j.Level.DEBUG;
