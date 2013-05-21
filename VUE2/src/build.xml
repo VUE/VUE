@@ -580,6 +580,7 @@
            listfiles="yes"
            source="${target.version}"
            target="${target.version}"
+           encoding="utf-8"
            >
       <classpath refid="compile.classpath.oki1and2"/>
       <include name="tufts/vue/OsidAsset*.java"/>
