@@ -88,7 +88,7 @@
 -->
   <property name="compile.debug"       value="true"/>
   <property name="compile.deprecation" value="false"/>
-  <property name="compile.optimize"    value="true"/>
+  <property name="compile.optimize"    value="false"/>
 
   <!-- runtime argumennts for debugging -->
   <property name="vue.args"    value=""/>
