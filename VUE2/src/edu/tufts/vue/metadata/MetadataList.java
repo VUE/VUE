@@ -85,17 +85,9 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         return dataList.size() <= 0 || (dataList.size() == 1 && dataList.get(0).isEmpty());
     }
 
-    // So it looks like we have two problems: first, and worst, is that sizeForTypeHistorical is
-    // reporting wrong, which means it was never right, though this is still a new bug as the old
-    // code used the insanely slow method of constructing the full HTML and then checking if there
-    // was anything there.  Second, even if we reverted to that method, I'm guessing our identity
-    // compare to ONTOLOGY_NONE is failing when we DO build the HTML, as we're seeing all these
-    // "none"s appear, and that's the only thing I can think of that might be explained by a
-    // depends on the JVM doing the compiling problem (or perhaps the compilation order on the
-    // build system -- maybe we're getting 2 or 3 versions of the constant)
-
-    // (If somehow that doesn't pan out, check for "none" key's with white-space values that should
-    // be registering as empty but aren't?  i.e., hasValue could be reporting wrong.)
+    // SMF 2013-05-23: Testing showed that sizeForTypeHistorical is reporting wrong, which means it
+    // was never right!  Thus a node may still be overreporting the presence of meta-data -- need
+    // to check for that.
     
     /** is there any data of the given type in here? this is a special call for the LWIcon UI */
     public boolean hasMetadata(int type) {
@@ -629,23 +621,16 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         final List<VueMetadataElement> haveOnlyValue = new ArrayList(dataList.size());
             
         for (VueMetadataElement md : dataList) {
-
-            if (DEBUG.Enabled) Log.debug("processing " + md);
-            
             // "<missing>" is a special value produced by the Schema code.  It can't be displayed
             // for the same reason that <anythingInAngleBrackets> wont show up in the HTML, and for
             // rollovers it's also a good indicator of a non-interesting value.
             if (md.type != typeRequest || !md.hasValue() || "<missing>".equals(md.value))
                 continue;
             if (md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG) {
-                if (DEBUG.Enabled && md.key == ONTOLOGY_NONE) Log.debug("identity match for " + ONTOLOGY_NONE);
                 haveOnlyValue.add(md);
-            } else if (DEBUG.Enabled && md.key != ONTOLOGY_NONE && ONTOLOGY_NONE.equals(md.key)) {
-                Log.error("NON-IDENTITY-TEXT-MATCH FOR " + Util.tags(md.key));
-                haveOnlyValue.add(md);
-            }
-            else
+            } else {
                 haveKey.add(md);
+            }
         }
         if (haveKey.size() == 1 && haveOnlyValue.size() == 0) {
             // If single key & value, display it specially.  We may want to reserve this for
