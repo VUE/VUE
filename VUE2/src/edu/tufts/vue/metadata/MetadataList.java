@@ -82,6 +82,18 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     public boolean isEmpty() {
         return dataList.size() <= 0 || (dataList.size() == 1 && dataList.get(0).isEmpty());
     }
+
+    // So it looks like we have two problems: first, and worst, is that sizeForTypeHistorical is
+    // reporting wrong, which means it was never right, though this is still a new bug as the old
+    // code used the insanely slow method of constructing the full HTML and then checking if there
+    // was anything there.  Second, even if we reverted to that method, I'm guessing our identity
+    // compare to ONTOLOGY_NONE is failing when we DO build the HTML, as we're seeing all these
+    // "none"s appear, and that's the only thing I can think of that might be explained by a
+    // depends on the JVM doing the compiling problem (or perhaps the compilation order on the
+    // build system -- maybe we're getting 2 or 3 versions of the constant)
+
+    // (If somehow that doesn't pan out, check for "none" key's with white-space values that should
+    // be registering as empty but aren't?  i.e., hasValue could be reporting wrong.)
     
     /** is there any data of the given type in here? this is a special call for the LWIcon UI */
     public boolean hasMetadata(int type) {
@@ -617,8 +629,13 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             // rollovers it's also a good indicator of a non-interesting value.
             if (md.type != typeRequest || !md.hasValue() || "<missing>".equals(md.value))
                 continue;
-            if (md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG)
+            if (md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG) {
+                if (DEBUG.Enabled && md.key == ONTOLOGY_NONE) Log.debug("identity match for " + ONTOLOGY_NONE);
                 haveOnlyValue.add(md);
+            } else if (DEBUG.Enabled && md.key != ONTOLOGY_NONE && ONTOLOGY_NONE.equals(md.key)) {
+                Log.error("NON-IDENTITY-TEXT-MATCH FOR " + Util.tags(md.key));
+                haveOnlyValue.add(md);
+            }
             else
                 haveKey.add(md);
         }
