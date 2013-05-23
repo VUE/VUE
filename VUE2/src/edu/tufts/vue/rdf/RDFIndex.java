@@ -98,9 +98,8 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     public static final String VueTermOntologyNone = VUE_GENERAL_NAMESPACE + "none";
 
     static {
-        Log.info(Util.tags(VueResources.getString("metadata.dublincore.url")) + " <- metadata.dublincore.url"); // For comparison: are all url's being munged?
-        
-        Log.info(Util.tags(Constants.ONTOLOGY_URL) + " <- Constants.ONTOLOGY_URL");
+        // Log.info(Util.tags(VueResources.getString("metadata.dublincore.url")) + " <- metadata.dublincore.url"); // Yes, all url's are being munged.
+        // Log.info(Util.tags(Constants.ONTOLOGY_URL) + " <- Constants.ONTOLOGY_URL");
         Log.info(Util.tags(VUE_ONTOLOGY) + " <- VUE_ONTOLOGY");
         Log.info(Util.tags(VUE_GENERAL_NAMESPACE) + " <- VUE_GENERAL_NAMESPACE");
         Log.info(Util.tags(VueTermOntologyNone) + " <- ONTOLOGY_NONE " + Util.tag(VueTermOntologyNone));
