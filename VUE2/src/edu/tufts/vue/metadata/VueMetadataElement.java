@@ -42,6 +42,8 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
     static final String KEY_ONTO_TYPE = Constants.ONTOLOGY_URL + "#ontoType";
     static final String KEY_SOURCE = Constants.ONTOLOGY_URL + "#source";
 
+    static { Log.info("ONTOLOGY_NONE " + Util.tags(ONTOLOGY_NONE) + " " + Util.tag(ONTOLOGY_NONE)); }
+
     int type;
     String key;
     String value;

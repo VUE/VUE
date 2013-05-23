@@ -46,6 +46,8 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetadataList.class);
     
     private final static boolean DEBUG_LOCAL = false;
+
+    static { Log.info("ONTOLOGY_NONE " + Util.tags(ONTOLOGY_NONE) + " " + Util.tag(ONTOLOGY_NONE)); }
     
     /** Note that this was a STATIC list of listeners, which is bad, crazy, bad, bad, crazy.
      * Or at least as long as it was firing for every single deserialization... */
@@ -609,10 +611,13 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             // attempting to force a tiny last-line height to push rollover bottom edge down by a few pixels:
             // b.append("<font size=-14 color=gray>---");  // can't get small enough: font size has floor on it
         }
-        Log.debug("HTMLforType " + typeRequest + " [" + b + "]");
-        
-        if (DEBUG.Enabled && b.length() == startSize)
-            b.append(buildDebugHTML(typeRequest));
+        if (DEBUG.Enabled) {
+            Log.debug("got HTMLforType " + typeRequest + " [" + b + "]");
+            if (b.length() == startSize) {
+                Log.debug("no html added, building debug html...");
+                b.append(buildDebugHTML(typeRequest));
+            }
+        }
         
         return b.toString();
     }
@@ -624,6 +629,9 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         final List<VueMetadataElement> haveOnlyValue = new ArrayList(dataList.size());
             
         for (VueMetadataElement md : dataList) {
+
+            if (DEBUG.Enabled) Log.debug("processing " + md);
+            
             // "<missing>" is a special value produced by the Schema code.  It can't be displayed
             // for the same reason that <anythingInAngleBrackets> wont show up in the HTML, and for
             // rollovers it's also a good indicator of a non-interesting value.
