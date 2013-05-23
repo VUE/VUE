@@ -97,7 +97,12 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     /** i.e.: http://vue.tufts.edu/vue.rdfs#none */
     public static final String VueTermOntologyNone = VUE_GENERAL_NAMESPACE + "none";
 
-    static { Log.info("ONTOLOGY_NONE " + Util.tags(VueTermOntologyNone) + " " + Util.tag(VueTermOntologyNone)); }
+    static {
+        Log.info("edu.tufts.vue.metadata.Constants.ONTOLOGY_URL " + Util.tags(edu.tufts.vue.metadata.Constants.ONTOLOGY_URL));
+        Log.info("Constants.ONTOLOGY_URL " + Util.tags(Constants.ONTOLOGY_URL));
+        Log.info("VUE_ONTOLOGY " + Util.tags(VUE_ONTOLOGY));
+        Log.info("ONTOLOGY_NONE " + Util.tags(VueTermOntologyNone) + " " + Util.tag(VueTermOntologyNone));
+    }
 
     /** If true, index slides and slide content.  Currently, all slide content is filtered out on the result side anyway. */
     private static final boolean INDEX_SLIDES = false;
