@@ -1641,7 +1641,7 @@ public class MapDropTarget
             for (int i = 0; i < pairs.length; i++) {
                 System.out.println("\tquery pair " + pairs[i]);
             }
-            //System.out.println("data " + data);
+            System.out.println("data " + data);
         }
 
         final String host = url.getHost();
@@ -1691,7 +1691,8 @@ public class MapDropTarget
         // Attempt a default
             
         if (imageURL != null
-            && ("images.google.com".equals(host)
+            && ("www.google.com".equals(host)
+             || "images.google.com".equals(host)
              || "search.live.com".equals(host) // microsoft
              || "images.search.yahoo.com".equals(host)
              || "rds.yahoo.com".equals(host) // old
