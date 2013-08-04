@@ -92,6 +92,8 @@
 			<key>com.apple.mrj.application.growbox.intrudes</key>
 			<string>true</string>
 		</dict>
-	</dict>
+  </dict>
+   <key>NSHighResolutionCapable</key>
+   <true/>
 </dict>
 </plist>
