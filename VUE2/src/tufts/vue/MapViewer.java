@@ -12,8 +12,8 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package tufts.vue;
+
 
 import tufts.Util;
 import static tufts.Util.*;
@@ -1136,7 +1136,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     /**
      * Return the bounds of the map region that can actually be seen
-     * in the display at this moment, accouting for any scrolled
+     * in the display at this moment, accounting for any scrolled
      * state within the JViewport of a JScrollPane, zoom state, etc.
      * This could be a blank area of the map -- it's just where we
      * happen to be panned to and displaying at the moment.
@@ -6185,11 +6185,76 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 case KeyEvent.VK_LEFT:
                 case KeyEvent.VK_RIGHT:
 
-                    if (!getSelection().isEmpty() && !e.isAltDown() && !e.isMetaDown() && !e.isControlDown()) {
+                    if (!getSelection().isEmpty() 
+                    		&& getSelection().size() == 1
+                    		&& activeTool.supportsSelection()
+                    	)
+                    {
+                		final LWComponent selected = getSelection().first();
+                		if (e.isControlDown())
+                		{
+                            // search for nearby nodes
+                			
+                            // if a child is selected and ctrl + cursor is used
+                            // -> break out
+                            if (selected.getParent() instanceof LWNode)
+                            {
+                            	selectionSet(selected.getParent());
+                            }
+                            else
+                            {
+	                            // -- Navigation works only along the links
+	                            // -- find the linked nodes
+	                    		HashSet<LWComponent> userSelection = new HashSet<LWComponent>();	
+	                    		HashSet<LWComponent> deepSelection = new HashSet<LWComponent>();
+	                    		
+	                    		userSelection.add(selected);
+	                            Toolbox.findChildrenToDepth(userSelection, deepSelection, 
+	    								userSelection, 1, true, true, new Hashtable<LWComponent, Integer>());
+	
+	                            // -- now we have a set with nodes and links
+	
+	                            TreeMap<Double, LWComponent> angles = new TreeMap<Double, LWComponent>();
+	                            double angle = 0;
+	                            for (LWComponent comp : deepSelection)
+	                            {
+	                            	if (comp != selected
+	                           			&& !comp.isHidden()
+	                           			&& comp instanceof LWNode)
+	                            	{
+	                            		Point2D p1 = new Point2D.Double(selected.getMapCenterX(), selected.getMapCenterY()*-1);
+	                            		Point2D p2 = new Point2D.Double(comp.getMapCenterX(), comp.getMapCenterY()*-1);
+	                            		angle = Toolbox.angleBetween2Points(p1, p2);
+	                            		angles.put(angle, comp);
+	                            	}
+	                            }
+	                            
+	                            double directionAlpha;
+	                        	if (keyCode == KeyEvent.VK_UP) {
+	                        		directionAlpha = 3*Math.PI/2;
+	                        	} else if (keyCode == KeyEvent.VK_DOWN) {
+	                            		directionAlpha = Math.PI/2;
+	                            } else if (keyCode == KeyEvent.VK_LEFT) {
+	                            	directionAlpha = Math.PI;
+		                        } else { // if (keyCode == KeyEvent.VK_RIGHT:
+		                        	directionAlpha = 0;
+		                        }
                         
-                        if (getSelection().size() == 1 && !activeTool.supportsDrag(e) && activeTool.supportsSelection()) {
+	                        	double nearestAlpha = Toolbox.minAlphaDifference(
+	                        			Collections.unmodifiableSet(angles.keySet()),
+										directionAlpha);
+	
+	                        	// only navigate if direction within 90° of cursor movement
+	                        	if ((Toolbox.compareAngles(directionAlpha, nearestAlpha) <= Math.PI/4)
+	                        		&& angles.containsKey(nearestAlpha))
+	                        	{
+	                        		selectionSet(angles.get(nearestAlpha));
+	                        	}
+                            }
+                		}
                             
-                            final LWComponent selected = getSelection().first();
+                    	else if (!e.isAltDown() && !e.isMetaDown() && !activeTool.supportsDrag(e))
+                    	{
                             final int dir;
 
                             if (keyCode == VK_UP || keyCode == VK_LEFT)
@@ -6201,31 +6266,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                 final int newIndex = selected.getIndex() + dir;
                                 if (newIndex >= 0 && newIndex < selected.getParent().numChildren())
                                     selectionSet(selected.getParent().getChild(newIndex));
-                            } else {
-
-                                // search for nearby nodes
-
-                                final LWComponent near;
-                                final LWComponent c = selected;
-
-                                // very crude up/down test for now -- ideal would find nearest
-                                // nodes, the pick nearest with y is less and y is more
-                                // (and x is less/x is more for left/right)
-                                
-                                if (dir < 0) {
-                                    near = pickNode(c.getMapCenterX(),
-                                                    c.getMapY() - c.getMapHeight()/2f);
-                                } else {
-                                    near = pickNode(c.getMapCenterX(),
-                                                    c.getMapY() + c.getMapHeight() * 1.5f);
                                 }
 
-                                if (near != null)
-                                    selectionSet(near);
-                                
-                            }
-                            
-                            
                         } else {                        
                     
                             // there's something in the selection, and only shift might be down: apply big or small nudge
@@ -6242,8 +6284,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                             }
                         }
                         
-                    } else
+                    } else {
                         handled = false;
+                    }
                     break;
                 
                 default:
