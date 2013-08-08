@@ -195,7 +195,7 @@ public class LWImage extends LWComponent
         //========================================================================================
         // [FIXED]: if an image has an icon in cache, and we're creating a NEW RESOURCE,
         // such that resource properties image.width & image.height were never set, we can't know
-        // the full pixel size, thus we can't be certiain of the *precise* aspect, which is
+        // the full pixel size, thus we can't be certain of the *precise* aspect, which is
         // important to prevent minor pixel size tweaking later.  The only way around that
         // w/out forcing a load of a the whole image (which defeats the purpose of the image code
         // entirely) is to store the full pixel size in the icon itself.  We now do this

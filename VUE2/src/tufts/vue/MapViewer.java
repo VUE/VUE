@@ -6203,56 +6203,72 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                             }
                             else
                             {
-	                            // -- Navigation works only along the links
+	                            // -- This type of navigation works only along the links
 	                            // -- find the linked nodes
 	                    		HashSet<LWComponent> userSelection = new HashSet<LWComponent>();	
-	                    		HashSet<LWComponent> deepSelection = new HashSet<LWComponent>();
+	                    		HashSet<LWComponent> deepSelection;
+	                    		int depth = 1;
+	                    		int maxDepth = 2;
+	                    		boolean done = false;
 	                    		
 	                    		userSelection.add(selected);
-	                            Toolbox.findChildrenToDepth(userSelection, deepSelection, 
-	    								userSelection, 1, true, true, new Hashtable<LWComponent, Integer>());
-	
-	                            // -- now we have a set with nodes and links
-	
-	                            TreeMap<Double, LWComponent> angles = new TreeMap<Double, LWComponent>();
-	                            double angle = 0;
-	                            for (LWComponent comp : deepSelection)
-	                            {
-	                            	if (comp != selected
-	                           			&& !comp.isHidden()
-	                           			&& comp instanceof LWNode)
-	                            	{
-	                            		Point2D p1 = new Point2D.Double(selected.getMapCenterX(), selected.getMapCenterY()*-1);
-	                            		Point2D p2 = new Point2D.Double(comp.getMapCenterX(), comp.getMapCenterY()*-1);
-	                            		angle = Toolbox.angleBetween2Points(p1, p2);
-	                            		angles.put(angle, comp);
-	                            	}
-	                            }
-	                            
-	                            double directionAlpha;
-	                        	if (keyCode == KeyEvent.VK_UP) {
-	                        		directionAlpha = 3*Math.PI/2;
-	                        	} else if (keyCode == KeyEvent.VK_DOWN) {
-	                            		directionAlpha = Math.PI/2;
-	                            } else if (keyCode == KeyEvent.VK_LEFT) {
-	                            	directionAlpha = Math.PI;
-		                        } else { // if (keyCode == KeyEvent.VK_RIGHT:
-		                        	directionAlpha = 0;
-		                        }
-                        
-	                        	double nearestAlpha = Toolbox.minAlphaDifference(
-	                        			Collections.unmodifiableSet(angles.keySet()),
-										directionAlpha);
-	
-	                        	// only navigate if direction within 90° of cursor movement
-	                        	if ((Toolbox.compareAngles(directionAlpha, nearestAlpha) <= Math.PI/4)
-	                        		&& angles.containsKey(nearestAlpha))
-	                        	{
-	                        		selectionSet(angles.get(nearestAlpha));
-	                        	}
+	                    		
+	                    		while (depth <= maxDepth && !done)
+	                    		{
+	                    			deepSelection = new HashSet<LWComponent>();
+		                            Toolbox.findChildrenToDepth(userSelection, deepSelection, 
+		    								userSelection, depth, true, true, new Hashtable<LWComponent, Integer>());
+		
+		                            // -- now we have a set with nodes and links
+		
+		                            TreeMap<Double, LWComponent> angles = new TreeMap<Double, LWComponent>();
+		                            double angle = 0;
+		                            for (LWComponent comp : deepSelection)
+		                            {
+		                            	if (comp != selected
+		                           			&& !comp.isHidden()
+		                           			&& comp instanceof LWNode)
+		                            	{
+		                            		Point2D p1 = new Point2D.Double(selected.getMapCenterX(), selected.getMapCenterY()*-1);
+		                            		Point2D p2 = new Point2D.Double(comp.getMapCenterX(), comp.getMapCenterY()*-1);
+		                            		angle = Toolbox.angleBetween2Points(p1, p2);
+		                            		angles.put(angle, comp);
+		                            	}
+		                            }
+		                            
+		                            double directionAlpha;
+		                        	if (keyCode == KeyEvent.VK_UP) {
+		                        		directionAlpha = 3*Math.PI/2;
+		                        	} else if (keyCode == KeyEvent.VK_DOWN) {
+		                            		directionAlpha = Math.PI/2;
+		                            } else if (keyCode == KeyEvent.VK_LEFT) {
+		                            	directionAlpha = Math.PI;
+			                        } else { // if (keyCode == KeyEvent.VK_RIGHT:
+			                        	directionAlpha = 0;
+			                        }
+	                        
+		                        	double nearestAlpha = Toolbox.minAlphaDifference(
+		                        			Collections.unmodifiableSet(angles.keySet()),
+											directionAlpha);
+		
+		                        	// only navigate if direction within 90° of cursor movement
+		                        	if (Toolbox.compareAngles(directionAlpha, nearestAlpha) <= Math.PI/4)
+		                        	{
+		                        		if (angles.containsKey(nearestAlpha))
+		                        		{
+		                        			selectionSet(angles.get(nearestAlpha));
+		                        			done = true;
+		                        		}
+		                        	}
+		                        	else
+		                        	{
+		                        		// try the next ring of nodes
+		                        		depth++;
+		                        	}
+	                    		}
                             }
                 		}
-                            
+ 
                     	else if (!e.isAltDown() && !e.isMetaDown() && !activeTool.supportsDrag(e))
                     	{
                             final int dir;

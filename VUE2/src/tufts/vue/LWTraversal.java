@@ -27,13 +27,13 @@ import java.awt.geom.Rectangle2D;
  * node, and visiting desired nodes based on the accept and acceptTraversal
  * methods.  If acceptTraversal returns true, the node's children are
  * traversed, if not, all the children are excluded.  If accept returns
- * true, and all ancestorors acceptTraversal returned true, the node is visited.
+ * true, and all ancestors acceptTraversal returned true, the node is visited.
  *
  * If POST_ORDER, an accepted node who's acceptTraversal returns false
  * is also not accepted, if PRE_ORDER, and accepted node is visited even
  * if it's acceptTraversal returns false.
  * 
- * This class is meant to be overriden to do something useful.
+ * This class is meant to be overridden to do something useful.
  *
  * @version $Revision: 1.54 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  * @author Scott Fraize
@@ -174,8 +174,8 @@ public class LWTraversal {
         
     public void traversePicks(LWComponent curTop, java.util.List<LWComponent> children)
     {
-        // if we encounder a zoomed rollover, all siblings get priority
-        // (so you can get to siblings that might have been obscurved by it's increased size)
+        // if we encounter a zoomed rollover, all siblings get priority
+        // (so you can get to siblings that might have been obscured by it's increased size)
 
         // Note that this shouldn't be used in instances where the siblings might be actually
         // overlapping when non-zoomed, as we get flashing back and forth every time
