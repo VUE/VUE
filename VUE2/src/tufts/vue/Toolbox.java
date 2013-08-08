@@ -1,5 +1,5 @@
  /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -21,6 +21,11 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
+/**
+ * A class for some utility functions.
+ * @author theoky
+ *
+ */
 public class Toolbox {
 
 	/** 
@@ -34,13 +39,14 @@ public class Toolbox {
     }
 
 	/**
-	 * Compute the angle between two points with p as base.
+	 * Compute the angle between two points p and q with point p as base.
 	 * @param p Point 1
 	 * @param q Point 2
 	 * @param javaCoord true if coordinates are with negative y up
-	 * @return angle in radiant
+	 * @return angle in radian
 	 */
-	public static double angleBetween2PointsCoord(Point2D p, Point2D q, boolean javaCoord) {
+	public static double angleBetween2PointsCoord(Point2D p, Point2D q, boolean javaCoord) 
+	{
 		double angle;
 		
 		double factorY = 1;
@@ -72,14 +78,16 @@ public class Toolbox {
 	}
 
 	/**
-	 * 
-	 * @param userSelection
-	 * @param deepSelection
-	 * @param comps
-	 * @param depth
-	 * @param expandIncoming
-	 * @param expandOutgoing
-	 * @param alreadyVisited
+	 * This function fills the HashSet deepSelection with all objects at depth "depth" which
+	 * are reachable from the set comps. Objects in the set userSelection are not added
+	 * to deepSelection
+	 * @param userSelection the currently selected objects 
+	 * @param deepSelection the result set containing the selected objects
+	 * @param comps the set of components to start with
+	 * @param depth the maximal depth to search 
+	 * @param expandIncoming follow incoming links
+	 * @param expandOutgoing follow outgoing links
+	 * @param alreadyVisited stores the components already visited and the depth where they were found.
 	 */
 	public static void findChildrenToDepth(
 			HashSet<LWComponent> userSelection, 
@@ -151,7 +159,14 @@ public class Toolbox {
 			}
 		}
 	}
-	
+
+	/**
+	 * Returns the angle from a set with the minimum difference
+	 * to a given reference angle
+	 * @param angles the set of angles to compare against
+	 * @param directionAlpha the reference angle
+	 * @return the angle with the minimal difference to the reference angle
+	 */
 	public static double minAlphaDifference(
 			Set<Double> angles,
 			double directionAlpha)
@@ -161,7 +176,7 @@ public class Toolbox {
 		double curAlpha = 0;
 		for (Double alpha : angles) 
 		{
-			tmpAlpha = compareAngles(directionAlpha, alpha);
+			tmpAlpha = angleDifference(directionAlpha, alpha);
 			if (tmpAlpha < oldAlpha)
 			{
 				oldAlpha = tmpAlpha;
@@ -171,9 +186,16 @@ public class Toolbox {
 		return curAlpha;
 	}
 
-	public static double compareAngles(double directionAlpha, double alpha) {
+	/**
+	 * Computes the difference between two angles given in radian.  
+	 * @param alpha angle 1
+	 * @param beta angle 2
+	 * @return the difference in radian
+	 */
+	public static double angleDifference(double alpha, double beta)
+	{
 		double tmpAlpha;
-		tmpAlpha = Math.abs(directionAlpha - alpha);
+		tmpAlpha = Math.abs(alpha - beta);
 		if (tmpAlpha > Math.PI)
 		{ 
 			// more than 180°, reduce

@@ -70,29 +70,29 @@ public class ToolboxTest {
 	@Test
 	public void testCompareAngles(){
 		
-		assertEquals(0.0, Toolbox.compareAngles(0,  0), 0.0001);
-		assertEquals(Math.PI/2, Toolbox.compareAngles(0,  Math.PI/2), 0.0001);
-		assertEquals(Math.PI, Toolbox.compareAngles(0,  Math.PI), 0.0001);
-		assertEquals(Math.PI/2, Toolbox.compareAngles(0,  3*Math.PI/2), 0.0001);
-		assertEquals(0, Toolbox.compareAngles(0,  2*Math.PI), 0.0001);
+		assertEquals(0.0, Toolbox.angleDifference(0,  0), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(0,  Math.PI/2), 0.0001);
+		assertEquals(Math.PI, Toolbox.angleDifference(0,  Math.PI), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(0,  3*Math.PI/2), 0.0001);
+		assertEquals(0, Toolbox.angleDifference(0,  2*Math.PI), 0.0001);
 		
-		assertEquals(Math.PI/2, Toolbox.compareAngles(Math.PI/2,  0), 0.0001);
-		assertEquals(0, Toolbox.compareAngles(Math.PI/2,  Math.PI/2), 0.0001);
-		assertEquals(Math.PI/2, Toolbox.compareAngles(Math.PI/2,  Math.PI), 0.0001);
-		assertEquals(Math.PI, Toolbox.compareAngles(Math.PI/2,  3*Math.PI/2), 0.0001);
-		assertEquals(Math.PI/2, Toolbox.compareAngles(Math.PI/2,  2*Math.PI), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(Math.PI/2,  0), 0.0001);
+		assertEquals(0, Toolbox.angleDifference(Math.PI/2,  Math.PI/2), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(Math.PI/2,  Math.PI), 0.0001);
+		assertEquals(Math.PI, Toolbox.angleDifference(Math.PI/2,  3*Math.PI/2), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(Math.PI/2,  2*Math.PI), 0.0001);
 		
-		assertEquals(Math.PI, Toolbox.compareAngles(Math.PI,  0), 0.0001);
-		assertEquals(Math.PI/2, Toolbox.compareAngles(Math.PI,  Math.PI/2), 0.0001);
-		assertEquals(0, Toolbox.compareAngles(Math.PI,  Math.PI), 0.0001);
-		assertEquals(Math.PI/2, Toolbox.compareAngles(Math.PI,  3*Math.PI/2), 0.0001);
-		assertEquals(Math.PI, Toolbox.compareAngles(Math.PI,  2*Math.PI), 0.0001);
+		assertEquals(Math.PI, Toolbox.angleDifference(Math.PI,  0), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(Math.PI,  Math.PI/2), 0.0001);
+		assertEquals(0, Toolbox.angleDifference(Math.PI,  Math.PI), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(Math.PI,  3*Math.PI/2), 0.0001);
+		assertEquals(Math.PI, Toolbox.angleDifference(Math.PI,  2*Math.PI), 0.0001);
 
-		assertEquals(Math.PI/2, Toolbox.compareAngles(3*Math.PI/2,  0), 0.0001);
-		assertEquals(Math.PI, Toolbox.compareAngles(3*Math.PI/2,  Math.PI/2), 0.0001);
-		assertEquals(Math.PI/2, Toolbox.compareAngles(3*Math.PI/2,  Math.PI), 0.0001);
-		assertEquals(0, Toolbox.compareAngles(3*Math.PI/2,  3*Math.PI/2), 0.0001);
-		assertEquals(Math.PI/2, Toolbox.compareAngles(3*Math.PI/2,  2*Math.PI), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(3*Math.PI/2,  0), 0.0001);
+		assertEquals(Math.PI, Toolbox.angleDifference(3*Math.PI/2,  Math.PI/2), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(3*Math.PI/2,  Math.PI), 0.0001);
+		assertEquals(0, Toolbox.angleDifference(3*Math.PI/2,  3*Math.PI/2), 0.0001);
+		assertEquals(Math.PI/2, Toolbox.angleDifference(3*Math.PI/2,  2*Math.PI), 0.0001);
 	}
 	
 
