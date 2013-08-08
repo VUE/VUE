@@ -7149,11 +7149,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 scrollY = viewPosition.y;
             }
 
-            if (e.isMetaDown()) {
+            // Windows has no meta, so add check for isAltDown
+            if (e.isMetaDown() || e.isAltDown()) {
                 final Point2D mouseLocation = new Point2D.Float(viewer.screenToMapX(e.getX() + scrollX), viewer.screenToMapY(e.getY() + scrollY));
                 //      if (rotation < 0) tufts.vue.ZoomTool.zoomOut(cursor);
                 // else if (rotation > 0) tufts.vue.ZoomTool.zoomIn(cursor);
-                final double zoomFactorAdjustor = 1.0 - rotation * 0.01; // each rotation does +/- 1.0%  to the zoom-factor *adjustor*
+                // TODO: tky: maybe the zoom factor should be configurable for the user? 1% is too slow for me ;)
+                final double zoomFactorAdjustor = 1.0 - rotation * 0.1; // each rotation does +/- 10.0%  to the zoom-factor *adjustor*
                 tufts.vue.ZoomTool.setZoom(mZoomFactor * zoomFactorAdjustor, mouseLocation);
             } else {
                 // The invoke-later's help smooth it out / do more paints.
