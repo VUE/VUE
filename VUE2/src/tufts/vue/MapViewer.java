@@ -7127,13 +7127,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return; } */
 
             //if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) { // too easy to accidentally zoom during presentation
-            if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) {
+            if (inScrollPane && !(e.isMetaDown() || e.isAltDown() || e.isShiftDown())) {
                 // Do not consume, and let the event be passed on to
                 // the BasicScrollPaneUI via MouseWheelRelay in
                 // MapScrollPane.
                 return;
             }
 
+            // -- keys: meta or alt or shift
             e.consume();
             
             final int rotation = e.getWheelRotation();
@@ -7149,17 +7150,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 scrollY = viewPosition.y;
             }
 
-            // Windows has no meta, so add check for isAltDown
+            // Windows has no meta, so add check for isAltDown for zooming
             if (e.isMetaDown() || e.isAltDown()) {
                 final Point2D mouseLocation = new Point2D.Float(viewer.screenToMapX(e.getX() + scrollX), viewer.screenToMapY(e.getY() + scrollY));
                 //      if (rotation < 0) tufts.vue.ZoomTool.zoomOut(cursor);
                 // else if (rotation > 0) tufts.vue.ZoomTool.zoomIn(cursor);
-                // TODO: tky: maybe the zoom factor should be configurable for the user? 1% is too slow for me ;)
-                final double zoomFactorAdjustor = 1.0 - rotation * 0.1; // each rotation does +/- 10.0%  to the zoom-factor *adjustor*
+                // CONFIGME tky: maybe the zoom factor should be configurable for the user? 1% is too slow for me ;)
+                final double zoomFactorAdjustor = 1.0 - rotation * 0.15; // each rotation does +/- 15.0%  to the zoom-factor *adjustor*
                 tufts.vue.ZoomTool.setZoom(mZoomFactor * zoomFactorAdjustor, mouseLocation);
             } else {
+            	// -- keys: meta or alt have been handled, possibly remaining: shift
                 // The invoke-later's help smooth it out / do more paints.
-                final int PanFactor = 2;
+            	// DOCME tky: panning right/left should be documented in the user guide(?)
+                final int PanFactor = 8;
                 if (e.isShiftDown()) {
                     panScrollRegion(rotation * PanFactor, 0);
                     // for (int i = 0; i < rotation; i++) GUI.invokeAfterAWT(PanLeft);
