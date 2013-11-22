@@ -1,4 +1,3 @@
-
 <project name="vue" default="vue" basedir=".">
 
   <description>
@@ -65,8 +64,8 @@
   <property name="target.version" value="1.6"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
-  <property name="jre.home" value="/usr/local/jenkins/jre/jre7"/>
-  <property name="nullsoftjre.home" value="/usr/local/jenkins/jenkins/workspace/VUE/VUE2/Nullsoft-Installer/jre"/>
+  <property name="jre.home" value="/usr/local/atsys/jenkins/jre/jre7"/>
+  <property name="nullsoftjre.home" value="/usr/local/atsys/jenkins/jenkins/workspace/VUE/VUE2/Nullsoft-Installer/jre"/>
   <!-- NarraVision.jar is just a copy of VUE.jar.  On the PC, It detects via
        the classpath if it's called anything with "NarraVision" in the
        name to decide if it should run with MIT features -->
@@ -1555,7 +1554,7 @@ VUEApplet.zip - ${appletMD5}
     
    <target name="installers" depends="release,linux-jar">
           <taskdef name="nsis" classname="net.sf.nsisant.Task">
-            <classpath location="/usr/local/jenkins/nsis/nsis-2.46/ant/nsisant-1.2.jar"/>
+            <classpath location="/usr/local/atsys/jenkins/nsis/nsis-2.46/ant/nsisant-1.2.jar"/>
            </taskdef>
 		  <copy todir="${nullsoftjre.home}">
   			<fileset dir="${jre.home}"/>
