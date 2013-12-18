@@ -2943,8 +2943,7 @@ public class Util
             System.exit(0);
         }
 
-        String test = "file:///Users/sfraize/Desktop/Cup»Chevron.png";
-        
+       String test = "test"; 
         if (args.length == 1) {
             if ("test".equals(args[0])) {
                 execMacOpenURL(test);

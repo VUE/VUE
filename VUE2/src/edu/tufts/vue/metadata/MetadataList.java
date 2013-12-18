@@ -46,6 +46,8 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetadataList.class);
     
     private final static boolean DEBUG_LOCAL = false;
+
+    static { Log.info("ONTOLOGY_NONE " + Util.tags(ONTOLOGY_NONE) + " " + Util.tag(ONTOLOGY_NONE)); }
     
     /** Note that this was a STATIC list of listeners, which is bad, crazy, bad, bad, crazy.
      * Or at least as long as it was firing for every single deserialization... */
@@ -82,6 +84,10 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
     public boolean isEmpty() {
         return dataList.size() <= 0 || (dataList.size() == 1 && dataList.get(0).isEmpty());
     }
+
+    // SMF 2013-05-23: Testing showed that sizeForTypeHistorical is reporting wrong, which means it
+    // was never right!  Thus a node may still be overreporting the presence of meta-data -- need
+    // to check for that.
     
     /** is there any data of the given type in here? this is a special call for the LWIcon UI */
     public boolean hasMetadata(int type) {
@@ -597,10 +603,13 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             // attempting to force a tiny last-line height to push rollover bottom edge down by a few pixels:
             // b.append("<font size=-14 color=gray>---");  // can't get small enough: font size has floor on it
         }
-        Log.debug("HTMLforType " + typeRequest + " [" + b + "]");
-        
-        if (DEBUG.Enabled && b.length() == startSize)
-            b.append(buildDebugHTML(typeRequest));
+        if (DEBUG.Enabled) {
+            Log.debug("got HTMLforType " + typeRequest + " [" + b + "]");
+            if (b.length() == startSize) {
+                Log.debug("no html added, building debug html...");
+                b.append(buildDebugHTML(typeRequest));
+            }
+        }
         
         return b.toString();
     }
@@ -617,10 +626,11 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             // rollovers it's also a good indicator of a non-interesting value.
             if (md.type != typeRequest || !md.hasValue() || "<missing>".equals(md.value))
                 continue;
-            if (md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG)
+            if (md.key == null || md.key == ONTOLOGY_NONE || md.key == KEY_TAG) {
                 haveOnlyValue.add(md);
-            else
+            } else {
                 haveKey.add(md);
+            }
         }
         if (haveKey.size() == 1 && haveOnlyValue.size() == 0) {
             // If single key & value, display it specially.  We may want to reserve this for

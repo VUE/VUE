@@ -97,6 +97,14 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     /** i.e.: http://vue.tufts.edu/vue.rdfs#none */
     public static final String VueTermOntologyNone = VUE_GENERAL_NAMESPACE + "none";
 
+    static {
+        // Log.info(Util.tags(VueResources.getString("metadata.dublincore.url")) + " <- metadata.dublincore.url"); // Yes, all url's are being munged.
+        // Log.info(Util.tags(Constants.ONTOLOGY_URL) + " <- Constants.ONTOLOGY_URL");
+        Log.info(Util.tags(VUE_ONTOLOGY) + " <- VUE_ONTOLOGY");
+        Log.info(Util.tags(VUE_GENERAL_NAMESPACE) + " <- VUE_GENERAL_NAMESPACE");
+        Log.info(Util.tags(VueTermOntologyNone) + " <- ONTOLOGY_NONE " + Util.tag(VueTermOntologyNone));
+    }
+
     /** If true, index slides and slide content.  Currently, all slide content is filtered out on the result side anyway. */
     private static final boolean INDEX_SLIDES = false;
     
