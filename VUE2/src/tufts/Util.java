@@ -162,6 +162,10 @@ public class Util
 
             if (DEBUG) out(String.format("Mac Leopard (10.5) or later = %s", OSisMacLeopard));
             String mrj = System.getProperty("mrj.version");
+            // This is null on Oracle JRE, so in this case user os.name 
+            if (mrj == null)
+              mrj = System.getProperty("os.name");
+
             int i = 0;
             while (i < mrj.length()) {
                 if (!Character.isDigit(mrj.charAt(i)))
