@@ -695,28 +695,27 @@ public class Actions implements VueConstants
         };
     
         public static final Action ResizeNode =
-            new LWCAction(VueResources.local("menu.format.node.resize")/*, VueResources.getIcon("outlineIcon.link")*/) {
-                boolean enabledFor(LWSelection s) { 
-                
-                	
-                	
-                	if (s.size()==1 && s.containsType(LWNode.class))
-                	{
-                		LWNode n = (LWNode)s.get(0);
-                		Size minSize = n.getMinimumSize();
-                		
-                		if (minSize.height == n.height && minSize.width == n.width)
-                			return false;
-                		else
-                			return true;
+            new LWCAction(VueResources.local("menu.format.node.resize"),
+                        keyStroke(KeyEvent.VK_R, ALT + SHIFT)/* , VueResources.getIcon("outlineIcon.link") */) {
+                    boolean enabledFor(LWSelection s) {
 
-                	}
-                	else 
-                		return false;
-                	}
-                public void act(LWNode c) { c.setToNaturalSize();}
-            };    
-    
+                        if (s.size() >= 1) {
+                            for (LWComponent c : s) {
+                                if (!(c instanceof LWNode)) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+
+                    public void act(LWNode c) {
+                        c.setToNaturalSize();
+                    }
+                };
+
     /** Helper for menu creation.  Null's indicate good places
      * for menu separators. */
     public static final Action[] LINK_MENU_ACTIONS = {
