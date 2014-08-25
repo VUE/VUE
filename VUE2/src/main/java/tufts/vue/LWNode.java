@@ -1171,7 +1171,8 @@ public class LWNode extends LWContainer
         // layoutBoxed, if anything else, we use layoutCeneter
         //-------------------------------------------------------
 
-        final Size min;
+        Size min;
+        Size fittedSize;
 
 //         if (isRectShape) {
 //             isCenterLayout = false;
@@ -1196,13 +1197,13 @@ public class LWNode extends LWContainer
         if (isCenterLayout) {
             if (request == null)
                 request = curSize;
-            min = layoutCentered(request);
+            fittedSize = layoutCentered(request, min = new Size());
         } else {
-            min = layoutBoxed(request, curSize, triggerKey);
+            fittedSize = layoutBoxed(request, curSize, triggerKey);
+            min = new Size(fittedSize);
             if (request == null)
                 request = curSize;
         }
-        
 
         mMinSize = new Size(min);
 
@@ -1223,14 +1224,21 @@ public class LWNode extends LWContainer
             // we always compute the minimum size, and
             // never let us get smaller than that -- so
             // only use given size if bigger than min size.
-            if (request.width > min.width)
-                newWidth = request.width;
-            else
-                newWidth = min.width;
-            if (request.height > min.height)
-                newHeight = request.height;
-            else
-                newHeight = min.height;
+
+            if (isCenterLayout) {
+                newWidth = fittedSize.width;
+                newHeight = fittedSize.height;
+
+            } else {
+                if (request.width > min.width)
+                    newWidth = request.width;
+                else
+                    newWidth = min.width;
+                if (request.height > min.height)
+                    newHeight = request.height;
+                else
+                    newHeight = min.height;
+            }
         }
 
         setSizeNoLayout(newWidth, newHeight);
@@ -1301,10 +1309,9 @@ public class LWNode extends LWContainer
      * @return the minimum rectangular size of node shape required to to contain all
      * the visual node contents
      */
-    private Size layoutCentered(Size request)
+    private Size layoutCentered(Size request, Size minSize)
     {
         NodeContent content = getLaidOutNodeContent();
-        Size minSize = new Size(content);
         Size node = new Size(content);
 
         // Current node size is largest of current size, or
@@ -2070,8 +2077,11 @@ public class LWNode extends LWContainer
 //         else
         if (hasFlag(Flag.SLIDE_STYLE) && mAlignment.get() != Alignment.LEFT && isImageNode(this))
             layoutChildrenColumnAligned(baseX, baseY, result);
-        else
-            layoutChildrenSingleColumn(baseX, baseY, result);
+        else if (isChildrenLayoutColumn) {
+            result = layoutChildrenSingleColumn(baseX, baseY);
+        } else {
+            result = layoutChildrenSingleRow(baseX, baseY);
+        }
 
 //         if (result != null) {
 //             //if (DEBUG.BOXES)
@@ -2123,11 +2133,12 @@ public class LWNode extends LWContainer
         }
     }
 
-    protected void layoutChildrenSingleColumn(float baseX, float baseY, Size result)
+    protected Size layoutChildrenSingleColumn(float baseX, float baseY)
     {
         float y = baseY;
         float maxWidth = 0;
         boolean first = true;
+        float w = 0.0f;
 
         for (LWComponent c : getChildren()) {
             if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
@@ -2141,20 +2152,54 @@ public class LWNode extends LWContainer
             c.setLocation(baseX, y);
             y += c.getLocalHeight();
 
-            if (result != null) {
-                // track max width
-                float w = c.getLocalBorderWidth();
-                if (w > maxWidth)
-                    maxWidth = w;
-            }
+            // track max width
+            w = c.getLocalBorderWidth();
+            if (w > maxWidth)
+                maxWidth = w;
         }
 
-        if (result != null) {
-            result.width = maxWidth;
-            result.height = (y - baseY);
-        }
+        return new Size(maxWidth, (y - baseY));
     }
-    
+
+    /**
+     * This lays out children into a single row.
+     * 
+     * @param baseX  - relative x position within the parent
+     * @param baseY  - relative y position within the parent
+     * @param result - can be null. If passed it is updated with the Size of the
+     *               rectangle enclosing the children.
+     * @return void
+     */
+    protected Size layoutChildrenSingleRow(double baseX, double baseY) {
+        double newX = baseX;
+        double newY = baseY;
+        double maxHeight = 0;
+        boolean first = true;
+
+        for (LWComponent c : getChildren()) {
+            if (c instanceof LWLink) // todo: don't allow adding of links into a
+                                     // manged layout node!
+                continue;
+            if (c.isHidden())
+                continue;
+            if (first) {
+                first = false;
+            } else {
+                newX += ChildHorizontalGap * getScale();
+            }
+
+            c.setLocation(newX, baseY);
+
+            newX += c.getLocalWidth();
+
+            // track max height
+            double h = c.getLocalHeight();
+            if (h > maxHeight)
+                maxHeight = h;
+        }
+        return new Size((newX - baseX), (maxHeight));
+    }
+
     class Column extends java.util.ArrayList<LWComponent>
     {
         float width;
