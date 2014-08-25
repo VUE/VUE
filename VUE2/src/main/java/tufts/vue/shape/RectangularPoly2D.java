@@ -19,6 +19,7 @@ import java.awt.geom.RectangularShape;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.AffineTransform;
+import java.lang.Math;
 
 /**
  * This class implements a polygon shape fit into a specified rectanular region.
@@ -140,38 +141,40 @@ public abstract class RectangularPoly2D extends RectangularShape
         public Diamond() { setSides(4); }
         protected void computeVertices()
         {
-            xpoints[0] = x + width/2;
+            xpoints[0] = x + width/2.0;
             ypoints[0] = y;
             
             xpoints[1] = x + width;
-            ypoints[1] = y + height/2;
+            ypoints[1] = y + height/2.0;
             
-            xpoints[2] = x + width/2;
+            xpoints[2] = x + width/2.0;
             ypoints[2] = y + height;
             
             xpoints[3] = x;
-            ypoints[3] = y + height/2;
+            ypoints[3] = y + height/2.0;
         }
     }
     
     /** a 4 sided polygon */
     public static class Rhombus extends RectangularPoly2D {
+        private double offset;
+
         public Rhombus() { setSides(4); }
         protected void computeVertices()
         {
-        
+            offset = Math.tan(60.0) * height;
 
-            xpoints[0] = x + ((double)width-(double)width*0.8);
+            xpoints[0] = x + offset;
             ypoints[0] = y;
-            
+
             xpoints[1] = x + width;
             ypoints[1] = y;
-            
+
+            xpoints[2] = x + width - offset;
+            ypoints[2] = y + height;
+
             xpoints[3] = x;
             ypoints[3] = y + height;
-            
-            xpoints[2] = x + ((double)width-(double)width*0.2);
-            ypoints[2] = y + height;
         }
     }
 
@@ -267,27 +270,39 @@ public abstract class RectangularPoly2D extends RectangularShape
             ypoints[7] = y + yInset;
         }
     }
-    /** a point sideways Chevron */  
-    public static class Chevron extends RectangularPoly2D {  
-    	  public Chevron() { setSides(6); }  
-    	  public int getContentGravity() { return CENTER; }  
-          protected void computeVertices()  
-           {  
-            
-             xpoints[0] = x + ((double)width-(double)width*0.2);  
-             ypoints[0] = y;         
-             xpoints[1] = x + width;  
-             ypoints[1] = y + (height/2);     
-             xpoints[2] = x + ((double)width-(double)width*0.2);  
-             ypoints[2] = y + height;   
-             xpoints[3] = x;  
-             ypoints[3] = y + height;  
-             xpoints[4] = x + (double)width*0.2;  
-             ypoints[4] = y + (height/2);  
-             xpoints[5] = x;  
-             ypoints[5] = y;             
-           }      
-     }  
+
+    /** a point sideways Chevron */
+    public static class Chevron extends RectangularPoly2D {
+        private double offset;
+
+        public Chevron() { setSides(6); }
+
+        public int getContentGravity() { return CENTER; }
+
+        protected void computeVertices() {
+            offset = Math.tan(60.0) * height / 2.0;
+
+            xpoints[0] = x;
+            ypoints[0] = y;
+
+            xpoints[1] = x + width - offset;
+            ypoints[1] = y;
+
+            xpoints[2] = x + width;
+            ypoints[2] = y + (height / 2.0);
+
+            xpoints[3] = x + width - offset;
+            ypoints[3] = y + height;
+
+            xpoints[4] = x;
+            ypoints[4] = y + height;
+
+            xpoints[5] = x + offset;
+            ypoints[5] = y + (height / 2.0);
+
+        }
+    }
+
     public void setSides(int sides)
     {
         if (sides < 3 || sides > 8)
@@ -547,7 +562,7 @@ public abstract class RectangularPoly2D extends RectangularShape
 
     public String toString()
     {
-    	return getClass().getName() + "@" + Integer.toHexString(hashCode()) + "[sides=" + sides + " " + x + "," + y + " " + width + ", " + height + "]";
+        return getClass().getName() + "@" + Integer.toHexString(hashCode()) + "[sides=" + sides + " " + x + "," + y + " " + width + "x" + height + "]";
     }
     
     class PolyIterator implements PathIterator
