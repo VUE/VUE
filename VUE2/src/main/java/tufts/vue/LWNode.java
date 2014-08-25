@@ -1327,18 +1327,23 @@ public class LWNode extends LWContainer
         //content.height = minSize.height;
 
         RectangularShape nodeShape = (RectangularShape) mShape.clone();
-        nodeShape.setFrame(0,0, content.width, content.height);
+        //nodeShape.setFrame(0,0, content.width, content.height);
         //nodeShape.setFrame(0,0, minSize.width, minSize.height);
         
         // todo perf: allow for skipping of searching for minimum size
         // if current size already big enough for content
 
         // todo: we shouldn't even by trying do a layout if have no children or label...
-        if ((hasLabel() || hasChildren()) && growShapeUntilContainsContent(nodeShape, content)) {
+        if ((hasLabel() || hasChildren()) && growShapeUntilContainsContent(nodeShape, content, new Size(0, 0))) {
             // content x/y is now at the center location of our MINUMUM size,
             // even tho our current size may be bigger and require moving it..
             minSize.fit(nodeShape);
-            node.fit(minSize);
+
+            // get size of shape at requested size.
+            if (!isAutoSized()) {
+                growShapeUntilContainsContent(nodeShape, content, request);
+            }
+            node.fit(nodeShape);
         }
 
         //Size text = getTextSize();
@@ -1351,7 +1356,7 @@ public class LWNode extends LWContainer
 
         content.layoutTargets();
         
-        return minSize;
+        return node;
     }
 
     /**
@@ -1365,70 +1370,137 @@ public class LWNode extends LWContainer
      * @param content - the rectangle to ensure we can contain (x/y is ignored: it's x/y value at end will be centered)
      * @return true if the shape was grown
      */
-    private boolean growShapeUntilContainsContent(RectangularShape shape, NodeContent content)
-    {
-        final int MaxTries = 1000; // in case of loops (e.g., a broke shape class whose contains() never succeeds)
-        final float increment;
+    private boolean growShapeUntilContainsContent(RectangularShape shape, NodeContent content, Size requestedSize) {
+        final int MaxTries = 1000; // in case of loops (e.g., a broke shape
+                                   // class whose contains() never succeeds)
+        final double increment;
+        double newHeight = shape.getHeight();
+        double newWidth = shape.getWidth();
+
+        if (requestedSize.width > content.width) {
+            newWidth = requestedSize.width;
+        }
+        if (requestedSize.height > content.width) {
+            newHeight = requestedSize.height;
+        }
+
+        shape.setFrame(0, 0, newWidth, newHeight);
+
         if (content.width > content.height)
-            increment = content.width * 0.1f;
+            increment = content.width * 0.1d;
         else
-            increment = content.height * 0.1f;
-        final float xinc = increment;
-        final float yinc = increment;
-        //final float xinc = content.width * 0.1f;
-        //final float yinc = (content.height / content.width) * xinc;
-        //System.out.println("xinc=" + xinc + " yinc=" + yinc);
+            increment = content.height * 0.1d;
+
+        double xinc = increment;
+        double yinc = increment;
+
+        // final float xinc = content.width * 0.1f;
+        // final float yinc = (content.height / content.width) * xinc;
+        // System.out.println("xinc=" + xinc + " yinc=" + yinc);
         int tries = 0;
-        while (!shape.contains(content) && tries < MaxTries) {
-        //while (!content.fitsInside(shape) && tries < MaxTries) {
+
+        // Grow shape to contain content.
+        while (!shape.contains(content) && ++tries < MaxTries) {
+            // while (!content.fitsInside(shape) && tries < MaxTries) {
+            if (DEBUG.LAYOUT)
+                out("Growing size " + shape + "by " + xinc + "," + yinc + " for content " + content);
             shape.setFrame(0, 0, shape.getWidth() + xinc, shape.getHeight() + yinc);
-            //System.out.println("trying size " + shape + " for content " + content);
             layoutContentInShape(shape, content);
-            tries++;
         }
+
+        // If the shape changed size trim it back to fit content.
         if (tries > 0) {
-            final float shrink = 1f;
-            if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + "  rought  fit  to " + content + " in " + tries + " tries");
-            do {
-                shape.setFrame(0, 0, shape.getWidth() - shrink, shape.getHeight() - shrink);
-                //System.out.println("trying size " + shape + " for content " + content);
-                layoutContentInShape(shape, content);
-                tries++;
-                //} while (shape.contains(content) && tries < MaxTries);
-            } while (content.fitsInside(shape) && tries < MaxTries);
-            shape.setFrame(0, 0, shape.getWidth() + shrink, shape.getHeight() + shrink);
-            //layoutContentInShape(shape, content);
 
-            /*
-            if (getLabel().indexOf("*s") >= 0) {
-            do {
-                shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() - shrink);
-                tries++;
-            } while (content.fitsInside(shape) && tries < MaxTries);
-            shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() + shrink);
+            if (DEBUG.LAYOUT)
+                out("Contents of " + shape + "  rought  fit  to " + content + " in " + tries + " tries");
+
+            int widthTries = 0;
+            int heightTries = 0;
+            double shrink = increment;
+
+            // tighten shape
+            // reduce size on both dimensions
+
+            while (shrink >= 1 && tries < MaxTries) {
+                while (shape.contains(content) && tries < MaxTries && shape.getWidth() >= requestedSize.width
+                        && shape.getHeight() >= requestedSize.height) {
+                    shape.setFrame(0, 0, shape.getWidth() - shrink, shape.getHeight() - shrink);
+                    layoutContentInShape(shape, content);
+                    tries++;
+                }
+                if (tries > 0) {
+                    shape.setFrame(0, 0, shape.getWidth() + shrink, shape.getHeight() + shrink);
+                    layoutContentInShape(shape, content);
+                }
+                shrink /= 2.0;
             }
 
-            if (getLabel().indexOf("*ml") >= 0) {
-            do {
-                shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() - shrink);
-                tries++;
-            } while (content.fitsInside(shape) && tries < MaxTries);
-            shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() + shrink);
-            }
-            */
-            
+            // Trim each dimension individually. This tights the shape down properly when
+            // the
+            // shape is autosized.
+            heightTries = shrinkHeight(shape, content, yinc, requestedSize.height);
+            widthTries = shrinkWidth(shape, content, xinc, requestedSize.width);
+            tries += widthTries + heightTries;
         }
-        
+
         if (tries >= MaxTries) {
             Log.error("Contents of " + shape + " failed to contain " + content + " after " + tries + " tries.");
         } else if (tries > 0) {
-            if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + " grown to contain " + content + " in " + tries + " tries");
-        } else
-            if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + " already contains " + content);
-        if (DEBUG.LAYOUT) out("*** content minput at " + content + " in " + shape);
+            if (DEBUG.LAYOUT)
+                out("Contents of " + shape + " grown to contain " + content + " in " + tries + " tries");
+        } else {
+            if (DEBUG.LAYOUT)
+                out("Contents of " + shape + " already contains " + content);
+        }
+        if (DEBUG.LAYOUT)
+            out("*** content minput at " + content + " in " + shape);
         return tries > 0;
     }
-    
+
+    private int shrinkHeight(RectangularShape shape, NodeContent content, double iniShrink, float requestedHeight) {
+        int tries = 0;
+        final int MaxTries = 500;
+        double shrink = iniShrink;
+
+        while (shrink >= 1 && tries < MaxTries) {
+            while (shape.contains(content) && tries < MaxTries && shape.getHeight() >= requestedHeight) {
+                if (DEBUG.LAYOUT)
+                    out("Shrinking height " + shape + "by " + shrink + " for content " + content);
+                shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() - shrink);
+                layoutContentInShape(shape, content);
+                tries++;
+            }
+            if (tries > 0) {
+                shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() + shrink);
+                layoutContentInShape(shape, content);
+            }
+            shrink /= 2.0;
+        }
+        return tries;
+    }
+
+    private int shrinkWidth(RectangularShape shape, NodeContent content, double iniShrink, float requestedWidth) {
+        int tries = 0;
+        final int MaxTries = 500;
+        double shrink = iniShrink;
+
+        while (shrink >= 1 && tries < MaxTries) {
+            while (shape.contains(content) && tries < MaxTries && shape.getWidth() >= requestedWidth) {
+                if (DEBUG.LAYOUT)
+                    out("Shrinking width " + shape + "by " + shrink + " for content " + content);
+                shape.setFrame(0, 0, shape.getWidth() - shrink, shape.getHeight());
+                layoutContentInShape(shape, content);
+                tries++;
+            }
+            if (tries > 0) {
+                shape.setFrame(0, 0, shape.getWidth() + shrink, shape.getHeight());
+                layoutContentInShape(shape, content);
+            }
+            shrink /= 2.0;
+        }
+        return tries;
+    }
+
     /**
      * Layout the given content rectangle in the given shape.  The default is to center
      * the content rectangle in the shape, however, if the shape in an instance
@@ -1451,16 +1523,16 @@ public class LWNode extends LWContainer
             int gravity = ((RectangularPoly2D)shape).getContentGravity();
             content_laid_out = true;
             if (gravity == RectangularPoly2D.CENTER) {
-                content.x = (shapeWidth - content.width) / 2;
-                content.y = (shapeHeight - content.height) / 2;
+                content.x = (float) (shape.getCenterX() - (content.width / 2));
+                content.y = (float) (shape.getCenterY() - (content.height / 2));
             } else if (gravity == RectangularPoly2D.WEST) {
                 content.x = margin;
-                content.y = (float) (shapeHeight - content.height) / 2;
+                content.y = (shapeHeight - content.height) / 2;
             } else if (gravity == RectangularPoly2D.EAST) {
-                content.x = (shapeWidth - content.width) - margin;
-                content.y = (float) Math.floor((shapeHeight - content.height) / 2);
+                content.x = shapeWidth - content.width - margin;
+                content.y = (shapeHeight - content.height) / 2;
             } else if (gravity == RectangularPoly2D.NORTH) {
-                content.x = (shapeWidth  - content.width) / 2;
+                content.x = (shapeWidth - content.width) / 2;
                 content.y = margin;
             } else if (gravity == RectangularPoly2D.SOUTH) {
                 content.x = (shapeWidth  - content.width) / 2;
@@ -1527,7 +1599,7 @@ public class LWNode extends LWContainer
                 rChildren = new Rectangle2D.Float(childx,childy, children.width, children.height);
 
                 // can set absolute height based on label height & children height
-                this.height = rLabel.height + ChildPadY + children.height;
+                this.height = rLabel.height + ChildPadY + children.height + ChildrenPadBottom;
 
                 // make sure we're wide enough for the children in case children wider than label
                 fitWidth(rLabel.x + children.width); // as we're 0 based, rLabel.x == width of gap at left of children
