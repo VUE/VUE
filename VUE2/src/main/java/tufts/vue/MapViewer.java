@@ -7952,9 +7952,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //                         selectionType = LWNode.class;
 //                     else
 //                         selectionType = activeTool.getSelectionType();
+                    List<LWComponent> list = computeSelection(screenToMapRect(draggedSelectorBox));
 
-                    List list = computeSelection(screenToMapRect(draggedSelectorBox));
-                    
+                    if (e.isControlDown()) {
+                        List<LWComponent> childList = new ArrayList<>();
+
+                        for (LWComponent selectedItem : list) {
+                            if (selectedItem.hasChildren()) {
+                                childList.addAll(selectedItem.getChildren());
+                            }
+                        }
+                        list.addAll(childList);
+                    }
+
                     if (e.isShiftDown())
                         selectionToggle(list);
                     else
