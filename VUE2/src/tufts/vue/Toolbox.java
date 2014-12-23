@@ -198,7 +198,7 @@ public class Toolbox {
 		tmpAlpha = Math.abs(alpha - beta);
 		if (tmpAlpha > Math.PI)
 		{ 
-			// more than 180°, reduce
+			// more than 180 degrees, reduce
 			tmpAlpha = 2*Math.PI - tmpAlpha;
 		}
 		return tmpAlpha;

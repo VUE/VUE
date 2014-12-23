@@ -6251,7 +6251,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 		                        			Collections.unmodifiableSet(angles.keySet()),
 											directionAlpha);
 		
-		                        	// only navigate if direction within 90° of cursor movement
+		                        	// only navigate if direction within 90 degrees  of cursor movement
 		                        	if (Toolbox.angleDifference(directionAlpha, nearestAlpha) <= Math.PI/4)
 		                        	{
 		                        		if (angles.containsKey(nearestAlpha))
