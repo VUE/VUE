@@ -521,8 +521,6 @@
     <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact_result_title.xml" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
     <copy file="${basedir}/edu/tufts/osidimpl/repository/artifact/artifact_result_artist.htm" todir="${build.class}/edu/tufts/osidimpl/repository/artifact" verbose="true"/>
 
-  	<copy file="${basedir}/edu/tufts/seasr/seasr.xml" todir="${build.class}/edu/tufts/seasr" verbose="true"/>
-  	<copy file="${basedir}/edu/tufts/seasr/seasr_mapping.xml" todir="${build.class}/edu/tufts/seasr" verbose="true"/>
     <!-- Determine if Java 1.4 is available on this machine -->
     <condition property="java1.4.present"> 
       <equals arg1="${ant.java.version}" arg2="1.4" /> 

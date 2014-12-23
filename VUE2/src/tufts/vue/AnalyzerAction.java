@@ -28,14 +28,11 @@ import javax.swing.KeyStroke;
 
 import edu.tufts.vue.mbs.AlchemyAnalyzer;
 
-import edu.tufts.seasr.MeandreItem;
-import edu.tufts.seasr.MeandreResponse;
 import edu.tufts.vue.layout.*;
 import edu.tufts.vue.mbs.AnalyzerResult;
 import edu.tufts.vue.mbs.LWComponentAnalyzer;
 import edu.tufts.vue.mbs.OpenCalaisAnalyzer;
 import edu.tufts.vue.mbs.YahooAnalyzer;
-import edu.tufts.vue.mbs.SeasrAnalyzer;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -84,9 +81,6 @@ import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.ui.DefaultQueryEditor;
-import edu.tufts.seasr.SeasrConfigLoader;
-import edu.tufts.seasr.FlowGroup;
-import edu.tufts.seasr.Flow;
 
 
 
@@ -374,45 +368,7 @@ public class AnalyzerAction extends Actions.LWCAction {
     	analyzeNodeMenu.add(calaisAutoTagger);
     	analyzeNodeMenu.add(calaisMapAction);
     	analyzeNodeMenu.add(luckyImageAction);
-    	analyzeNodeMenu.add(getSeasrMenu());
-//    	analyzeNodeMenu.add(seasr);
-//    	analyzeNodeMenu.add(calaisMenu);
 		
-	}
-	
-	public static JMenu getSeasrMenu() {
-		JMenu seasrMenu = new JMenu("SEASR Analysis");
-		JMenu createNodesMenu = new JMenu(SeasrConfigLoader.CREATE_NODES);
-		JMenu getMetadataMenu = new JMenu(SeasrConfigLoader.ADD_METADATA);
-		JMenu getInfoMenu = new JMenu(SeasrConfigLoader.ADD_NOTES);
-		SeasrConfigLoader scl = new SeasrConfigLoader();
-		
-		try {
-		FlowGroup fg = scl.getFlowGroup(SeasrConfigLoader.CREATE_NODES);
-		
-		for(Flow flow: fg.getFlowList()) {
-			SeasrAction seasr = new SeasrAction(new SeasrAnalyzer(flow),flow.getLabel(),null);
-			createNodesMenu.add(seasr);
-		}
-		fg = scl.getFlowGroup(SeasrConfigLoader.ADD_METADATA);
-		for(Flow flow: fg.getFlowList()){
-			getMetadataMenu.add(new SeasrMetadataAction(new SeasrAnalyzer(flow),flow.getLabel(),null));
-		}
-		fg = scl.getFlowGroup(SeasrConfigLoader.ADD_NOTES);
-		for(Flow flow: fg.getFlowList()){
-			getInfoMenu.add(new SeasrInfoAction(new SeasrAnalyzer(flow),flow.getLabel(),null));
-		} 
-		seasrMenu.add(createNodesMenu);
-		seasrMenu.add(getMetadataMenu);
-		seasrMenu.add(getInfoMenu);
-		 
-		} catch(Exception ex) {
-			System.out.println(ex);
-			ex.printStackTrace();
-		}
-		 
-		return seasrMenu;
-		 
 	}
 	
 	static class SemanticMapAction extends Actions.LWCAction {
@@ -652,94 +608,6 @@ public class AnalyzerAction extends Actions.LWCAction {
 	    	return;
 	    }
 	}
-	static class SeasrAction extends Actions.LWCAction{
-		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
-		  private LWComponentAnalyzer analyzer = null;
-		    
-		   public SeasrAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
-		        super(name,keyStroke);
-		        this.analyzer = analyzer;
-		    }
-		   public void act(LWComponent c) 
-		    {
-		    	System.out.println("Executing action on:"+c.getLabel());
-		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
-		    	Iterator<AnalyzerResult> i = list.iterator();
-		    	LWMap active = VUE.getActiveMap();
-		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
-		    	while (i.hasNext())
-		    	{		
-		    		AnalyzerResult l = i.next();
-		    		tufts.vue.LWNode node = new tufts.vue.LWNode(l.getType()); 
-		    		comps.add(node);
-		    		node.layout();
-		    		node.setLocation(c.getLocation());
-		        	LWLink link = new LWLink(c,node);            
-		        	comps.add(link);
-		        	link.layout();
-		        	
-		        }
-		        active.addChildren(comps);
-		        LayoutAction.circle.act(comps);
-		         
-		    }
-	}
-	static class SeasrMetadataAction extends Actions.LWCAction{
-		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
-		  private LWComponentAnalyzer analyzer = null;
-		    
-		   public  SeasrMetadataAction(LWComponentAnalyzer analyzer, String name,KeyStroke keyStroke) {
-		        super(name,keyStroke);
-		        this.analyzer = analyzer;
-		    }
-		   public void act(LWComponent c) 
-		    {
-		    	
-		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
-		    	Iterator<AnalyzerResult> i = list.iterator();
-		    	LWMap active = VUE.getActiveMap();
-		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
-		    	while (i.hasNext())
-		    	{		
-		    		AnalyzerResult l = i.next();
-		    		 MetadataList mList  = c.getMetadataList();
-		    		mList.add("tag",l.getType());
-		        	
-		        }
-		        
-		         
-		    }
-	}
-	
-	static class SeasrInfoAction extends Actions.LWCAction{
-		  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SeasrAction.class);
-		  public static final String OUT_TITLE = "Output from SEASR Flow: ";
-		  private  SeasrAnalyzer analyzer = null;
-		    
-		   public  SeasrInfoAction( SeasrAnalyzer analyzer, String name,KeyStroke keyStroke) {
-		        super(name,keyStroke);
-		        this.analyzer = analyzer;
-		    }
-		   public void act(LWComponent c) 
-		    {
-		    	
-		    	List<AnalyzerResult> list = analyzer.analyze(c,true);
-		    	Iterator<AnalyzerResult> i = list.iterator();
-		    	LWMap active = VUE.getActiveMap();
-		        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
-		        String info = OUT_TITLE+analyzer.getFlow().getLabel()+"\n\n";
-		    	while (i.hasNext())
-		    	{		
-		    		AnalyzerResult l = i.next();
-		    		info += l.getType()+" - "+l.getValue()+"\n";
-		    		
-		        	
-		        }
-		    	 c.setNotes(info);
-		         
-		    }
-	}
-	
 	static private class AlchemyAnalyzerAPIKeyGuarder extends AlchemyAnalyzer
 	{
 	    @Override

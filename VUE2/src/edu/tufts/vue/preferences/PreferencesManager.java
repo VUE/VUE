@@ -21,7 +21,6 @@ import java.util.Vector;
 import java.util.prefs.*;
 
 import edu.tufts.vue.preferences.PreferenceConstants;
-import edu.tufts.vue.preferences.implementations.SeasrRepositoryPreference;
 import edu.tufts.vue.preferences.implementations.AlchemyAPIPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
@@ -39,7 +38,6 @@ public class PreferencesManager {
 	  {
               //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.ImageSizePreference.class);
 		  //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.AutoZoomPreference.class);  		
-	        SeasrRepositoryPreference srr = edu.tufts.vue.preferences.implementations.SeasrRepositoryPreference.getInstance();
 			AlchemyAPIPreference alchemyPref = edu.tufts.vue.preferences.implementations.AlchemyAPIPreference.getInstance();
 
 		  if (tufts.Util.isWindowsPlatform())

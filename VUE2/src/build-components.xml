@@ -9,8 +9,8 @@
   <description>
     This build file is to build components. We attempt to jar only the classes that
      are needed to perform cetrain task and merge them into a file. Once the component
-     is ready it can be executed on comand line. It can then be added to a servlet or
-     seasr. An example is import component that takes a dataset as input and generates a
+     is ready it can be executed on comand line. It can then be added to a servlet.
+     An example is import component that takes a dataset as input and generates a
      map from it.
   </description>
  <import file="build.xml"/>

@@ -61,7 +61,6 @@ import tufts.vue.MapViewer;
 import tufts.vue.PresentationTool;
 import tufts.vue.RecentlyOpenedFilesManager;
 import tufts.vue.Resource;
-import tufts.vue.SeasrAnalysisPanel;
 import tufts.vue.VUE;
 import tufts.vue.VueAction;
 import tufts.vue.VueApplet;
@@ -953,7 +952,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	}
         	//analysisMenu.add(analyzeCMAction);
 
-        	analysisMenu.add(createWindowItem(SeasrAnalysisPanel.getSeasrAnalysisDock(), 0, VueResources.getString("menu.windows.seasr")));            
         	analysisMenu.add(createWindowItem(JavaAnalysisPanel.getJavaAnalysisDock(), 0, VueResources.getString("menu.windows.java")));
         //}
        
