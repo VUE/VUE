@@ -12,8 +12,8 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package tufts.vue;
+
 
 import tufts.Util;
 import static tufts.Util.*;
@@ -1136,7 +1136,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     /**
      * Return the bounds of the map region that can actually be seen
-     * in the display at this moment, accouting for any scrolled
+     * in the display at this moment, accounting for any scrolled
      * state within the JViewport of a JScrollPane, zoom state, etc.
      * This could be a blank area of the map -- it's just where we
      * happen to be panned to and displaying at the moment.
@@ -6185,11 +6185,92 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 case KeyEvent.VK_LEFT:
                 case KeyEvent.VK_RIGHT:
 
-                    if (!getSelection().isEmpty() && !e.isAltDown() && !e.isMetaDown() && !e.isControlDown()) {
-                        
-                        if (getSelection().size() == 1 && !activeTool.supportsDrag(e) && activeTool.supportsSelection()) {
-                            
-                            final LWComponent selected = getSelection().first();
+                    if (!getSelection().isEmpty() 
+                    		&& getSelection().size() == 1
+                    		&& activeTool.supportsSelection()
+                    	)
+                    {
+                		final LWComponent selected = getSelection().first();
+                		if (e.isControlDown())
+                		{
+                            // search for nearby nodes
+                			
+                            // if a child is selected and ctrl + cursor is used
+                            // -> break out
+                            if (selected.getParent() instanceof LWNode)
+                            {
+                            	selectionSet(selected.getParent());
+                            }
+                            else
+                            {
+	                            // -- This type of navigation works only along the links
+	                            // -- find the linked nodes
+	                    		HashSet<LWComponent> userSelection = new HashSet<LWComponent>();	
+	                    		HashSet<LWComponent> deepSelection;
+	                    		int depth = 1;
+	                    		int maxDepth = 2;
+	                    		boolean done = false;
+	                    		
+	                    		userSelection.add(selected);
+	                    		
+	                    		while (depth <= maxDepth && !done)
+	                    		{
+	                    			deepSelection = new HashSet<LWComponent>();
+		                            Toolbox.findChildrenToDepth(userSelection, deepSelection, 
+		    								userSelection, depth, true, true, new Hashtable<LWComponent, Integer>());
+		
+		                            // -- now we have a set with nodes and links
+		
+		                            TreeMap<Double, LWComponent> angles = new TreeMap<Double, LWComponent>();
+		                            double angle = 0;
+		                            for (LWComponent comp : deepSelection)
+		                            {
+		                            	if (comp != selected
+		                           			&& !comp.isHidden()
+		                           			&& comp instanceof LWNode)
+		                            	{
+		                            		Point2D p1 = new Point2D.Double(selected.getMapCenterX(), selected.getMapCenterY()*-1);
+		                            		Point2D p2 = new Point2D.Double(comp.getMapCenterX(), comp.getMapCenterY()*-1);
+		                            		angle = Toolbox.angleBetween2Points(p1, p2);
+		                            		angles.put(angle, comp);
+		                            	}
+		                            }
+		                            
+		                            double directionAlpha;
+		                        	if (keyCode == KeyEvent.VK_UP) {
+		                        		directionAlpha = 3*Math.PI/2;
+		                        	} else if (keyCode == KeyEvent.VK_DOWN) {
+		                            		directionAlpha = Math.PI/2;
+		                            } else if (keyCode == KeyEvent.VK_LEFT) {
+		                            	directionAlpha = Math.PI;
+			                        } else { // if (keyCode == KeyEvent.VK_RIGHT:
+			                        	directionAlpha = 0;
+			                        }
+	                        
+		                        	double nearestAlpha = Toolbox.minAlphaDifference(
+		                        			Collections.unmodifiableSet(angles.keySet()),
+											directionAlpha);
+		
+		                        	// only navigate if direction within 90° of cursor movement
+		                        	if (Toolbox.angleDifference(directionAlpha, nearestAlpha) <= Math.PI/4)
+		                        	{
+		                        		if (angles.containsKey(nearestAlpha))
+		                        		{
+		                        			selectionSet(angles.get(nearestAlpha));
+		                        			done = true;
+		                        		}
+		                        	}
+		                        	else
+		                        	{
+		                        		// try the next ring of nodes
+		                        		depth++;
+		                        	}
+	                    		}
+                            }
+                		}
+ 
+                    	else if (!e.isAltDown() && !e.isMetaDown() && !activeTool.supportsDrag(e))
+                    	{
                             final int dir;
 
                             if (keyCode == VK_UP || keyCode == VK_LEFT)
@@ -6201,31 +6282,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                 final int newIndex = selected.getIndex() + dir;
                                 if (newIndex >= 0 && newIndex < selected.getParent().numChildren())
                                     selectionSet(selected.getParent().getChild(newIndex));
-                            } else {
-
-                                // search for nearby nodes
-
-                                final LWComponent near;
-                                final LWComponent c = selected;
-
-                                // very crude up/down test for now -- ideal would find nearest
-                                // nodes, the pick nearest with y is less and y is more
-                                // (and x is less/x is more for left/right)
-                                
-                                if (dir < 0) {
-                                    near = pickNode(c.getMapCenterX(),
-                                                    c.getMapY() - c.getMapHeight()/2f);
-                                } else {
-                                    near = pickNode(c.getMapCenterX(),
-                                                    c.getMapY() + c.getMapHeight() * 1.5f);
                                 }
 
-                                if (near != null)
-                                    selectionSet(near);
-                                
-                            }
-                            
-                            
                         } else {                        
                     
                             // there's something in the selection, and only shift might be down: apply big or small nudge
@@ -6242,8 +6300,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                             }
                         }
                         
-                    } else
+                    } else {
                         handled = false;
+                    }
                     break;
                 
                 default:
@@ -7068,13 +7127,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return; } */
 
             //if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) { // too easy to accidentally zoom during presentation
-            if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) {
+            if (inScrollPane && !(e.isMetaDown() || e.isAltDown() || e.isShiftDown())) {
                 // Do not consume, and let the event be passed on to
                 // the BasicScrollPaneUI via MouseWheelRelay in
                 // MapScrollPane.
                 return;
             }
 
+            // -- keys: meta or alt or shift
             e.consume();
             
             final int rotation = e.getWheelRotation();
@@ -7090,15 +7150,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 scrollY = viewPosition.y;
             }
 
-            if (e.isMetaDown()) {
+            // Windows has no meta, so add check for isAltDown for zooming
+            if (e.isMetaDown() || e.isAltDown()) {
                 final Point2D mouseLocation = new Point2D.Float(viewer.screenToMapX(e.getX() + scrollX), viewer.screenToMapY(e.getY() + scrollY));
                 //      if (rotation < 0) tufts.vue.ZoomTool.zoomOut(cursor);
                 // else if (rotation > 0) tufts.vue.ZoomTool.zoomIn(cursor);
-                final double zoomFactorAdjustor = 1.0 - rotation * 0.01; // each rotation does +/- 1.0%  to the zoom-factor *adjustor*
+                // CONFIGME tky: maybe the zoom factor should be configurable for the user? 1% is too slow for me ;)
+                final double zoomFactorAdjustor = 1.0 - rotation * 0.15; // each rotation does +/- 15.0%  to the zoom-factor *adjustor*
                 tufts.vue.ZoomTool.setZoom(mZoomFactor * zoomFactorAdjustor, mouseLocation);
             } else {
+            	// -- keys: meta or alt have been handled, possibly remaining: shift
                 // The invoke-later's help smooth it out / do more paints.
-                final int PanFactor = 2;
+            	// DOCME tky: panning right/left should be documented in the user guide(?)
+                final int PanFactor = 8;
                 if (e.isShiftDown()) {
                     panScrollRegion(rotation * PanFactor, 0);
                     // for (int i = 0; i < rotation; i++) GUI.invokeAfterAWT(PanLeft);

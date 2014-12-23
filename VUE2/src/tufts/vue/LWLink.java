@@ -785,7 +785,7 @@ public class LWLink extends LWComponent
      *  but like any other LWComponent, it will also include any other links that connect
      *  directly to us
      *
-     * The includusion if it's enpodints is effected by pruning -- pruned enpoints
+     * The inclusion if it's endpoints is effected by pruning -- pruned endpoints
      * will not include their nodes.
      */
     @Override
