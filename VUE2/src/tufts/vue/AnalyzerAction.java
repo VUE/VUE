@@ -278,7 +278,7 @@ public class AnalyzerAction extends Actions.LWCAction {
             	try {
         	
             		HttpClient client = new HttpClient();
-        			GetMethod method = new GetMethod("http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=093a05d30b0be54c8b18d227fec80b6b&per_page=1&tag_mode=any&sort=relevance&format=json&text=" + URLEncoder.encode(c.getLabel()));
+        			GetMethod method = new GetMethod("https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=093a05d30b0be54c8b18d227fec80b6b&tag_mode=any&sort=relevance&per_page=1&format=json&nojsoncallback=1&text=" + URLEncoder.encode(c.getLabel()));
         			method.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY); 
         			client.getParams().setParameter(HttpMethodParams.USER_AGENT,
         											"Visual Understanding Environment http://vue.tufts.edu");
@@ -306,8 +306,8 @@ public class AnalyzerAction extends Actions.LWCAction {
         			// A JSONObject is an unordered collection of name/value pairs. Its external
         			// form is a string wrapped in curly braces with colons between the names
         			// and values, and commas between the values and names.
-        			jsonString = jsonString.substring(14);
-        			jsonString = jsonString.substring(0,jsonString.length()-1);
+//        			jsonString = jsonString.substring(14);
+ //       			jsonString = jsonString.substring(0,jsonString.length()-1);
         			JSONObject jo = new JSONObject(jsonString);
 
         			// A JSONArray is an ordered sequence of values. Its external form is a
