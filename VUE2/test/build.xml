@@ -144,6 +144,10 @@ This ant build file:
     
   </path>
 
+<taskdef name="junit"
+   classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask">
+   <classpath refid="compile.classpath"/>
+</taskdef>
 
 <!-- ==================== All Target ====================================== -->
 <!--
