@@ -1,1 +1,19 @@
 VUE2/src/tufts/vue/Version.java
+
+# ignore test files
+**/ConnectivityMatrixSaveTest.txt
+
+VUE2/test/*.txt
+
+#ignore build folders
+**/build
+
+#ignore junit properties
+**/junit*.properties
+
+#ignore shell script for switching jres
+setenv.sh
+
+# intermediate build steps
+VUE2/src/VUE-core.jar
+signing_code/VUE.app
