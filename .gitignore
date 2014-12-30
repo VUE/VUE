@@ -17,3 +17,6 @@ setenv.sh
 # intermediate build steps
 VUE2/src/VUE-core.jar
 signing_code/VUE.app
+
+# ignore ide files
+.idea/
