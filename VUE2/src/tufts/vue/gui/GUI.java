@@ -51,8 +51,6 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
-import com.jgoodies.looks.LookUtils;
-import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 
 /**
  * Various constants for GUI variables and static method helpers.
@@ -268,13 +266,13 @@ public class GUI
 
         if (VUE.isApplet() || Util.isUnixPlatform())
         {
-        	   try {
-        		   UIManager.put("ClassLoader", LookUtils.class.getClassLoader());
-        		      UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
-        		   } catch (Exception e) 
-        		   {
-        			   Log.error("Couldn't load jlooks look and feel");
-        		   }
+           try {
+                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
+               } catch (Exception e)
+               {
+                 Log.error("Couldn't load jlooks look and feel");
+               }
 
         }
         else if (Util.isMacPlatform() && !VUE.isApplet()) {
