@@ -21,7 +21,7 @@
 /**
  *
  * @author akumar03
- */ 
+ */
 package edu.tufts.vue.compare;
 
 
@@ -29,64 +29,57 @@ import junit.framework.TestCase;
 
 import java.io.*;
 import java.net.*;
+
 import tufts.vue.*;
 
 public class TestConnectivityMatrix extends TestCase {
-    
- public void testConnectivityMatrixCreation() {
-     tufts.vue.gui.GUI.init();
-     LWMap map = edu.tufts.vue.compare.Util.getMap();
-     ConnectivityMatrix matrix = new ConnectivityMatrix(map);
-     
- }
- 
- public void testConnectivityMatrixSave() {
-     tufts.vue.gui.GUI.init();
-     LWMap map = edu.tufts.vue.compare.Util.getMap();
-     ConnectivityMatrix matrix = new ConnectivityMatrix(map);
-     URL url = edu.tufts.vue.TestResources.getURL("ConnectivityMatrixTest");
-     String fileName = url.getFile();
-     try
-     {
-        PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
-        pw.write(matrix.toString());
-        pw.close();
-     }
-     catch(Exception ex)
-     {
-        ex.printStackTrace();
-     }
-     
-     String matrix2 = "";
-     
-     try
-     {
-        BufferedReader br = new BufferedReader(new FileReader(fileName));
-        String line = "";
-        while(line != null)
-        {
-           line = br.readLine();
-           if (matrix2!="" && line != null)
-             matrix2 += "\n" + line;
-           else
-           if(line!= null)
-             matrix2 += line;
+
+    public void testConnectivityMatrixCreation() {
+        tufts.vue.gui.GUI.init();
+        LWMap map = edu.tufts.vue.compare.Util.getMap();
+        ConnectivityMatrix matrix = new ConnectivityMatrix(map);
+
+    }
+
+    public void testConnectivityMatrixSave() {
+        tufts.vue.gui.GUI.init();
+        LWMap map = edu.tufts.vue.compare.Util.getMap();
+        ConnectivityMatrix matrix = new ConnectivityMatrix(map);
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("ConnectivityMatrixtest", "txt");
+            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(tempFile)));
+            pw.write(matrix.toString());
+            pw.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-     }
-     catch(Exception ex)
-     {
-        ex.printStackTrace();
-     }
-     
-     String saved = matrix.toString().trim();
-     String readFromFile = matrix2.toString().trim();
-     
-     if(!saved.equals(readFromFile))
-     {
-         System.out.println("Matrix Save Test: matrices not equal");
-     }
-     
- }
- 
+
+        String matrix2 = "";
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(tempFile));
+
+            String line = "";
+            while (line != null) {
+                line = br.readLine();
+                if (matrix2 != "" && line != null)
+                    matrix2 += "\n" + line;
+                else if (line != null)
+                    matrix2 += line;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        String saved = matrix.toString().trim();
+        String readFromFile = matrix2.toString().trim();
+
+        if (!saved.equals(readFromFile)) {
+            System.out.println("Matrix Save Test: matrices not equal");
+        }
+
+    }
+
 }
 
