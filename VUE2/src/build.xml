@@ -1255,7 +1255,7 @@
                <!-- Adjust the look, feel and behavior -->
                <javaproperty name="apple.laf.useScreenMenuBar" value="true"/>
                <javaproperty name="apple.awt.brushMetal" value="true"/>
-               <javaproperty name="apple.awt.showGrowBox" value="false"/>
+               <javaproperty name="apple.awt.showGrowBox" value="true"/>
 
                <documenttype name="VUE Map"
                     extensions="vue vpk" 
