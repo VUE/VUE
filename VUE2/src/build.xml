@@ -41,6 +41,7 @@
   These properties generally define file and directory names (or paths) that
   affect where the build process stores its outputs.
 -->
+  <property name="version"     value="3.3.0"/>
   <property name="top.dir"     value="./.."/>
   <property name="top"     value=".."/>
   <property name="src"         value="${basedir}"/>
@@ -56,6 +57,7 @@
   <property name="linux.src"    value="${top}/linux/src"/>
   <property name="linux.class"    value="${top}/linux/classes"/>
   <property name="jnilib.home"    value="${top}/jnilibs"/>	
+  <property name="universalstub" value="${top}/universalJavaApplicationStub-0.9.0/src/universalJavaApplicationStub"/>
   <property name="vue-core.jar" value="${build.top}/VUE-core.jar"/>
   <property name="vue-lib.jar"  value="${build.top}/VUE-lib.jar"/>
   <property name="test.home"   value="${top.dir}/test" />
@@ -1235,104 +1237,40 @@
     </delete>
   </target>
  
-  
 
-    <property name="mac.bundle_signature" value="TVUE"/> <!-- must match MacOS/Info.plist CFBundleSignature -->
+  <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
 
-    <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
-      <make-mac-osx-application dir="${MacDist}" name="VUE" plist="Info.plist"/>
-    </target>
-	
-	 <target name="mac-16-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
-	      <make-mac-osx-application dir="${MacDist16}" name="VUE" plist="Info16.plist"/>
-	 </target>
+        <mkdir dir="build/${MacDist}"/>
+      <jarbundler dir="build/${MacDist}" verbose="true" showPlist="false"
+                name="VUE"
+                copyright="2003-2015"
+                mainclass="tufts.vue.VUE"
+                jar="${vue.jar}"
+                icon="MacOS/VUE.icns"
+                jvmversion="1.7+"
+                version="${version}"
+                bundleid="tufts.vue.VUE"
+                stubfile="${universalstub}">
 
-    <target name="mac-dist-raw"> 
-    	<make-mac-osx-application name="VUE" plist="Info.plist"/> 
-    </target>
-    
-    
-    <target name="mac-dist-15" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE under Java 1.5">
-      <make-mac-osx-application name="VUE15" plist="Info-Java15.plist"/>
-    </target>
+               <!-- Adjust the look, feel and behavior -->
+               <javaproperty name="apple.laf.useScreenMenuBar" value="true"/>
+               <javaproperty name="apple.awt.brushMetal" value="true"/>
+               <javaproperty name="apple.awt.showGrowBox" value="false"/>
 
-    <target name="mac-dist-15-raw"> <make-mac-osx-application name="VUE15" plist="Info-Java15.plist"/> </target>
-    
-    <target name="mac-dist-nv" depends="jar-narravision" description="Creates a Mac OS X distributable Applcation directory for NarraVision.">
-    	<!--
-    	<sleep seconds="300"/>
-      <make-mac-osx-application name="NarraVision" plist="Info-NarraVision.plist" jar-0="${narravision.jar}"/>
-       
-      <extra-tasks>
-        <copy file="${lib.home}/BlackShipsImages.jar" todir="${build.home}/NarraVision.app/Contents" verbose="true"/>
-      </extra-tasks>
-      </make-mac-osx-application>
-      -->
-    </target>
+               <documenttype name="VUE Map"
+                    extensions="vue vpk" 
+                    iconFile="MacOS/VUE.icns"
+                    role="Editor"/>
+      </jarbundler>
+  </target>
 
-    <target name="test" depends="mac-dist,mac-dist-nv"/>
+    <target name="test" depends="mac-dist"/>
 
-    <macrodef name="make-mac-osx-application">
-      <attribute name="name" description="Application name"/>
-      <attribute name="plist" description="Source for Info.plist file"/>
-      <attribute name="dir" description="Subdir to put build in"/>
-      <element name="extra-tasks" optional="yes"/>
-      <!-- Under normal cirumstances, the caller will never make use of any of the attributes below.
-           They mostly operate as local variables. -->
-      <attribute name="mac.appdir" default="${build.home}/@{dir}/@{name}.app"/>
-      <attribute name="contents" default="@{mac.appdir}/Contents"/>
-      <attribute name="jar-0" default="${vue.jar}"/>
-      <!--attribute name="jar-1" default="@{jar-0}"/-->
-      <sequential>
-        <echo>*** Building Mac OS X application "@{name}" to @{mac.appdir}</echo>
-        <mkdir dir="@{contents}/MacOS"/>
-        <mkdir dir="@{contents}/Resources/Java"/>
-        <echo file="@{contents}/PkgInfo" message="APPL${mac.bundle_signature}"/>
-        <!-- On Mac OS X, See: /System/Library/Frameworks/JavaVM.framework/Versions/A/Resources/MacOS/JavaApplicationStub -->
-        <copy file="MacOS/JavaApplicationStub" todir="@{contents}/MacOS" verbose="true"/>
-        <chmod file="@{contents}/MacOS/JavaApplicationStub" perm="755" verbose="true"/>
-        <copy file="MacOS/VUE.icns" todir="@{contents}/Resources" verbose="true"/>
-        <copy file="MacOS/@{plist}" tofile="@{contents}/Info.plist" verbose="true"/>
-        <!-- we get away with the default being to copy ${vue.jar} twice because
-              it won't bother to copy it the second time if it's already there -->
-        <copy file="@{jar-0}" todir="@{contents}" verbose="true"/>
-        <!--copy file="@{jar-1}" todir="@{contents}" verbose="true"/-->
-      	<copy file="${jnilib.home}/libquaqua.jnilib" todir="@{contents}/Resources/Java"/>
-      	<copy file="${jnilib.home}/libquaqua64.jnilib" todir="@{contents}/Resources/Java"/>
-        <extra-tasks/>
-      </sequential>
-    </macrodef>
 
-    <target name="deprecated-mac-dist-dev" depends="jar-core">
-      <!-- for dev: a quicker build of VUE.app that includes VUE-core.jar & VUE-lib.jar
-           separately, skipping the build of VUE.jar that takes forverever.  Uses
-           the hacked Info-dev.plist that names to two jars instead of the one VUE.jar.
-           NOTE THAT YOU NEED TO MAKE SURE YOU'VE MANUALLY BUILT JAR-LIB BEFORE USING THIS.
-           SMF July 2009: mac-mac-osx-application changed to be faster, no longer supports 2-file mode of operation.
-           -->
-      <make-mac-osx-application name="VUEDev"
-                                plist="Info-dev.plist"
-                                jar-0="${vue-core.jar}"
-                                jar-1="${vue-lib.jar}"/>
-        <!--
-        <extra-tasks>
-          <delete file="${app.contents}/VUE.jar"/
-          <copy file="${vue-core.jar}" todir="${app.contents}" verbose="true"/>
-          <copy file="${vue-lib.jar}" todir="${app.contents}" verbose="true"/>
-        </extra-tasks>
-      </make-mac-osx-application>
-          -->
-    </target>
+    <taskdef name="jarbundler"
+             classpath="${lib.home}/jarbundler-2.4.0.jar" 
+             classname="net.sourceforge.jarbundler.JarBundler"/>
 
-    <!--target name="mac-dist-common">
-      <mkdir dir="${app.contents}/MacOS"/>
-      <mkdir dir="${app.contents}/Resources/Java"/>
-      <echo file="${app.contents}/PkgInfo" message="APPL${mac.bundle_signature}"/>
-      <copy file="MacOS/JavaApplicationStub" todir="${app.contents}/MacOS" verbose="true"/>
-      <chmod file="${app.contents}/MacOS/JavaApplicationStub" perm="755" verbose="true"/>
-      <copy file="MacOS/VUE.icns" todir="${app.contents}/Resources" verbose="true"/>
-    </target-->
-    
     <target name="version">
       <tstamp/>
 	  <!-- generate file into src tree - peter 21-Jul-06 -->
@@ -1504,7 +1442,7 @@ cclass Version {
  	</target>
 	
     <!-- Tasks to create releases for VUE -->
-    <target name="release" depends="clean,mac-dist,mac-16-dist,linux-jar,vue-applet,zotero">
+    <target name="release" depends="clean,mac-dist,linux-jar,vue-applet,zotero">
         <delete dir="${release.home}"/>
         <mkdir dir="${release.home}"/>
         <zip destfile="${release.home}/VUE.zip">
