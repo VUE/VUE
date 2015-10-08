@@ -1247,7 +1247,7 @@
                 mainclass="tufts.vue.VUE"
                 jar="${vue.jar}"
                 icon="MacOS/VUE.icns"
-                jvmversion="1.7+"
+                jvmversion="1.6+"
                 version="${version}"
                 bundleid="tufts.vue.VUE"
                 stubfile="${universalstub}">
