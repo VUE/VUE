@@ -3,7 +3,7 @@
 version=$1
 CMD=""
 if [[ -n "$version" ]]; then
-      CMD="scp mkorcy01@releases.atech.tufts.edu:/usr/local/jenkins/vue/$version/VUE-Java16.app.zip ."
+      CMD="scp mkorcy01@estsvuebuild-prod-01.uit.tufts.edu:/usr/local/jenkins/vue/$version/VUE-Java16.app.zip ."
       $CMD
       unzip VUE-Java16.app.zip
       rm ./VUE-Java16.app.zip
@@ -12,7 +12,7 @@ if [[ -n "$version" ]]; then
       spctl --assess --verbose=4 ./VUE.app
       productbuild --component "VUE.app" /Applications --sign "Developer ID Installer" --product "VUE.app/Contents/Info.plist" VUE.pkg
       rm -rf ./VUE.app
-      CMD="scp VUE.pkg mkorcy01@releases.atech.tufts.edu:/usr/local/jenkins/vue/$version/"
+      CMD="scp VUE.pkg mkorcy01@estsvuebuild-prod-01.uit.tufts.edu:/usr/local/jenkins/vue/$version/"
       $CMD
       rm VUE.pkg
 else
