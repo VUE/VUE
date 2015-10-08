@@ -1505,14 +1505,12 @@ VUEApplet.zip - ${appletMD5}
 	 
          <checksum file="${release.home}/VUEApplet.zip" property="appletMD5"/>
          <checksum file="${release.home}/VUE.zip" property="genericMD5"/>
-         <checksum file="${release.home}/VUE-Java16.app.zip" property="mac16MD5"/>   	
          <checksum file="${release.home}/VUE.app.zip" property="macMD5"/>
          <checksum file="${release.home}/VUE_src.zip" property="srcMD5"/>
          <checksum file="${basedir}/installer/VUE_Installer.zip" property="installerMD5"/>
          <echo file="${release.home}/checksum.txt" >
 VUE.zip - ${genericMD5}
 VUE.app.zip- ${macMD5}
-VUE-Java16.app.zip- ${mac16MD5}
 VUE_src.zip - ${srcMD5}     
 VUEApplet.zip - ${appletMD5}
         </echo>
