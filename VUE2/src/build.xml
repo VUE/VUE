@@ -1457,10 +1457,6 @@ cclass Version {
          <zip destfile="${release.home}/VUE.app.zip">
            <zipfileset dir="${build.home}/${MacDist}"  includes="**/VUE.app/**" filemode="755"/>
          </zip>
-    	 <zip destfile="${release.home}/VUE-Java16.app.zip">
-    	   <zipfileset dir="${build.home}/${MacDist16}"  includes="**/VUE.app/**" filemode="755"/>
-    	 </zip>
-    	 <checksum file="${release.home}/VUE-Java16.app.zip" property="mac16MD5"/>
          <checksum file="${release.home}/VUE.app.zip" property="macMD5"/>
          <zip destfile="${release.home}/VUE_src.zip">
 <!--            <fileset dir="${lib.home}"/> -->
