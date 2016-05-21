@@ -43,14 +43,9 @@ import java.util.ResourceBundle;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JTabbedPane;
-import javax.swing.UIManager;
-
-import org.apache.xalan.xsltc.runtime.Hashtable;
 
 import edu.tufts.vue.preferences.implementations.LanguagePreference;
-import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 /**
  * This class provides a central access method to get a variety of
