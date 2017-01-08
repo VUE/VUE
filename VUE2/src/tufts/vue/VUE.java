@@ -1811,7 +1811,8 @@ public class VUE
             
         	} else {
         		// for java 1.4.2
-        		mViewerSplit.setDividerLocation(1.0);
+        		//mViewerSplit.setDividerLocation(1.0);
+        		mViewerSplit.remove(mMapTabsRight);
         	}
 
         	// can show after split adjust on mac (turns out: only on older, slower macs)
