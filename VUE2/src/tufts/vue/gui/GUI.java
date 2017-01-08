@@ -46,6 +46,7 @@ import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.metal.MetalLookAndFeel;
+import com.sun.java.swing.plaf.gtk.GTKLookAndFeel;
 
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -266,8 +267,13 @@ public class GUI
 
         if (VUE.isApplet() || Util.isUnixPlatform())
         {
-           try {
-                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+           try { //com.sun.java.swing.plaf.gtk.GTKLookAndFeel
+        	   
+        	   Log.error(UIManager.getSystemLookAndFeelClassName() );
+        	   String lookAndFeel = null;
+        	   lookAndFeel = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+        	   UIManager.setLookAndFeel(lookAndFeel );
+                // UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
                } catch (Exception e)
                {
