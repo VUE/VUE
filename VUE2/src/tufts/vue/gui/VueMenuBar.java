@@ -113,6 +113,16 @@ public class VueMenuBar extends javax.swing.JMenuBar
     public static JMenu layoutMenu = null;
     public static JMenu linkMenu = null;
     public static JMenu playbackMenu = null;
+    
+    // Added by Apollia, Jan. 21, 2017, 8:33 AM.
+    public static JMenu etcMenu=null;
+    	// This is a submenu of the Edit menu.
+    	//
+    	// I made it because I didn't like having the dangerous
+    	// Cut and Delete menu items in the main Edit menu.
+    
+    // End of Added by Apollia, Jan. 21, 2017, 8:33 AM.
+    
     public boolean isMenuEnableFontFlg = false;
     // this may be created multiple times as a workaround for the inability
     // to support a single JMenuBar for the whole application on the Mac
@@ -270,6 +280,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu editMenu = makeMenu(VueResources.getString("menu.edit"));
         final JMenu viewMenu = makeMenu(VueResources.getString("menu.view"));
         final JMenu formatMenu = makeMenu(VueResources.getString("menu.format"));
+        
+        
+        // Jan. 21, 2017, 8:41 AM.  Added by Apollia.
+        
+        etcMenu = makeMenu(VueResources.getString("menu.etc"));
+        etcMenu.setEnabled(true);
+        
+        // End of Jan. 21, 2017, 8:41 AM.  Added by Apollia.
         
         transformMenu = makeMenu(VueResources.getString("menu.font"));
         transformMenu.setEnabled(false);
@@ -612,12 +630,20 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.Undo);
         editMenu.add(Actions.Redo);
         editMenu.addSeparator();
-        editMenu.add(Actions.Cut);
+       
         editMenu.add(Actions.Copy);
         editMenu.add(Actions.Paste);
+        
         editMenu.add(Actions.Duplicate);
         editMenu.add(Actions.Rename);
-        editMenu.add(Actions.Delete);                        
+        
+        
+        // Jan. 21, 2017, 8:36 AM.  Modified by Apollia.
+        editMenu.add(etcMenu);
+        etcMenu.add(Actions.Cut);
+        etcMenu.add(Actions.Delete);
+        // End of Jan. 21, 2017, 8:36 AM.  Modified by Apollia.
+        
         editMenu.addSeparator();
         editMenu.add(Actions.SelectAll);
         editMenu.add(Actions.SelectAllNodes);
