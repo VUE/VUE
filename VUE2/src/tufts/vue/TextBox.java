@@ -714,9 +714,12 @@ public class TextBox extends JTextPane
         //if (VueUtil.isAbortKey(e)) // check for ESCAPE for CTRL-Z or OPTION-Z if on mac
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             e.consume();
+
             getParent().remove(this); // will trigger a save (via focusLost)
-            super.setText(mUnchangedText); 
-            setSize(mUnchangedSize); // todo: won't be good enough if we ever resize the actual node as we type
+            LWSelection s = VUE.getSelection();
+            s.clear();
+        //    super.setText(mUnchangedText); 
+        //    setSize(mUnchangedSize); // todo: won't be good enough if we ever resize the actual node as we type
         } else if (isFinishEditKeyPress(e)) {
             keyWasPressed = true;
             e.consume();
