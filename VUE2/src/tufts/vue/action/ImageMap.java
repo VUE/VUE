@@ -57,7 +57,10 @@ public class ImageMap extends VueAction {
 
 	public static final int UPPER_LEFT_MARGIN = 30;
 	private int nodeCounter = 0;
-	static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
+	// Modified by Apollia on Jan. 23, 2017, 4:33 PM, to stop images 
+	// from being scaled down when they're dragged into bubbles.
+	static final float ChildScale = VueResources.getInt("node.child.scale", 100) / 100f;
+//	static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
 	private Dimension imageDimensions;
 	private int xOffset, yOffset;
 

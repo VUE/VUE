@@ -94,8 +94,15 @@ public class LWNode extends LWContainer
     public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
     public static final Font  DEFAULT_TEXT_FONT = VueResources.getFont("text.font");
     
+    
     /** how much smaller children are than their immediately enclosing parent (is cumulative) */
-    static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
+    
+    // Modified by Apollia on Jan. 23, 2017, 4:34 PM, to stop contained
+    // bubbles from being scaled down.
+    
+    static final float ChildScale = VueResources.getInt("node.child.scale", 100) / 100f;
+
+   // static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
 
     //------------------------------------------------------------------
     // Instance info
@@ -2272,7 +2279,9 @@ public class LWNode extends LWContainer
                 if (parentFill != null && !parentFill.equals(Color.black) && parentFill.getAlpha() != 0 && fillColor.equals(parentFill)) {
                     // If our fill is the same as our parents, we darken it, unless our parent is already entirely black,
                     // or entirely transparent.
-                    fillColor = VueUtil.darkerColor(fillColor);
+                	
+                	// Modified by Apollia on Jan. 23, 2017 at 4:38 PM to get rid of the darkening.
+                   // fillColor = VueUtil.darkerColor(fillColor);
                 }
             }
         }
