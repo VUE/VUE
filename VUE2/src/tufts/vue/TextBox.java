@@ -713,7 +713,14 @@ public class TextBox extends JTextPane
 
         //if (VueUtil.isAbortKey(e)) // check for ESCAPE for CTRL-Z or OPTION-Z if on mac
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            e.consume();
+            // Modified by Apollia on Jan. 23, 2017, to prevent ESC from
+        	// deleting the text you added to a bubble label or
+        	// link label.
+        	//
+        	// Now, instead, the label is left alone, and the bubble
+        	// or link you were editing gets deselected.
+        	
+        	e.consume();
 
             getParent().remove(this); // will trigger a save (via focusLost)
             LWSelection s = VUE.getSelection();
