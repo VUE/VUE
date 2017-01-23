@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.regex.*;
 import java.net.*;
 
+import javax.swing.text.BadLocationException;
 import javax.swing.text.StyleConstants;
 //import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
@@ -2367,7 +2368,56 @@ public class LWComponent
     public void setLabelTemplate(String s) {
         setLabelImpl(s, false, false);
     }
+    // Functions added by Apollia - Jan. 23, 2017, 2:09 PM.
+    public void setCaretPosition( int caretpos)
+    {
+    	labelBox.setCaretPosition(caretpos);
+    }
+    public int getCaretPosition()
+    {
+    	int caretpos = labelBox.getCaretPosition();
+    	return caretpos;
+    }
+    // End of Functions added by Apollia - Jan. 23, 2017, 2:09 PM.
+    
+    // Function added by Apollia - Jan. 23, 2017, 1:22 PM.
+    public void insertStringAtCaret( String thisstring )
+    {	 
+    	
+    	int caretpos = labelBox.getCaretPosition();
+    	//Log.error("caretpos");
+    	//Log.error(caretpos);
+    	try
+    	{
+    		labelBox.getDocument().insertString(caretpos, thisstring, null );
+    	
+    	}
+    	catch (BadLocationException e) {
+    	    // TODO - ok to ignore this exception?
+    	    e.printStackTrace();
+    	  }
+    }
+    // End of Function added by Apollia - Jan. 23, 2017, 1:22 PM.
+    
+    
+    
+    // Function added by Apollia - Jan. 23, 2017, 12:03 PM.
+    public void clearSelection() {
+    	labelBox.clearSelection();
+    }
+    // End of Function added by Apollia - Jan. 23, 2017, 12:03 PM.
+    
+    
+    // Function added by Apollia - Jan. 23, 2017, 11:41 AM.
+    public void putTypingCursorAtEndOfLabel() {
+    	labelBox.setCaretPosition(labelBox.getText().length() );
+    	Log.error("Trying to move caret");
 
+    //	labelBox.setCaretPosition( 5 );
+    }
+    // End of Function added by Apollia - Jan. 23, 2017, 11:41 AM.
+    
+    
     private static boolean isDataFormatString(String s) {
         return s != null && s.indexOf('$') >= 0;
         // todo: check with full regex: e.g: \$\{.+\}

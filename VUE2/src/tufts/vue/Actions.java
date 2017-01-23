@@ -33,6 +33,8 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -4218,7 +4220,189 @@ public class Actions implements VueConstants
 };
 
 
-     
+	// Stuff added by Apollia, Jan. 21-23, 2017.
+	public static final NewItemAction InsertCurrentDateTime = new NewItemAction(VueResources.local("menu.insertbubbleortext.insertcurrentdatetime"), keyStroke(KeyEvent.VK_F5) )
+	{
+		// Apollia's note, Jan. 23, 2017, 2:24 PM.  For some reason
+		// this doesn't work right in text blocks, but I never use
+		// those anyway.
+		//
+		// Works in bubbles and links.
+		
+		
+     //   boolean undoable() { return false; }
+        protected boolean enabled() { return true; }
+        protected String makeCurrentDateTimeString() {
+        	SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        	Date datetime = new Date();
+        	String datetimestring = dateformat.format(datetime);
+        	//datetimestring += ".  ";
+        	return datetimestring;
+        }
+        @Override
+        LWComponent createNewItem(final MapViewer viewer, Point2D newLocation)
+        {
+        	//Apollia's note, Jan. 23, 2017, 1:50 PM.
+        	// This method was copied/pasted from the same method in
+        	// the parent class NewItemAction.  Slightly modified
+        	// to make it unhighlight the label after node creation.
+        	
+            final LWComponent newItem = createNewItem();
+            
+            newItem.setLocation(newLocation);
+            //newItem.setCenterAt(newLocation); // better but screws up NewItemAction's serial item creation positioning
+            
+            // maybe: run a timer and do this if no activity (e.g., node creation)
+            // for 250ms or something
+            viewer.getFocal().dropChild(newItem);
+
+            //GUI.invokeAfterAWT(new Runnable() { public void run() {
+                viewer.getSelection().setTo(newItem);
+            //}});
+            
+
+            if (newItem.supportsUserLabel()) {
+                // Just in case, do this later:
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    viewer.activateLabelEdit(newItem);
+                    newItem.clearSelection();
+                    	// Apollia's note, Jan. 23, 2017, 1:51 PM.
+                    	// The line that gets rid of the label's highlighting.
+                    	// In this case, when that's done,
+                    	// the caret is placed at the end of the bubble label.
+                }});
+            }
+
+            return newItem;
+        }
+        @Override
+        LWNode createNewItem() {
+        	String datetimestring = makeCurrentDateTimeString();
+        //	Log.error("creating new item");
+       // 	Log.error(datetimestring);
+        	LWNode node = NodeModeTool.createNewNode( datetimestring );
+        //	VUE.getActiveViewer().getDropFocal().dropChild(node);
+          //   node.setLabel( datetimestring );
+            
+         //    Log.error("label length");
+         //    Log.error(node.getLabel().length() );
+             
+             
+             //node.putTypingCursorAtEndOfLabel();
+           //  node.clearSelection();
+           //  node.jTextField.setCaretPosition(jTextField.getText().length()); 
+             return node;
+        }
+        public void act() {
+           // VUE.displayMap(new LWMap(VueResources.local("vue.main.newmap") + count++));
+        //	String superClass = this.getClass().getSuperclass().getName();
+        	
+        	//Log.error("B4 super act");
+        //	Log.error(this.getClass().getSuperclass().getName());
+        //	Log.error("B4 super act B");
+        	
+        	//return;
+        	
+        //	Log.error("Insert Current/Date Time action!");
+        	//NodeModeTool.createNewNode();
+        	//Object uselessobject = new Object();
+        	//ActionEvent testactionevent = new ActionEvent( uselessobject, 1, "command" );
+        	LWSelection s = VUE.getSelection();
+        	
+        	
+        	if ( s.size() == 1 )
+        	{
+        		// Apollia's note, Jan. 23, 2017, 12:44 PM.
+        		// If a node is already selected, all we do is figure out where
+        		// the caret is, and insert the current date/time string there.
+        		
+        		//Log.error("1 item selected!");
+        		List<LWComponent> listofselected=s.contents();
+        		
+        		LWComponent thisitem = listofselected.get(0);
+        		
+        	//	Log.error("thisitem label length");
+        		
+        		String datetimestring = makeCurrentDateTimeString();
+        		
+        		final MapViewer viewer = VUE.getActiveViewer();
+        		// Apollia's note, Jan. 23, 2017, 2:11 PM.
+        		// Don't know how to detect whether the label editor
+        		// is active or not, so, here, we get the
+        		// current caret position, activate the label editor,
+        		// clear the selection, set the caret to the previously-gotten
+        		// caret position, and finally, insert the date/time string.
+        		
+        		
+        		int caretpos = thisitem.getCaretPosition();
+        		viewer.activateLabelEdit(thisitem);
+        		thisitem.clearSelection();
+        		thisitem.setCaretPosition(caretpos);
+        		thisitem.insertStringAtCaret( datetimestring );
+        			// Apollia's note, Jan. 23, 2017, 2:13 PM.
+        			// This last line is originally all I had here,
+        			// but, had to do all that other stuff because
+        			// otherwise, F5 when an item was selected (but
+        			// didn't have its label editor active) caused
+        			// the added text to not appear until the
+        			// item was unselected.
+        		
+        		
+           //     Log.error(thisitem.getLabel().length() );
+         //       Log.error(thisitem.getLabel() );
+        //		thisitem.setLabel("Bwahahaaaaaa");
+       // 		Log.error(thisitem.getLabel().length() );
+       //         Log.error(thisitem.getLabel() );
+        	}
+        	else
+        	{
+        		
+            	if (s.size() > 1 || s.size() == 0 )
+            	{
+            		// Apollia's note.
+            		// If no items are selected, or if more than one item is
+            		// selected, we create a new node with the date/time.
+            		
+            	/*	if ( s.size() > 1 )
+            		{
+            			Log.error("More than 1 item selected!");
+            		}
+            		if ( s.size() == 0 )
+            		{
+            			Log.error("0 items selected!");
+            		}*/
+            		
+            		super.act();
+            		//LWNode node = NodeModeTool.createNewNode();
+                   // VUE.getActiveViewer().getDropFocal().dropChild(node);
+                   // node.setLabel("Current datetime!");
+            	}
+        	}
+        	//LWNode node = createNewItem();
+        	//
+         //   LWNode node = NodeModeTool.createNewNode();
+           // VUE.getActiveViewer().getDropFocal().dropChild(node);
+          //  node.setLabel("Current datetime!");
+            
+            
+        	//LWNode node = Actions.NewNode.actionPerformed(testactionevent);
+        //	VueAction thisaction.actionPerformed
+        //	VUE.setActive(LWComponent.class, this, null);
+
+        //    Resource resource = c.getResourceFactory().get(uri);
+        //    //node.setStyle(c.getStyle());                    
+        //    //LWNode node= new LWNode(resource.getTitle());                  
+            
+        //    //node.addChild(image);
+
+           // node.setResource(resource);
+         //   VUE.setActive(LWComponent.class, this, c);
+        	
+        }
+    };
+ // End of Stuff added by Apollia, Jan. 21-23, 2017.
+    
+    
     public static final VueAction NewNode =
     new NewItemAction(VueResources.local("menu.content.addnode"), keyStroke(KeyEvent.VK_N, COMMAND)) {
         @Override

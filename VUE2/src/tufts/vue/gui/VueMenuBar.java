@@ -123,6 +123,19 @@ public class VueMenuBar extends javax.swing.JMenuBar
     
     // End of Added by Apollia, Jan. 21, 2017, 8:33 AM.
     
+    
+    // Added by Apollia, Jan. 21, 2017, 9:23 AM.
+    public static JMenu insertBubbleOrTextMenu=null;
+    	// Another submenu of the Edit menu.
+    	//
+    	// I made this because I needed a place to put a new "Insert Date/Time"
+    	// action, which inserts the current date/time when you press F5.
+    	// (Or, if no bubble or link is selected, a new bubble is
+    	// created with the current/date time already in it.
+    
+    // End of Added by Apollia, Jan. 21, 2017, 9:23 AM.
+    
+    
     public boolean isMenuEnableFontFlg = false;
     // this may be created multiple times as a workaround for the inability
     // to support a single JMenuBar for the whole application on the Mac
@@ -282,12 +295,22 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu formatMenu = makeMenu(VueResources.getString("menu.format"));
         
         
+        // Added by Apollia, Jan. 21, 2017, 9:29 AM.
+        
+        insertBubbleOrTextMenu = makeMenu(VueResources.getString("menu.insertbubbleortext"));
+        insertBubbleOrTextMenu.setEnabled(true);
+        
+        // End of Added by Apollia, Jan. 21, 2017, 9:29 AM.
+        
+        
+        
         // Jan. 21, 2017, 8:41 AM.  Added by Apollia.
         
         etcMenu = makeMenu(VueResources.getString("menu.etc"));
         etcMenu.setEnabled(true);
         
         // End of Jan. 21, 2017, 8:41 AM.  Added by Apollia.
+        
         
         transformMenu = makeMenu(VueResources.getString("menu.font"));
         transformMenu.setEnabled(false);
@@ -631,6 +654,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.Redo);
         editMenu.addSeparator();
        
+        // Jan. 21, 2017, 2:42 PM.  Added by Apollia.
+        editMenu.add(insertBubbleOrTextMenu);
+        insertBubbleOrTextMenu.add(Actions.InsertCurrentDateTime);
+        
+        // End of Jan. 21, 2017, 2:42 PM.  Added by Apollia.
+        
         editMenu.add(Actions.Copy);
         editMenu.add(Actions.Paste);
         
@@ -638,11 +667,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.Rename);
         
         
-        // Jan. 21, 2017, 8:36 AM.  Modified by Apollia.
+        // Jan. 21, 2017, 8:36 AM.  Added by Apollia.
         editMenu.add(etcMenu);
         etcMenu.add(Actions.Cut);
         etcMenu.add(Actions.Delete);
-        // End of Jan. 21, 2017, 8:36 AM.  Modified by Apollia.
+       
+        // End of Jan. 21, 2017, 8:36 AM.  Added by Apollia.
         
         editMenu.addSeparator();
         editMenu.add(Actions.SelectAll);
