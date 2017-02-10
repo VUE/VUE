@@ -403,6 +403,7 @@ public class TextBox extends JTextPane
         // this set's the "mark to the point" -- sets them to the same
         // location, thus clearing the selection.
         setCaretPosition(getCaretPosition());
+        setCaretColor(lwc.getTextColor() );
     }
 
     @Override
