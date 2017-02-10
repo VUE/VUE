@@ -768,7 +768,25 @@ public class TextBox extends JTextPane
     }
 
     public void focusGained(FocusEvent e)
-    {
+    {	
+    	// Apollia's note, Feb. 9, 2017, 7:33 PM EST.
+    	//
+    	// This gets rid of the unnecessary highlighting of all
+    	// text when you click on a bubble to edit it.
+    	//
+    	// Before, it took at least 3 clicks to get started editing
+    	// a bubble.  1st click to highlight the node, 2nd to go into edit
+    	// mode (which would annoyingly highlight all text), and 3rd
+    	// to clear the highlighting, and 4th (or more) in case your
+    	// 3rd (or more) clicks placed the caret someplace you 
+    	// didn't want to put it.
+    	//
+    	// Now, the 1st click selects the bubble, and the 2nd click 
+    	// puts it into edit mode, with the caret automatically
+    	// placed at the end of the bubble so you can immediately
+    	// start (or resume) editing.  And your now optional 
+    	// 3rd click can easily place the caret where you want.
+    	clearSelection();
         if (TestDebug||DEBUG.FOCUS) outc("focusGained from " + e.getOppositeComponent());
     }
 
