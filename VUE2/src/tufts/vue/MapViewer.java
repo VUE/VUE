@@ -6133,6 +6133,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // too easy to accidentally hit this instead of the return
                 // key while in presentation mode, so only allow if
                 // not already in full-screen mode.
+            	
+            	// Apollia's note, Feb. 9, 2017, 6:52 PM EST.  Got rid of this
+            	// in all modes, because I keep accidentally pressing
+            	// this, and it also makes an unremovable white bar and
+            	// extra menu bar at the bottom of my screen after getting
+            	// out of fullscreen mode, at least while using VUE in 
+            	// Lucid Puppy Linux 5.2.8 version 004.
+
+            	
                 //if (anyModifierKeysDown(e) || !DEBUG.Enabled || VUE.inFullScreen()) {
                 if (GUI.anyModifierKeysDown(e) || VUE.inFullScreen()) {
                     // do NOT fire this internal shortcut of '\' for fullscreen
@@ -6140,7 +6149,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     handled = false;
                 } else
                     //VUE.toggleFullScreen(false, true);
-                    Actions.ToggleFullScreen.fire(e);
+                    //Actions.ToggleFullScreen.fire(e);
+                	handled = false;
                 break;
                 // fallthru:
 //             case KeyEvent.VK_F11:
