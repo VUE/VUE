@@ -343,7 +343,16 @@ public class Actions implements VueConstants
             	selection().setTo(focal().getDescendentsOfType(ChildKind.EDITABLE, LWNode.class));
             }
         };
-                
+    // Added by Apollia, Feb. 9, 2017, 11:27 PM EST.
+    // Only capable of deselecting if there's only one item selected.
+    public static final Action Deselect =
+    new LWCAction(VueResources.local("menu.edit.deselect"), keyStroke(KeyEvent.VK_ESCAPE )) {
+    	boolean enabledFor(LWSelection s) { return s.size() < 2; }
+    	public void act() {
+        	            selection().clear();
+        	        }
+        	    };
+    // End of Added by Apollia, Feb. 9, 2017, 11:27 PM EST.
     public static final Action DeselectAll =
     new LWCAction(VueResources.local("menu.edit.deselectall"), keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
@@ -2007,7 +2016,7 @@ public class Actions implements VueConstants
             // BUG: can happen on hitting enter in the search box when a single node selected SMF logged 2012-06-10 19:40.28 Sunday SFAir.local
             // Fixed by changing SearchTextField key handlers to operate on keyPressed v.s. keyReleased and being sure to consume the event.
             //if (VUE.mSearchTextField.hasFocus()) return;
-            
+            out("why doesn't this work argh");
             VUE.getActiveViewer().activateLabelEdit(c);
         }
     };
@@ -3940,7 +3949,7 @@ public class Actions implements VueConstants
 
 	    
     public static final VueAction ToggleFullScreen =
-        new VueAction(VueResources.local("menu.view.fullscreen"), keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND)) {
+        new VueAction(VueResources.local("menu.view.fullscreen"), keyStroke(KeyEvent.VK_F11, COMMAND)) {
             public void act() {
                 if (PresentationTool.ResumeActionName.equals(getActionName())) {
                     PresentationTool.ResumePresentation();

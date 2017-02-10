@@ -681,6 +681,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.ExpandSelection);
         editMenu.add(Actions.ShrinkSelection);
         editMenu.add(Actions.Reselect);
+        editMenu.add(Actions.Deselect);
         editMenu.add(Actions.DeselectAll);
         if (!tufts.Util.isMacPlatform() || VUE.isApplet())
         {   editMenu.addSeparator();
