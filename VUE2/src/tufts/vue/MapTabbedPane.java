@@ -54,6 +54,30 @@ public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
         this.name = name;
         setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
+        // Added by Apollia on Feb. 12, 2017, 5:46 AM EST.
+        //
+        // Almost unchanged code from 
+        // http://stackoverflow.com/questions/38463047/use-mouse-to-scroll-through-tabs-in-jtabbedpane
+        
+        addMouseWheelListener(new MouseWheelListener() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                JTabbedPane pane = (JTabbedPane) e.getSource();
+                int units = e.getWheelRotation();
+                int oldIndex = pane.getSelectedIndex();
+                int newIndex = oldIndex + units;
+                if (newIndex < 0)
+                    pane.setSelectedIndex(0);
+                else if (newIndex >= pane.getTabCount())
+                    pane.setSelectedIndex(pane.getTabCount() - 1);
+                else
+                    pane.setSelectedIndex(newIndex);
+            }
+        });
+        
+        // End of Added by Apollia on Feb. 12, 2017, 5:46 AM EST.
+        
+        
 //         //this.isLeftViewer = isLeft;
 //         if (isLeft)
 //             leftTabs = this;
