@@ -25,6 +25,17 @@ import javax.swing.JScrollPane;
 import java.util.Iterator;
 import java.util.ArrayList;
 
+// Added by Apollia on Feb. 12, 2017 6:44 AM.
+
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+import java.awt.geom.*;
+import java.awt.image.*;
+import javax.swing.*;
+
+// End of Added by Apollia on Feb. 12, 2017 6:44 AM.
+
 /**
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
@@ -36,7 +47,7 @@ import java.util.ArrayList;
 // the focus if no other map has focus: switching tabs
 // changes the map you're looking it, and it's set to
 // the active map, but it doesn't get focus unless you click on it!
-public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
+public class MapTabbedPane extends DnDTabbedPane //JTabbedPane//extends DnDTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapTabbedPane.class);
@@ -45,10 +56,10 @@ public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
     private final Color BgColor;
 	private int overTabIndex = -1;
 
-	//private CloseTabPaneUI paneUI;
-//     //private final boolean isLeftViewer;
-//     private static MapTabbedPane leftTabs;
-//     private static MapTabbedPane rightTabs;
+	
+// Added by Apollia on Feb. 12, 2017 at 6:43 AM.
+
+
     
     MapTabbedPane(String name, boolean isLeft) {
         this.name = name;
@@ -105,7 +116,7 @@ public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
                     if (DEBUG.Enabled) out("stateChanged: selectedIndex=" + getSelectedIndex());
                 }
                 });*/
-    }
+  //  }
 
 //     public void activeChanged(ActiveEvent e, LWMap map) {
 //         if (!isLeftViewer || e.hasSourceOfType(MapTabbedPane.class)) {
@@ -116,6 +127,16 @@ public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
 //         if (mapIndex >= 0)
 //             setSelectedIndex(mapIndex);
 //     }
+    }
+    
+	
+// End of Added by Apollia on Feb. 12, 2017 at 6:43 AM.
+	//private CloseTabPaneUI paneUI;
+//     //private final boolean isLeftViewer;
+//     private static MapTabbedPane leftTabs;
+//     private static MapTabbedPane rightTabs;
+    
+
         
     private int mWasSelected = -1; // non-aqua use only
     @Override
@@ -123,10 +144,12 @@ public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
         try {
             if (DEBUG.FOCUS) out("fireStateChanged, selectedIndex=" +getSelectedIndex() + "; viewerAtIndex=" + getViewerAt(getSelectedIndex()));;
             super.fireStateChanged();
+          //  out ("not catching some darn exception");
         } catch (ArrayIndexOutOfBoundsException e) {
             // this is happening after we close everything and then
             // open another map -- no idea why, but this successfully
             // ignores it.
+        	//out("catching some darn exception");
             System.err.println(this + " JTabbedPane.fireStateChanged: " + e);
         }
         
@@ -136,8 +159,26 @@ public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
 
             // for non-aqua UI's, we change the selected tab color
             
-            if (mWasSelected >= 0)
-                setForegroundAt(mWasSelected, Color.darkGray);
+          //  out("mWasSelected");
+         //   out( String.valueOf(mWasSelected) );
+            
+            // Apollia's note, Feb. 12, 2017, 7:56 AM EST:
+            // Commenting out these next two lines got rid
+            // of the IndexOutOfBoundsException which was
+            // messing up the drag-and-drop reordering of
+            // the tabs.
+            //
+            // Note, 8:33 AM EST.  Happily, this also might
+            // have somehow gotten rid of the longstanding problem
+            // of mistaken-seeming "Failed to load map"
+            // dialog boxes popping up when loading a map,
+            // which always seemed mistaken because it 
+            // always looked like the map loaded just fine.
+            
+          //  if (mWasSelected >= 0)
+           //     setForegroundAt(mWasSelected, Color.darkGray);
+            // End of parts commented out by Apollia.
+            
             
             if (selected >= 0) {
                 setForegroundAt(selected, Color.black);
