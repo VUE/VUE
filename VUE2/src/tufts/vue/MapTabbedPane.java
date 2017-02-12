@@ -57,8 +57,6 @@ public class MapTabbedPane extends DnDTabbedPane //JTabbedPane//extends DnDTabbe
 	private int overTabIndex = -1;
 
 	
-// Added by Apollia on Feb. 12, 2017 at 6:43 AM.
-
 
     
     MapTabbedPane(String name, boolean isLeft) {
@@ -130,7 +128,7 @@ public class MapTabbedPane extends DnDTabbedPane //JTabbedPane//extends DnDTabbe
     }
     
 	
-// End of Added by Apollia on Feb. 12, 2017 at 6:43 AM.
+
 	//private CloseTabPaneUI paneUI;
 //     //private final boolean isLeftViewer;
 //     private static MapTabbedPane leftTabs;
