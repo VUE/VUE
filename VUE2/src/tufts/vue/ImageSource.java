@@ -157,10 +157,16 @@ class ImageSource {
             }
             else if (original instanceof java.net.URL) {
                 readable = (java.net.URL) original;
-                if (readable.toString().startsWith(URLResource.THUMBSHOT_FETCH)) {
-                    _cacheFile = DO_NOT_CACHE_TO_DISK;
+                // Apollia's note, Feb. 15, 2017, 8:27 PM EST.
+                //
+                // Commenting out since I just don't want stuff
+                // related to connecting to thumbshot.org anywhere.
+                
+               //if (readable.toString().startsWith(URLResource.THUMBSHOT_FETCH)) {
+                  //  _cacheFile = DO_NOT_CACHE_TO_DISK;
                     //isThumbshot = true;
-                }
+                //}
+                // End of stuff commented out by Apollia.
             }
             //                 else if (original instanceof java.net.URI) { // cache key
             //                     this.key = (URI) original;

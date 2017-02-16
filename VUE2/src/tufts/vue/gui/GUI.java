@@ -851,6 +851,13 @@ public class GUI
 
     public static Image getSystemIconForExtension(String ext, int sizeRequest)
     {
+    	return null;
+    	
+    	// Apollia's note, Feb. 16, 2017, 3:26 AM EST.
+    	// Commenting out just because it leads to a lot of
+    	// error messages when using my policy file.
+    	
+    	/*
         if (DEBUG.IO && DEBUG.META) Log.debug("icon request: " + ext + "@" + sizeRequest);
 
         if (ext == null)
@@ -997,6 +1004,7 @@ public class GUI
         }
 
         return image;
+        */
     }
 
     private static Method iconMethod = null;

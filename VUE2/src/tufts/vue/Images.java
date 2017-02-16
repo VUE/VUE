@@ -2836,8 +2836,17 @@ public class Images
                 setDateValue(imageSRC.resource, CONTENT_ASOF, imageSRC.getCacheFile().lastModified());
             }
         
-        } else if (imageSRC.readable instanceof java.net.URL) {
-
+        } 
+        
+    	// Apollia's note, Feb. 15, 2017, 8:06 PM EST.
+    	//
+    	// Getting rid of this URL-related stuff, 
+        // because software should never get on the internet
+        // without the user's approval.
+        
+        else if (imageSRC.readable instanceof java.net.URL) {
+        	imageSRC.readable = null;
+        	/*
             final URL url = (URL) imageSRC.readable;
 
             int tries = 0;
@@ -2901,8 +2910,10 @@ public class Images
                 }
                 
             } while (!success && tries < 2);
-
-        } else if (imageSRC.readable instanceof java.io.File) {
+			*/
+        	
+        } 
+    	else if (imageSRC.readable instanceof java.io.File) {
             if (DEBUG.IMAGE) Log.debug("Loading local file " + imageSRC.readable);
             if (imageSRC.resource != null)
                 setResourceMetaData(imageSRC.resource, (File) imageSRC.readable);

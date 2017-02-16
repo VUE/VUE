@@ -1964,17 +1964,27 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
 
     
-    public static final String THUMBSHOT_FETCH = "http://open.thumbshots.org/image.pxf?url=";
+    // Apollia's note, Feb. 2017, 8:21 PM EST.
+	//
+	// Removing this because software should never
+	// get on the internet without the user's approval.
+    
+    // public static final String THUMBSHOT_FETCH = "http://open.thumbshots.org/image.pxf?url=";
+
+    public static final String THUMBSHOT_FETCH = "";
 
     private URL getThumbshotURL(URL url) {
-        if (true)
+   // private URL getThumbshotURL(URL url) {
+       
+    	return url;
+    	//if (true)
             // I don't think thumbshots ever generate images for paths beyond the root host:
-            return makeURL(String.format("%s%s://%s/",
-                                         THUMBSHOT_FETCH,
-                                         url.getProtocol(),
-                                         url.getHost()));
-        else
-            return makeURL(THUMBSHOT_FETCH + url);
+         //   return makeURL(String.format("%s%s://%s/",
+        //                                 THUMBSHOT_FETCH,
+        //                                 url.getProtocol(),
+        //                                 url.getHost()));
+       // else
+       //     return makeURL(THUMBSHOT_FETCH + url);
     }
 
 // TODO: May be able to replace deprecated Mac Cocoa<->Java code for icon fetches by
