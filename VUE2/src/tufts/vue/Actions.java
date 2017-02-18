@@ -3651,8 +3651,12 @@ public class Actions implements VueConstants
                 viewer.requestFocus();
         }
     };
+    // Apollia's note, Feb. 18, 2017, 2:09 PM EST.
+    // Changed the keystroke to Ctrl-T because I kept mistakenly
+    // pressing it, expecting it to create a new tab like it 
+    // does in web browsers.  So now it does!
     public static final Action NewMap =
-    new VueAction(VueResources.local("menu.file.new"), keyStroke(KeyEvent.VK_N, COMMAND+SHIFT), ":general/New") {
+    new VueAction(VueResources.local("menu.file.new"), keyStroke(KeyEvent.VK_T, COMMAND), ":general/New") {
         private int count = 1;
         boolean undoable() { return false; }
         protected boolean enabled() { return true; }
@@ -4227,8 +4231,12 @@ public class Actions implements VueConstants
     //same thing but my MapViewer.java is a bit decomposed at the moment so
     //TODO: Come back here eliminate one of these and only call one from mapviewer.
     //MK
+    
+    // Apollia's note, Feb. 18, 2017, 1:56 PM EST.
+    // Got rid of the keystroke - Ctrl-T - because I keep mistakenly pressing
+    // it, as though it will create a new tab, like it does in web browsers.
     public static final VueAction NewRichText =
-    new NewItemAction(VueResources.local("menu.content.addtext"), keyStroke(KeyEvent.VK_T, COMMAND)) {
+    new NewItemAction(VueResources.local("menu.content.addtext"), keyStroke(KeyEvent.CHAR_UNDEFINED ) ) {
         @Override
         LWComponent createNewItem() {
             return NodeModeTool.createRichTextNode(VueResources.local("newtext.html"));
