@@ -1344,8 +1344,12 @@ public class MapDropTarget
 
         String shortName = displayName;
 
-        if (shortName.length() > MaxNodeTitleLen)
-            shortName = shortName.substring(0,MaxNodeTitleLen) + "...";
+        // Apollia's note, Feb. 21, 2017, 4:28 PM EST.
+        // Commented out because I don't want dragdropped URLs
+        // getting abbreviated.
+        
+      //  if (shortName.length() > MaxNodeTitleLen)
+      //      shortName = shortName.substring(0,MaxNodeTitleLen) + "...";
 
         LWImage lwImage = null;
         
