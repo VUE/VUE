@@ -1039,13 +1039,18 @@ public class MapDropTarget
             }
             
             if (drop.hit == null || !processed)
-                createNodeAndResource(drop, null, foundURL.toString(), properties, drop.location);
+                //out("now in here!");
+            	createNodeAndResource(drop, null, foundURL.toString(), properties, drop.location);
 
         } else {
             // create a text node
+        //	out("Drop text:");
+        //	out(drop.text);
             drop.add(createTextNode(drop.text, drop.location));
         }
         
+       // out("Drop text:");
+      //  out(drop.text);
         return true;
     }
 
@@ -1274,6 +1279,7 @@ public class MapDropTarget
     {
         //URLResource resource = new URLResource(resourceSpec);
         final Resource resource;
+       //  System.out.println("Now here");
         if (file != null)
             resource = mViewer.getMap().getResourceFactory().get(file);
         else
@@ -1435,7 +1441,10 @@ public class MapDropTarget
         }
         
         if (dropImagesAsNodes) {
-            shortName = Util.formatLines(shortName, VueResources.getInt("dataNode.labelLength"));
+        	//Apollia's note, Feb. 21, 2017, 5:55 PM EST.  Commenting
+        	//this out since this is what inserts the line breaks I don't want.
+        	
+        	//shortName = Util.formatLines(shortName, VueResources.getInt("dataNode.labelLength"));
             node = NodeModeTool.createNewNode(shortName);
 
             node.setResource(resource);  // this will force the creation of an image-icon on the node from the resource
@@ -1852,6 +1861,10 @@ public class MapDropTarget
         String spec = resource.getSpec();
         String name = Util.decodeURL(spec); // in case any %xx notations
 
+        // Stuff commented out by Apollia, Feb. 21, 2017 at 4:39 PM EST.
+        // Didn't want anything trimmed.
+        
+        /*
         int slashIdx = name.lastIndexOf('/');  //TODO: fileSeparator? test on PC
 
         if (slashIdx == name.length() - 1) {
@@ -1873,6 +1886,9 @@ public class MapDropTarget
                 name = Util.upperCaseWords(name);
             }
         }
+        */
+        // End of stuff commented out by Apollia, Feb. 21, 2017 at 4:39 PM EST.
+        
 
         //if (DEBUG.DND) out("MADE TITLE[" + name + "]");
 
