@@ -1090,7 +1090,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         windowMenu.add(Actions.NotesAction);
         windowMenu.addSeparator();
 //      if (VUE.getContentDock()!= null && !VUE.isApplet()){
-            windowMenu.add(createWindowItem(VUE.getContentDock(), KeyEvent.VK_3, VueResources.getString("dockWindow.contentPanel.title")));
+            windowMenu.add(createWindowItem(VUE.getContentDock(), 0, VueResources.getString("dockWindow.contentPanel.title")));
             if (!VUE.isApplet())
             	windowMenu.add(Actions.ResourcesAction);
             windowMenu.add(Actions.DatasetsAction);
@@ -1099,7 +1099,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
 //            OntologyBrowser.getBrowser().initializeBrowser(false, null);
 //      }
-
+        // Apollia's note, FEb. 22, 2017, 1:q14 PM EST.
+        // Assigned Ctrl-3 to Panner (which I use a lot)
+        // instead of Content (which I never use).
+        if (VUE.getPannerDock() !=null && !VUE.isApplet())	
+            	windowMenu.add(createWindowItem(VUE.getPannerDock(), KeyEvent.VK_3, VueResources.getString("menu.windows.panner")));
         if (VUE.getInteractionToolsDock()!= null)
             windowMenu.add(createWindowItem(VUE.getInteractionToolsDock(), KeyEvent.VK_4, VueResources.getString("dockWindow.interactionTools.title")));            
         if (VUE.getLayersDock() != null)	
@@ -1108,8 +1112,6 @@ public class VueMenuBar extends javax.swing.JMenuBar
             windowMenu.add(createWindowItem(VUE.getMapInfoDock(), KeyEvent.VK_6, VueResources.getString("menu.windows.mapinfo")));
         if (VUE.getOutlineDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(), KeyEvent.VK_7, VueResources.getString("menu.windows.outline")));
-        if (VUE.getPannerDock() !=null && !VUE.isApplet())	
-        	windowMenu.add(createWindowItem(VUE.getPannerDock(), 0, VueResources.getString("menu.windows.panner")));
         if (VUE.getPresentationDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getPresentationDock(), KeyEvent.VK_8, VueResources.getString("menu.windows.pathways")));
         if (VUE.getMetadataSearchMainGUI()!= null)
