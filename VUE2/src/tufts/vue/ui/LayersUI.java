@@ -1231,7 +1231,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         if (DEBUG.KEYS) Log.debug("KEY " + e);
                         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                             //focusLost(null); // will be called again on actual focus-loss; could call setEditable(false);
-                            setEditable(false); // rely's on focusLost being generated
+                        	setEditable(true);
+                            //setEditable(false); // rely's on focusLost being generated
                         }
                     }
                 });
@@ -1274,7 +1275,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             inactiveBorder = GUI.makeSpace(activeBorder.getBorderInsets(this));
 
             //setOpaque(true);
-            setEditable(false);
+            setEditable(true);
+            //setEditable(false);
         }
 
         private boolean isConstructed() {
@@ -1295,7 +1297,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
         public void focusGained(FocusEvent e) {}                    
         public void focusLost(FocusEvent e) {
-            setEditable(false);
+           // setEditable(false);
             setScrollOffset(0);
             row.layer.setLabel(getText().trim());
             // make sure if text is longer than fits into field, we scroll back to 0 at the left
