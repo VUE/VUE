@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -47,7 +47,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 
-import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
+import org.apache.xalan.xsltc.runtime.Hashtable;
 
 import edu.tufts.vue.preferences.implementations.LanguagePreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
@@ -91,7 +91,7 @@ public class VueResources
 		false);
 
     static {
-    	
+
     	final class VueResourceBundle extends ResourceBundle{
 
 //    		 List of bundles in merge bundle
@@ -102,18 +102,18 @@ public class VueResources
     		 * there are duplicate keys, the key from the resource bundle with the
     		 * smallest index takes precedence.
     		 * Currently supports  merging 2 resource bundles but can be modified for
-    		 * any number of resource bundles 
+    		 * any number of resource bundles
     		 * @param baseNameList
     		 * list of bundle base names to search for key/value pairs
     		 */
     		public VueResourceBundle(ResourceBundle baseNameList, ResourceBundle childNameList) {
     			bundles = new ArrayList<ResourceBundle>(2);
     			bundles.add(baseNameList);
-    			bundles.add(childNameList);	
+    			bundles.add(childNameList);
     		}
-    		
 
-    		
+
+
     		@Override
     		public Enumeration getKeys() {
     			 return new Enumeration(){
@@ -157,7 +157,7 @@ public class VueResources
 
     		/*
     		 * (non-Javadoc)
-    		 * 
+    		 *
     		 * @see java.util.ResourceBundle#handleGetObject(java.lang.String)
     		 */
     		@Override
@@ -185,7 +185,7 @@ public class VueResources
 
     	      }
 
-			    		
+
     	}
         if (DEBUG.INIT) tufts.Util.printStackTrace("VueResources; FYI: static init block");
 
@@ -262,7 +262,7 @@ public class VueResources
 
         if (DEBUG.INIT) dumpResource("DEBUG.platform");
     }
-    
+
     /*
     static {
 
@@ -280,7 +280,7 @@ public class VueResources
         }
 
         boolean NarraVision = false;
-            
+
         if (featureSet != null && featureSet.equalsIgnoreCase("NarraVision")) {
             NarraVision = true;
         } else if (featureSet == null && classPath != null && classPath.toLowerCase().indexOf("narravision") >= 0) {
@@ -304,7 +304,7 @@ public class VueResources
         NarraVisionResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("", "", "NV"));
         sResourceBundle = NarraVisionResourceBundle;
         //sResourceBundle = VueResourceBundle;
-        
+
         //System.out.println("DEFAULT LOCALE: " + Locale.getDefault());
         //System.out.println("RESOURCE BUNDLE: " + sResourceBundle + " locale: " + sResourceBundle.getLocale());
 
@@ -322,14 +322,14 @@ public class VueResources
     private static void dumpResource(String name) {
         System.out.println(name + ": " + getString(name));
     }
-    
+
     /**
      * Return the vue resource bundle.
      */
     public static ResourceBundle getBundle() {
         return sResourceBundle;
     }
-    
+
     /**
      * This method returns an ImageIcon based on the file
      * specified by the properties file
@@ -350,7 +350,7 @@ public class VueResources
             key = keyOrPath;
         else
             key = clazz.getName() + keyOrPath;
-        
+
         if (Cache.containsKey(key))
             return (ImageIcon) Cache.get(key);
 
@@ -371,7 +371,7 @@ public class VueResources
     private static boolean isPath(String key) {
         return key.indexOf('/') >= 0;
     }
-    
+
     public static BufferedImage getBufferedImage(String key)
     {
     	Image i = getImage(key);
@@ -391,7 +391,7 @@ public class VueResources
             icon = getImageIcon(VueResources.class, "images" + key);
         else
             icon = getImageIcon(key);
-        
+
         if (icon != null)
             return icon.getImage();
         else {
@@ -399,17 +399,17 @@ public class VueResources
             return null;
         }
     }
-    
+
     /** @return an image icon loaded from the given resource path */
     public static ImageIcon getImageIconResource(String path)  {
         if (Cache.containsKey(path))
             return (ImageIcon) Cache.get(path);
-        
+
         ImageIcon icon = loadImageIcon(path);
         Cache.put(path, icon);
         return icon;
     }
-    
+
     public static Icon getIcon(String key)  {
         return getImageIcon(key);
     }
@@ -459,7 +459,7 @@ public class VueResources
         Cache.put(key, d);
         return d;
     }
-        
+
     public static Cursor getCursor(String key)
     {
         String[] data = _getStringArray(key);
@@ -505,67 +505,67 @@ public class VueResources
         }
         return f;
     }
-        
-    public static URL getURL(String pLookupKey) 
-    {       
+
+    public static URL getURL(String pLookupKey)
+    {
         URL url = null;
-            
+
         try {
             //url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
 			//url = sResourceBundle.getClass().getResource(getString(pLookupKey));
 			url = VueResources.class.getResource(getString(pLookupKey));
             if (DEBUG.INIT) alert("URL for key <" + pLookupKey + "> is [" + url + "]");
         } catch (Exception e) {
-            alert("  !!! failed to lead due to "+ e.toString() );    
-        }    
-        
+            alert("  !!! failed to lead due to "+ e.toString() );
+        }
+
         return url;
     }
 
-        
-     public static File getFile(String pLookupKey) 
+
+     public static File getFile(String pLookupKey)
      {
            File file = null;
             try {
                 file =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")) ;
-                
+
                 if (!file.exists())
                 {
                     System.out.println("getFile is doing class loader thing hopefully YA!!");
                     //file = new File(ClassLoader.getSystemResource(getString(pLookupKey)).getFile().replaceAll("%20"," "));
-                    URL url = ClassLoader.getSystemResource(getString(pLookupKey));   
+                    URL url = ClassLoader.getSystemResource(getString(pLookupKey));
                     System.out.println("the url of the " + pLookupKey + " is " + url);
-                    
+
                     file = new File(url.getFile().replaceAll("%20"," "));
                     System.out.println("finished with " + file.toString());
-                    
+
                     if (file == null)
                         System.err.println("error in getFile method");
-                    
+
                     else if (!file.exists())
                     {
                         System.err.println("getting screwed");
                         file = null;
                     }
                 }
-                
+
                 else
                 {
                     System.out.println("file exists!!!!!!!!!!");
                 }
-                
+
                 System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+file);
             } catch (Exception e) {
 		alert("  !!! failed to lead due to "+ e.toString() );
             }
             return file;
      }
-    
+
     /**
      * This method returns the String from a properties file
      * for the given lookup key.
      * Format:  myString=Some Nice Message String
-     * 
+     *
      * @return String - the result String, null if not found
      **/
     public final static String getString(String key) {
@@ -578,7 +578,7 @@ public class VueResources
         } catch (MissingResourceException mre) {
             // FYI: we get tons of failures that are perfectly okay -- usually due to GUI items
             // that are configuring and autmatically check for a bunch of standard sub-keys.  Would
-            // be nice if we could tell the real failures apart from those cases tho...  
+            // be nice if we could tell the real failures apart from those cases tho...
             // (DEBUG.INIT) alert("warning: didn't find String resource with key [" + pLookupKey + // "]");
         }
         if (DEBUG.INIT) {
@@ -597,15 +597,15 @@ public class VueResources
     public final static String local(String key) {
         return getString(key, key);
     }
-    
-	
+
+
     /**
      * getStringArray()
      * This method returns a String array based on the string in
      * the properties file.  Commas may not be used in the string.
      * There is no escapeingo of commas at this point.
      * Format:  myStrings=File,Edit,Windows,Help
-     * 
+     *
      * @param pLookupKey - the key in the properties file
      * @return String [] the array -- results are cached for follow-on requests
      **/
@@ -625,12 +625,12 @@ public class VueResources
             value = s.split(",\\s*");
         return value;
     }
-	
+
     /**
      * getIntArray
      * Thsi method returns an integer array from a properties resource
      * The format for the properties file is:  myInts=12,13,14,15
-     * Using a "," (comma) as the separator 
+     * Using a "," (comma) as the separator
      * Format:  myIntArray=123,456,789
      *
      * @param String pLookupKey the key of the property
@@ -672,15 +672,15 @@ public class VueResources
         }
         return values;
     }
-    
-    
+
+
     public static float[] getFloatArray(String key) {
         if (Cache.containsKey(key))
             return (float[]) Cache.get(key);
-        
+
         float[] value = null;
         String[] s = _getStringArray(key);
-		
+
         if (s != null) {
             value = new float[s.length];
             for (int i = 0; i < s.length; i++)
@@ -724,7 +724,7 @@ public class VueResources
         return value;
     }
 
-	
+
     /**
      * getInt
      * Returns an int value if one is found for the given key,
@@ -766,7 +766,7 @@ public class VueResources
 
     /**
      * This method gets a Font based on the Font string in the
-     * the properties file.  Use format:  
+     * the properties file.  Use format:
      *   myFont=fontname,plain|bold|italic|bolditalic,size
      * or standard java font format:
      *  myFont=Arial-BOLD-12
@@ -777,11 +777,11 @@ public class VueResources
      **/
     static public Font getFont(String key, Font defaultFont) {
         if (Cache.containsKey(key))
-            return (Font) Cache.get(key);            
-		
+            return (Font) Cache.get(key);
+
         String spec = getString(key);
         Font font = defaultFont;
-        
+
         if (spec != null) {
             try {
                 if (spec.indexOf(',') > 0) {
@@ -835,9 +835,9 @@ public class VueResources
     {
         if (Cache.containsKey(key))
             return (Color) Cache.get(key);
-		
+
         Color value = null;
-		
+
         try {
             value = parseColor(getString(key));
 //             String s = getString(key);
@@ -849,14 +849,14 @@ public class VueResources
 //                 } else {
 //                     value = makeColor(s);
 //                 }
-//             } 
+//             }
         } catch (java.util.MissingResourceException e) {
             ; // will try and use default
         } catch (Throwable t) {
             alert("getColor: " + key + " " + t);
             if (DEBUG.INIT) t.printStackTrace();
         }
-        
+
         if (value == null) {
             if (defaultColor != null)
                 value = defaultColor;
@@ -865,7 +865,7 @@ public class VueResources
             else
                 if (DEBUG.INIT) alert("No such resource (color): " + key);
         }
-        
+
         Cache.put(key, value);
         return value;
     }
@@ -889,10 +889,10 @@ public class VueResources
             return new Color(rgb[0], rgb[1], rgb[2]);
 
     }
-    
+
     static Color parseHexColor(final String _hex) {
         String hex = _hex;
-        
+
         if (hex.startsWith("#"))
             hex = hex.substring(1);
 
@@ -917,25 +917,25 @@ public class VueResources
             bits &= 0xFFFFFF; // strip any alpha bits that were in the hex value
             bits |= (separateAlpha << 24);
         }
-            
+
         final Color c = new Color(bits, hasCombinedAlpha);
         //Log.debug(String.format("From [%s] (%s) made bits=%X, sepAlpha=%d, netAlpha=%d, %s", _hex, hex, bits, separateAlpha, c.getAlpha(), c));
         return c;
     }
-    
+
     static public Color getColor(String key) {
         return getColor(key, null);
     }
-    
+
     /**
      * @param dr,dg,db - default R,G,B color values if key not found
      */
     static public Color getColor(String key, int dR, int dG, int dB) {
         return getColor(key, new Color(dR, dG, dB));
     }
-    
 
-    
+
+
 //     static Color makeColor(String hex) {
 //         if (hex.startsWith("#"))
 //             hex = hex.substring(1);
@@ -959,8 +959,8 @@ public class VueResources
      **/
     static public Color[] getColorArray(String key) {
         if (Cache.containsKey(key))
-            return (Color[]) Cache.get(key);            
-		
+            return (Color[]) Cache.get(key);
+
         Color [] value = null;
         try {
             String[] strs = _getStringArray(key);
@@ -1003,7 +1003,7 @@ public class VueResources
 
 	/***
 	 * getMessageString
-	 * Fetches a message resource string the  bundle 
+	 * Fetches a message resource string the  bundle
 	 * and fills in the parameters
 	 *
 	 * @param key the lookup key
@@ -1024,7 +1024,7 @@ public class VueResources
             //System.out.println("VueResources: " + pMsg);
             Log.info("alert: " + pMsg);
     }
-	
+
 
     static private String get( String pKey)  {
         String value = null;
@@ -1034,12 +1034,12 @@ public class VueResources
         }
         return value;
     }
-	
+
     static public void initComponent( JComponent pObj, String pKey) {
-	
+
         Font font = getFont( pKey+".font");
         Color background = getColor( pKey + ".background");
-		
+
         if( font != null)
             pObj.setFont(font);
         if (background != null && !tufts.vue.gui.GUI.isMacAqua())
@@ -1047,31 +1047,31 @@ public class VueResources
 
         if (pObj instanceof JTabbedPane)
             pObj.setFocusable(false);
-	
+
     }
      /**
-      * This method returns the formated string in the default 
+      * This method returns the formated string in the default
       * language
-      * @param arguments : variable to be placed in the string 
+      * @param arguments : variable to be placed in the string
       * @param pattern : string retrived from the properties file.
       * @return
       */
       public static String getFormatMessage(Object[] arguments, String pattern){
-		
+
 		MessageFormat formatter = new MessageFormat(getString(pattern));
-		
+
 		if(arguments!=null){
 		return formatter.format(arguments);
 		}else{
 			return getString(pattern);
 		}
 	}
-	
+
     static private boolean sDebug = false;
-	
+
     static protected void debug( String pStr) {
         if (sDebug || DEBUG.INIT) System.out.println( pStr);
     }
-    
-    
+
+
 }
