@@ -1311,8 +1311,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         private static DockWindow errorDock;
         private static JTextArea textArea;
 
-        //private static final String ReportAddress = "vue-help@elist.tufts.edu";
-        private static final String ReportAddress = "vue-report@fraize.org";
+        private static final String ReportAddress = "vue-dev@elist.tufts.edu";
         
     	public ShowLogAction() {
             super(VueResources.getString("menu.help.vuelog"));
