@@ -100,7 +100,7 @@ public class AboutAction extends tufts.vue.VueAction
         jtf.addMouseListener(new javax.swing.event.MouseInputAdapter() {
                 public void mouseClicked(MouseEvent evt) {
                     try {
-                        VueUtil.openURL("http://vue.tccs.tufts.edu");
+                        VueUtil.openURL("http://vue.tufts.edu");
                         window.setVisible(false);
                         window.dispose();
                     } catch (Exception ex) {}
