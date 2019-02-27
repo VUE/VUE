@@ -171,4 +171,9 @@ dependencies {
     // implementation files('lib/calais.jar')
     // implementation files('lib/bsh-core-2.0b4.jar')
 
+jar {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                   'Implementation-Version': project.version)
+    }
 }
