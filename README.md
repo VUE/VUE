@@ -23,6 +23,7 @@ The following useful tasks might be interesting:
 | Task name | Action |
 | --------- | ------ |
 | `run`     | runs VUE |
+| `launch4j`| creates a Windows executable launcher |
 | `clean`   | deletes all classes compiled earlier |
 | `build`   | compiles the code and makes a jar as well as distributions |
 | `tasks`   | list all available tasks |

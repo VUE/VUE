@@ -1,3 +1,4 @@
-include ':VUE2'
+include ':VUE'
 
-rootProject.name = 'VUE'
+project(':VUE').projectDir = file('VUE2')
+rootProject.name = 'VUE-root'
