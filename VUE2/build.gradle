@@ -4,7 +4,10 @@ plugins {
 
     // Apply the application plugin to add support for building an application
     id 'application'
+
+    // id 'nebula.lint' version '9.3.2'
 }
+//gradleLint.rules += 'all-dependency'
 
 group = "edu.tufts.vue"
 version = '3.3.1'
