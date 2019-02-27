@@ -50,57 +50,18 @@ application {
 mainClassName = 'tufts.vue.VUE'
 
 
-sourceSets {
-    main {
-        java {
-            srcDirs = [
-                // 'src/tufts/vue',
-                // 'src/tufts/google',
-                // 'src/tufts/oki',
-                // 'src/tufts/osid/types',
-                // 'src/tufts/artifact',
-                // 'src/tufts/googleapi',
-                'src/tufts',
-                'src/edu',
-                'src/org'
-                //'src'
-            ]
-
-            // outputDir = file(ant.properties['build.class'])
-            exclude('src/test/**/*.java')
-            exclude('src/maclib/*.java')
-        }
-        // resources {
-        //     // srcDirs = ['src/tufts']
-        //     // include('src/tufts/vue/resources/**')
-        //     // include('src/tufts/vue/images/**')
-        //     // include('src/tufts/vue/gui/icons/**')
-        //     srcDirs 'src/tufts/vue/resources', 'src/tufts/vue/images', 'src/tufts/vue/gui/icons/'
-
-        //     exclude('src/tufts/vue/images/*.ico')
-        //     exclude('src/tufts/vue/images/archived/**')
-        // }
-    }
-    test {
-        java {
-            srcDirs = [
-                'src/test/src'
-            ]
-        }
-    }
-}
 
 (thirdpartyjars + thirdpartyjarsextended).each({File f ->
     project.dependencies.add('implementation', files(f))
 })
 
-jar {
-    from('src') {
+// jar {
+//     from('src') {
 
-        include('src/tufts/vue/resources/**')
-        include('src/tufts/vue/images/**')
-        include('src/tufts/vue/gui/icons/**')
-            exclude('src/tufts/vue/images/*.ico')
-            exclude('src/tufts/vue/images/archived/**')
-    }
-}
+//         include('src/tufts/vue/resources/**')
+//         include('src/tufts/vue/images/**')
+//         include('src/tufts/vue/gui/icons/**')
+//             exclude('src/tufts/vue/images/*.ico')
+//             exclude('src/tufts/vue/images/archived/**')
+//     }
+// }
