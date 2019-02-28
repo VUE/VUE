@@ -2,6 +2,8 @@
 
 Visual Understanding Environment (VUE) is a powerful mind-mapping, teaching, and presentation tool.
 
+Note: **See "Changes" section for details about the rpavlik fork**
+
 ## Code Organization
 
 The code is organized in following folders under `VUE2`,
@@ -29,6 +31,7 @@ The following useful tasks might be interesting:
 
 ## Changes
 
+This package hasn't seen a lot of love from upstream recently, though it is fairly complete and usable as-is.
 This is a modified version, assembled by Ryan Pavlik from a variety of forks on GitHub.
 Ryan also adjusted it to build using Gradle instead of Ant.
 
@@ -93,8 +96,8 @@ Apollia changelog entries for those commits picked onto this branch are below:
 **Feb. 21, 2017**:
 
 * Now it's possible to rename layers while using VUE in Puppy Linux.
-* Now, URLs you dragdrop into a VUE map are left alone and inserted verbatim.  Newlines aren't inserted into them anymore, and they no longer get abbreviated at all.
-* I made the Layers panel's colors match my dark desktop theme better.
+* Now, URLs you dragdrop into a VUE map are left alone and inserted verbatim.
+  Newlines aren't inserted into them anymore, and they no longer get abbreviated at all.
 
 **Feb. 22, 2017**:
 
