@@ -1674,29 +1674,27 @@ public class VUE
         	Dimension sz = wpframe.getWindowSize();
         	Point pos = wpframe.getWindowLocationOnScreen();
     	
-        	if (wpframe.isEnabled() && !wpframe.isAllValuesDefaults() &&
-        			ApplicationFrame.isPointFullyOnScreen(pos,sz))
-        	{
-                    if ((sz.getWidth() < 100) || (sz.getHeight() < 100))
-                        ApplicationFrame.setSize((int)appWidth, (int)appHeight);
-                    else        		
-                        ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
-                    
-                    if ((pos.getX() < 0) || (pos.getY() < 0)) {
-                        ApplicationFrame.setLocation
-                            (screen.margin.left,
-                             screen.margin.top + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
-                    } else {
-                        ApplicationFrame.setLocation((int)pos.getX(),(int)pos.getY());
-                    }
-        	}
-        	else
-                    {        	        
-                    ApplicationFrame.setSize(appWidth, appHeight);
-                    ApplicationFrame.setLocation
-                        (screen.margin.left,
-                         screen.margin.top + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
-        	}
+            if (wpframe.isEnabled() && !wpframe.isAllValuesDefaults()
+                    && ApplicationFrame.isPointFullyOnScreen(pos, sz)) {
+                double prefWidth = sz.getWidth();
+                double prefHeight = sz.getHeight();
+                if ((prefWidth < 100) || (sz.getHeight() < 100) || (prefHeight > (screen.height * 0.90))) {
+                    ApplicationFrame.setSize((int) appWidth, (int) appHeight);
+                } else {
+                    ApplicationFrame.setSize((int) sz.getWidth(), (int) sz.getHeight());
+                }
+
+                if ((pos.getX() < 0) || (pos.getY() < 0)) {
+                    ApplicationFrame.setLocation(screen.margin.left,
+                            screen.margin.top + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
+                } else {
+                    ApplicationFrame.setLocation((int) pos.getX(), (int) pos.getY());
+                }
+            } else {
+                ApplicationFrame.setSize(appWidth, appHeight);
+                ApplicationFrame.setLocation(screen.margin.left,
+                        screen.margin.top + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
+            }
         	// MAC NOTE WITH MAXIMIZING: if Frame's current location y value
         	// is less than whatever's it's maximized value is set to, maximizing
         	// it will use the y value, not the max value.  True even if set
