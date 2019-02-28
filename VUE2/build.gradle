@@ -29,172 +29,133 @@ mainClassName = 'tufts.vue.VUE'
 
 
 dependencies {
-    // thirdparty.jarfiles.names
-    implementation 'xerces:xercesImpl'
-    implementation files('lib/joscar-0.9.3-bin.jar') // TODO remove - AIM is no longer
+    // javax
+    implementation 'javax.activation:javax.activation-api:1.2.0' // todo now included but deprecation/rename in newer java
 
-    implementation 'com.miglayout:miglayout:3.7.2'
     implementation 'javax.xml:jaxrpc-api:1.1'
-    // implementation 'com.sun.xml.rpc:jaxrpc-impl:1.1.+'
-    implementation files('lib/okiSID_rc6_1.jar') // not found
-    implementation files('lib/okiOSID-2.0a.jar') // not found
-    implementation files('lib/OsidProvider.jar') // not found
+    // The next two not apparently needed?
+    // runtime 'com.sun.xml.rpc:jaxrpc-impl:1.1.+'
+    // implementation 'com.sun.xml.rpc:jaxrpc-spi:1.1.+'
 
-    implementation 'apache-xerces:xml-apis'
+    implementation 'javax.xml.bind:jaxb-api:1.0.+' // todo upgrade this and its impl see https://www.jesperdj.com/2018/09/30/jaxb-on-java-9-10-11-and-beyond/
+    runtime 'com.sun.xml.bind:jaxb-impl:1.0.+' // todo try 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
 
-    // Guava now contains google-collect, but can't use it because com.google.common.collect.AbstractMapEntry is monkeyed with
-    implementation files('lib/google-collect-snapshot-20090211.jar') // newer than last released snapshot?
+    implementation files('lib/jax-qname.jar')
 
+    implementation 'javax.xml.soap:saaj-api:1.3.5' // now included, but deprecated in java 9
+    runtime 'com.sun.xml.messaging.saaj:saaj-impl:1.3.28'
 
-    implementation 'com.hp.hpl.jena:json-jena:1.0'
+    // Castor data-binding framework
+    implementation 'org.codehaus.castor:castor-xml:1.4.1'
+    implementation 'org.codehaus.castor:castor:1.4.1'
 
-    implementation files('lib/AlchemyAPI.jar') // not found in the right namespace
-    implementation files('lib/calais.jar') // not found
+    // Nothing OSID-related was found.
+    implementation files('lib/okiSID_rc6_1.jar')
+    implementation files('lib/okiOSID-2.0a.jar')
+    implementation files('lib/OsidProvider.jar')
+    implementation files('lib/okiSIDimpl.jar')
+    implementation files('lib/OSIDLoggingPlain-1.0.jar')
+    implementation files('lib/XmlfileRepositoryOSID-1.0.jar')
+    implementation files('lib/OsidRegistry.jar')
 
-    implementation 'com.hp.hpl.jena:arq:2.+'
-    implementation files('lib/trippi-1.1.2-core.jar') // TODO upgrade?
+    // Apache Axis
+    implementation 'axis:axis-ant:1.3'
+    implementation 'axis:axis:1.3'
+
+    // Apache Batik
+    implementation 'org.apache.xmlgraphics:batik-dom:1.8'
+    implementation 'org.apache.xmlgraphics:batik-svggen:1.8'
+
+    // Apache Commons
     implementation 'commons-httpclient:commons-httpclient:3.1-beta1'
     implementation 'commons-lang:commons-lang:2.4'
-
-    implementation 'org.codehaus.castor:castor:1.4.1'
-    implementation 'org.codehaus.castor:castor-xml:1.4.1'
-
-    // see https://www.jesperdj.com/2018/09/30/jaxb-on-java-9-10-11-and-beyond/
-    implementation 'javax.xml.bind:jaxb-api:1.0.+' // todo upgrade this and its impl
-    runtime 'com.sun.xml.bind:jaxb-impl:1.0.+' // todo try 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
-    implementation 'javax.xml.bind:jax-qname:1.1'
-    // implementation files('lib/relaxngDatatype.jar') // migrate to com.github.relaxng/relaxngDatatype ?
-    // implementation 'javax.xml:namespace:1.0.+'
-    implementation files('lib/VUE-MacOSX.jar')
-    implementation 'com.lowagie:itext:2.1.4'
-    implementation 'org.twitter4j:twitter4j-core:2.1.+'
-    implementation 'com.miglayout:miglayout:3.7.2'
-    // implementation files('lib/dom2.jar') // TODO now included?
-    implementation files('lib/apache-commons.jar') // TODO use some variant of the below to replace this.
-    // implementation 'commons-net:commons-net:1.1.0'
-    // implementation 'commons-vfs:commons-vfs:1.0'
-    // implementation files('lib/avalon-framework-cvs-20020806.jar')
     implementation 'commons-codec:commons-codec:1.3'
     implementation 'commons-discovery:commons-discovery:0.2'
     implementation 'commons-logging:commons-logging:1.0.3'
-    // implementation 'com.hp.hpl.jena:concurrent-jena:1.3.2'
-    // implementation files('lib/cryptix-asn1.jar')
-    implementation 'cryptix:cryptix:3.2.0'
-    implementation files('lib/fedoragentypes.jar')
-    implementation 'urbanophile:java-getopt:1.0.9'
-    //implementation 'com.ibm.icu:icu4j:3.6.1' // transitive?
-    // implementation files('lib/id.jar') // couldn't find - comet.osidimpl
-    // implementation 'regexp:regexp:1.2'
-    implementation 'jdom:jdom:1.0' // migrate to org.jdom:jdom:1.1 or newer?
-    implementation 'com.hp.hpl.jena:jena:2.5.3' // migrate to org.apache.jena/jena ?
-    // implementation files('lib/jhapi.jar') // com.harvestroad.hive not found
-    implementation 'org.netbeans.external:jakarta-oro-2.0.8:RELEASE69'
-    implementation 'javatar:javatar:2.5'
-    implementation files('lib/jhbasic_unsigned.jar') // couldn't find anything with spec 1.0 (impl 1.1.2_01)
-    implementation 'net.java.linoleum:jlfgr:1_0'
+    implementation files('lib/apache-commons.jar') // TODO use some variant of 'commons-net:commons-net:1.1.0' and 'commons-vfs:commons-vfs:1.0' to replace this.
 
-    // implementation files('lib/jnet.jar') // ? Java Secure Socket Extension ?
-    // implementation files('lib/jsse.jar') // ? Java Secure Socket Extension ?
-    implementation files('lib/jxtaid.jar') // couldn't find - maybe https://mvnrepository.com/artifact/net.jxta/jxta-jxse ?
-    implementation files('lib/jxtasecurity.jar') // couldn't find
-    // implementation 'com.hp.hpl.jena:iri:0.8'
-    implementation 'log4j:log4j:1.2.12'
-    implementation 'rome:rome:0.9' // todo upgrade to https://mvnrepository.com/artifact/com.rometools/rome
-    implementation 'au.com.bytecode:opencsv:2.4'
-    implementation files('lib/saxon6.5.jar') // todo some included in java now? but more errors when omitted
+    // Apache FOP (Formatting Objects Processor)
+    implementation 'fop:fop:0.20.5-rc3-alpha' // todo upgrade https://mvnrepository.com/artifact/org.apache.xmlgraphics/fop
+
+    // Apache Tomcat
     implementation 'tomcat:servlet:4.0.6'
-    // implementation files('lib/smete.jar') // couldn't find
-    // implementation files('lib/smeteclient.jar') // couldn't find
-    // implementation 'wsdl4j:wsdl4j:1.4' // todo upgrade - transitive
-    implementation 'xalan:xalan:2.4.1'
-    implementation 'xmlrpc:xmlrpc:1.1' // todo upgrade
-    implementation files('lib/simplyhtml2.jar') // couldn't find
-    // implementation 'gnu-regexp:gnu-regexp:1.1.4'
-    implementation 'net.java.dev.jgoodies:looks:2.1.4'
-    implementation 'org.beanshell:bsh-core:2.0b4'
 
-    // thirdparty.jarfiles.names.extendedFeatures
-    //implementation files('lib/batik-all.jar')
-    implementation 'org.apache.xmlgraphics:batik-svggen:1.8'
-    implementation 'org.apache.xmlgraphics:batik-dom:1.8'
-
-    implementation files('lib/quaqua.jar') // v 7.4.1 not found, but others are out there.
-
-    // todo migrate https://github.com/google/gdata-java-client/blob/wiki/MigratingToGoogleApiJavaClient.md
-    implementation files('lib/gdata-client-1.0.jar')
-    implementation files('lib/gdata-core-1.0.jar')
-    implementation 'fop:fop:0.20.5-rc3-alpha'
-
-    // now included, but deprecated in java 9
-    implementation 'javax.xml.soap:saaj-api:1.3.5'
-    runtime 'com.sun.xml.messaging.saaj:saaj-impl:1.3.28'
-
-
-    implementation files('lib/okiSIDimpl.jar')
-    implementation files('lib/OSIDLoggingPlain-1.0.jar')
-    // implementation 'com.sun.xml.rpc:jaxrpc-spi:1.1.+'
-    implementation files('lib/fedora-client_2_2.jar')
-    implementation 'axis:axis:1.3'
-    implementation files('lib/TuftsOsidProvider.jar')
-    implementation files('lib/VUE-Java15.jar')
-    implementation files('lib/XmlfileRepositoryOSID-1.0.jar')
-    implementation 'axis:axis-ant:1.3'
-    implementation files('lib/MITAuthenticationTypes.jar')
-    implementation files('lib/MIT-OTS-NO_PROVIDER.jar')
-    implementation files('lib/MITRepositoryTypes.jar')
-    implementation files('lib/MITSearchTypes.jar')
-    implementation files('lib/OsidRegistry.jar')
-    implementation files('lib/plugin.jar') // couldn't find
-    implementation files('lib/apple-laf.jar')
-    implementation files('lib/splash.jar') // couldn't find
+    // Apache Xalan
     implementation 'xalan:xalan:2.5.0'
 
-    //implementation files('lib/mail.jar') // now included
+    // Apache Xerces
+    // implementation files('lib/xml-apis.jar')
+    runtime 'xerces:xercesImpl:2.12.0'
 
+    // Apache XML-RPC
+    implementation 'xmlrpc:xmlrpc:1.1' // todo upgrade
+
+    // Jena - TODO migrate to apache jena org.apache.jena/jena
+    implementation 'com.hp.hpl.jena:jena:2.5.3'
+    implementation 'com.hp.hpl.jena:json-jena:1.0'
+    implementation 'com.hp.hpl.jena:arq:2.+'
+
+    // TODO Guava now contains google-collect, but can't use it because com.google.common.collect.AbstractMapEntry is monkeyed with
+    implementation files('lib/google-collect-snapshot-20090211.jar') // newer than last released snapshot?
+
+    // Misc deps from repository
+    implementation 'au.com.bytecode:opencsv:2.4'
+    implementation 'com.lowagie:itext:2.1.4'
+    implementation 'com.miglayout:miglayout:3.7.2'
+    implementation 'cryptix:cryptix:3.2.0'
+    implementation 'javatar:javatar:2.5'
+    implementation 'jdom:jdom:1.0' // migrate to org.jdom:jdom:1.1 or newer?
+    implementation 'log4j:log4j:1.2.12'
+    implementation 'net.java.dev.jgoodies:looks:2.1.4'
+    implementation 'net.java.linoleum:jlfgr:1_0'
+    implementation 'org.beanshell:bsh-core:2.0b4'
+    implementation 'org.netbeans.external:jakarta-oro-2.0.8:RELEASE69'
+    implementation 'org.twitter4j:twitter4j-core:2.1.+'
+    implementation 'rome:rome:0.9' // todo upgrade to https://mvnrepository.com/artifact/com.rometools/rome
+    implementation 'urbanophile:java-getopt:1.0.9'
+
+    // Tufts-related
+    implementation files('lib/TuftsOsidProvider.jar')
+
+    // MIT-related
+    implementation files('lib/MIT-OTS-NO_PROVIDER.jar')
+    implementation files('lib/MITAuthenticationTypes.jar')
+    implementation files('lib/MITRepositoryTypes.jar')
+    implementation files('lib/MITSearchTypes.jar')
+
+    // macOS related
+    implementation files('lib/quaqua.jar') // v 7.4.1 not found, but others are out there.
+    implementation files('lib/apple-laf.jar')
+
+    // Internal
+    implementation files('lib/VUE-Java15.jar')
+    implementation files('lib/VUE-MacOSX.jar')
+
+    // Referenced only in strings, I think...
+    // implementation files('lib/jhapi.jar') // com.harvestroad.hive not found
+
+    // Misc deps from local lib directory
+    implementation files('lib/AlchemyAPI.jar') // not found in the right namespace
+    implementation files('lib/calais.jar') // not found
+
+    implementation files('lib/fedora-client_2_2.jar')
+    implementation files('lib/fedoragentypes.jar')
+
+    implementation files('lib/gdata-client-1.0.jar') // todo migrate https://github.com/google/gdata-java-client/blob/wiki/MigratingToGoogleApiJavaClient.md
+    implementation files('lib/gdata-core-1.0.jar')
     implementation files('lib/googleapi.jar') // TODO google soap API deprecated
-    // todo now included but deprecation/rename in newer java
-    implementation 'javax.activation:javax.activation-api:1.2.0'
 
-    // thirdparty.jarfiles.names.minimal
-    // implementation files('lib/okiOSID-2.0a.jar')
-    // implementation files('lib/joscar-0.9.3-bin.jar')
-    // implementation files('lib/apache-commons.jar')
-    // implementation 'axis:axis:1.3'
-    // implementation 'commons-httpclient:commons-httpclient:3.1-beta1'
-    // implementation 'commons-lang:commons-lang:2.4'
-    // implementation 'commons-codec:commons-codec:1.3'
-    // implementation files('lib/trippi-1.1.2-core.jar')
-    // implementation 'commons-httpclient:commons-httpclient:3.1-beta1'
-    // implementation files('lib/batik-all.jar')
-    // implementation files('lib/castor-1.3-core.jar')
-    // implementation files('lib/castor-1.3-xml.jar')
-    // implementation 'commons-discovery:commons-discovery:0.2'
-    // implementation 'commons-logging:commons-logging:1.0.3'
-    // implementation files('lib/dom2.jar')
-    // implementation files('lib/fedora-client_2_2.jar')
-    // implementation files('lib/fedoragentypes.jar')
-    // implementation files('lib/fedorautilities.jar')
-    // implementation files('lib/plugin.jar')
-    // implementation 'fop:fop:0.20.5-rc3-alpha'
-    // implementation files('lib/googleapi.jar')
-    // implementation files('lib/jaxrpc.jar')
-    // implementation files('lib/MRJAdapter.jar')
-    // implementation files('lib/okiSID_rc6_1.jar')
-    // implementation files('lib/saaj.jar')
-    // implementation 'xerces:xercesImpl:2.7.1'
-    // implementation 'apache-xerces:xml-apis:2.7.1'
-    // implementation files('lib/quaqua.jar')
-    // implementation 'com.lowagie:itext:2.1.4'
-    // implementation files('lib/twitter4j-core-2.1.0.jar')
-    // implementation files('lib/simplyhtml2.jar')
-    // implementation 'gnu-regexp:gnu-regexp:1.1.4'
-    // implementation 'net.java.dev.jgoodies:looks:2.1.4'
-    // implementation files('lib/google-collect-snapshot-20090211.jar')
-    // implementation 'com.miglayout:miglayout:3.7.2'
-    // implementation 'com.hp.hpl.jena:json-jena:1.0'
-    // implementation files('lib/AlchemyAPI.jar')
-    // implementation files('lib/calais.jar')
-    // implementation 'org.beanshell:bsh-core:2.0b4'
+    implementation files('lib/jhbasic_unsigned.jar') // couldn't find anything with spec 1.0 (impl 1.1.2_01)
+    implementation files('lib/joscar-0.9.3-bin.jar') // TODO remove - AIM is no longer
+
+    implementation files('lib/jxtaid.jar') // couldn't find - maybe https://mvnrepository.com/artifact/net.jxta/jxta-jxse ?
+    implementation files('lib/jxtasecurity.jar') // couldn't find
+
+    implementation files('lib/plugin.jar') // couldn't find
+    implementation files('lib/saxon6.5.jar') // todo some included in java now? but more errors when omitted
+    implementation files('lib/simplyhtml2.jar') // couldn't find
+    implementation files('lib/splash.jar') // couldn't find
+    implementation files('lib/trippi-1.1.2-core.jar') // TODO upgrade?
 }
 
 sourceCompatibility = 1.5
