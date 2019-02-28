@@ -68,21 +68,23 @@ public class MapTabbedPane extends DnDTabbedPane //JTabbedPane//extends DnDTabbe
         // Almost unchanged code from 
         // http://stackoverflow.com/questions/38463047/use-mouse-to-scroll-through-tabs-in-jtabbedpane
         
-        addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                JTabbedPane pane = (JTabbedPane) e.getSource();
-                int units = e.getWheelRotation();
-                int oldIndex = pane.getSelectedIndex();
-                int newIndex = oldIndex + units;
-                if (newIndex < 0)
-                    pane.setSelectedIndex(0);
-                else if (newIndex >= pane.getTabCount())
-                    pane.setSelectedIndex(pane.getTabCount() - 1);
-                else
-                    pane.setSelectedIndex(newIndex);
-            }
-        });
+        // TODO diabled because of error:
+        // The method mouseWheelMoved(MouseWheelEvent) of type new MouseWheelListener(){} must override a superclass method
+        // addMouseWheelListener(new MouseWheelListener() {
+        //     @Override
+        //     public void mouseWheelMoved(java.awt.event.MouseWheelEvent arg0) {
+        //         JTabbedPane pane = (JTabbedPane) arg0.getSource();
+        //         int units = arg0.getWheelRotation();
+        //         int oldIndex = pane.getSelectedIndex();
+        //         int newIndex = oldIndex + units;
+        //         if (newIndex < 0)
+        //             pane.setSelectedIndex(0);
+        //         else if (newIndex >= pane.getTabCount())
+        //             pane.setSelectedIndex(pane.getTabCount() - 1);
+        //         else
+        //             pane.setSelectedIndex(newIndex);
+        //     }
+        // });
         
         // End of Added by Apollia on Feb. 12, 2017, 5:46 AM EST.
         
