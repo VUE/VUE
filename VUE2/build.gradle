@@ -20,10 +20,8 @@ repositories {
     jcenter()
 }
 
-application {
-    applicationName = 'VUE'
-    mainClassName = 'tufts.vue.VUE'
-}
+applicationName = 'VUE'
+
 // Define the main class for the application
 mainClassName = 'tufts.vue.VUE'
 
