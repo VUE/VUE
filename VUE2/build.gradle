@@ -9,9 +9,6 @@ plugins {
 }
 //gradleLint.rules += 'all-dependency'
 
-group = "edu.tufts.vue"
-version = '3.3.1'
-
 repositories {
     flatDir {
         name = 'lib dir'
@@ -20,10 +17,21 @@ repositories {
     jcenter()
 }
 
+group = "edu.tufts.vue"
 applicationName = 'VUE'
 
 // Define the main class for the application
 mainClassName = 'tufts.vue.VUE'
+
+
+// Load the version number from the main resources file.
+def resourceProps = file('src/main/resources/tufts/vue/VueResources.properties').withReader {
+    reader ->
+    def props = new Properties()
+    props.load(reader)
+    props
+}
+version = resourceProps['vue.version']
 
 
 dependencies {
