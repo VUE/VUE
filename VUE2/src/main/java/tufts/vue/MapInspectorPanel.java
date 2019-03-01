@@ -59,7 +59,6 @@ public class MapInspectorPanel extends JPanel
     
     /** info tab panel **/
     private InfoPanel mInfoPanel = null;
-    private VueAimPanel mVueAimPanel = null;
     //private PathwayPane mPathPanel = null;
 
     /** description panel **/
@@ -115,9 +114,6 @@ public class MapInspectorPanel extends JPanel
     	   mTwitterPanel.setName(VueResources.getString("twitter.tabname"));
        }
 
-        mVueAimPanel = new VueAimPanel();
-        mVueAimPanel.setName(VueResources.getString("im.tabname"));
-        
         Widget.setWantsScroller(mapInfoStack, true);
         Widget.setWantsScrollerAlways(mapInfoStack, true);
         
@@ -125,7 +121,6 @@ public class MapInspectorPanel extends JPanel
         mapInfoStack.addPane(mInfoPanel,0f);
         mapInfoStack.addPane(mDescriptionPanel, 0f);
         mapInfoStack.addPane(metadataPanel,0f);
-        mapInfoStack.addPane(mVueAimPanel ,0f);
         if (DEBUG.TWITTER)
         	mapInfoStack.addPane(mTwitterPanel,0f);
         metadataPanel.adjustColumnModel();

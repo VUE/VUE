@@ -143,7 +143,6 @@ dependencies {
     implementation files('lib/googleapi.jar') // TODO google soap API deprecated
 
     implementation files('lib/jhbasic_unsigned.jar') // couldn't find anything with spec 1.0 (impl 1.1.2_01)
-    implementation files('lib/joscar-0.9.3-bin.jar') // TODO remove - AIM is no longer
 
     implementation files('lib/jxtaid.jar') // couldn't find - maybe https://mvnrepository.com/artifact/net.jxta/jxta-jxse ?
     implementation files('lib/jxtasecurity.jar') // couldn't find
