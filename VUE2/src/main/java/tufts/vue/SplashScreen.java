@@ -75,14 +75,18 @@ public class SplashScreen extends Frame
             splashProp = "splashScreenNoTransparency";
         ImageIcon icon = new ImageIcon(VueResources.getURL(splashProp)) {
           public void paintIcon(Component c, Graphics g, int x, int y) {
-              Calendar calendar = new GregorianCalendar();
               super.paintIcon(c,g,x,y);
               g.setColor(charcoal);
               g.setFont(new Font("Verdana", Font.PLAIN, 11));
               g.drawString(VueResources.getString("splashscreen.title"),172,165);
-              g.drawString(VueResources.getString("splashscreen.developedby"),202,185);
-              g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,205);
-              g.drawString("Version "+VueResources.getString("vue.version"),95,215);
+
+              final int leftX = 100;
+              final int topY = 190;
+              final int lineSpacing = 15;
+              g.drawString(VueResources.getString("splashscreen.developedby"), leftX, topY);
+              g.drawString((char) 169 + " " + VueResources.getString("vue.build.date")
+                      + " Tufts University and Contributors", leftX, topY + lineSpacing);
+              g.drawString("Version " + VueResources.getString("vue.version"), leftX , topY + 2 * lineSpacing);
               
           } 
         };
