@@ -1,10 +1,3 @@
-/*
- * This file only compiles in java 1.5 (due to it's reference to
- * OceanTheme), which is why isn't in the main source tree (until we
- * move over to 1.5 completely).  It in manually compiled and jar'd
- * into VUE-Java15.lib when modified.
- */
-
 package tufts.vue.gui;
 
 import tufts.vue.gui.GUI;
@@ -45,8 +38,8 @@ public class OceanMetalTheme extends javax.swing.plaf.metal.OceanTheme
         common.addCustomEntriesToTable(table);
 
         // these are the lighter blue #c8ddf2 in Ocean
-        table.put("TabbedPane.contentAreaColor", GUI.VueColor);
-        table.put("TabbedPane.selected", GUI.VueColor);
+        table.put("TabbedPane.contentAreaColor", GUI.getVueColor());
+        table.put("TabbedPane.selected", GUI.getVueColor());
 
         java.awt.Color toolbar = new java.awt.Color(175,182,198);
 
@@ -57,7 +50,7 @@ public class OceanMetalTheme extends javax.swing.plaf.metal.OceanTheme
                     new Float(1f),
                     new Float(0f),
                     //getWhite(),
-                    tufts.Util.factorColor(GUI.VueColor, 1.1),
+                    tufts.Util.factorColor(GUI.getVueColor(), 1.1),
                     toolbar,
                     new ColorUIResource(toolbar) })
                   );

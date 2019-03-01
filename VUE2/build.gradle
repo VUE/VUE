@@ -126,7 +126,6 @@ dependencies {
     implementation files('lib/apple-laf.jar')
 
     // Internal
-    implementation files('lib/VUE-Java15.jar')
     implementation files('lib/VUE-MacOSX.jar')
 
     // Referenced only in strings, I think...
