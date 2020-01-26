@@ -3360,7 +3360,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (done) {
             if (DEBUG.FOCUS) out("skipping " + Util.out(c.getBounds()) + "\t" + GUI.name(c));
         } else {
-            if (DEBUG.FOCUS) out(" locking " + Util.out(c.getBounds()) + "\t" + GUI.name(c) + "\t" + GUI.name(c.getPeer()));
+            // if (DEBUG.FOCUS) out(" locking " + Util.out(c.getBounds()) + "\t" + GUI.name(c) + "\t" + GUI.name(c.getPeer()));
 
             // This apparently isn't getting reset when the pop-up is re-used,
             // which causes later lightweight menu's to stop functioning!

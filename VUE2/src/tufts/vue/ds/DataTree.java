@@ -1950,7 +1950,7 @@ public class DataTree extends javax.swing.JTree
         protected DataNode() {}
 
         Vector<DataNode> getChildren() {
-            return super.children;
+            return null; // WAS super.children;
         }
 
         Schema getSchema() {

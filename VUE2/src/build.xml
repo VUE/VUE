@@ -63,7 +63,7 @@
   <property name="test.home"   value="${top.dir}/test" />
   <property name="test.lib"   value="${test.home}/lib" />
   <property name="junit.jar"   value="${test.lib}/junit.jar" />
-  <property name="target.version" value="1.6"/>
+  <property name="target.version" value="1.7"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
   <property name="jre.home" value="/usr/local/atsys/jenkins/jre/jre7"/>
