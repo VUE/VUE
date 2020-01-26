@@ -15,6 +15,12 @@
 
 package tufts.vue;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,15 +31,11 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class WriteSearchXMLData {
 	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(WriteSearchXMLData.class);
@@ -151,20 +153,19 @@ public class WriteSearchXMLData {
 
 	private void printToFile() {
 
-		try
 
-		{
+		try {
 
-			OutputFormat format = new OutputFormat(dom);
-			format.setIndenting(true);
-			
+			final Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
-			XMLSerializer serializer = new XMLSerializer(new FileOutputStream(
-					new File("Search.xml")), format);
+			final FileOutputStream fileOutputStream = new FileOutputStream(
+					new File("Search.xml"));
+			final StreamResult streamResult = new StreamResult(fileOutputStream);
+			transformer.transform(new DOMSource(dom), streamResult);
 
-			serializer.serialize(dom);
+			fileOutputStream.close();
 
-		} catch (IOException ie) {
+		} catch (IOException | TransformerException ie) {
 
 			ie.printStackTrace();
 
