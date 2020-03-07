@@ -240,10 +240,13 @@
 	</class>
 
 	<class name="tufts.vue.LWContainer" extends="tufts.vue.LWComponent">
-          <field name="XMLChildList" type="tufts.vue.LWComponent" collection="arraylist">
-            <bind-xml name="child"/>
-          </field>
-        </class>
+    	<field name="XMLChildList" type="tufts.vue.LWComponent" collection="arraylist">
+           	<bind-xml name="child"/>
+     	</field>
+       	<field name="isChildrenLayoutColumn" type="boolean">
+			<bind-xml name="isChildrenLayoutColumn" node="attribute"/>
+		</field>
+    </class>
 
 	<class name="tufts.vue.LWMap$Layer" extends="tufts.vue.LWContainer">
           <map-to xml="layer"/>

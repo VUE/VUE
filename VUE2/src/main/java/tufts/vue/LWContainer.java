@@ -44,6 +44,10 @@ public abstract class LWContainer extends LWComponent
 
     protected java.util.List<LWComponent> mChildren = NO_CHILDREN;
 
+    // jm 2011-09-11 Default to column layout in node. (only other option is Row
+    // layout so bool ok for now)
+    protected boolean isChildrenLayoutColumn = true;
+
     @Override
     public void XML_fieldAdded(Object context, String name, Object child) {
         super.XML_fieldAdded(context, name, child);
@@ -62,6 +66,14 @@ public abstract class LWContainer extends LWComponent
     @Override
     public int numChildren() {
         return mChildren.size();
+    }
+
+    public void setIsChildrenLayoutColumn(boolean isColumn) {
+        this.isChildrenLayoutColumn = isColumn;
+    }
+
+    public boolean getIsChildrenLayoutColumn() {
+        return this.isChildrenLayoutColumn;
     }
 
     /** @return true: default allows children dragged in and out */
@@ -1242,7 +1254,25 @@ public abstract class LWContainer extends LWComponent
         notify(LWKey.HierarchyChanging);
         swap(idx, idx - 1);
         notify("hier.move.backward", c);
+        c.parent.layout();
+        return true;
+    }
+
+    public boolean layoutChildrenRow(LWComponent c) {
+        this.isChildrenLayoutColumn = false;
         c.getParent().layoutChildren();
+        notify(LWKey.HierarchyChanging);
+        c.layout();
+        notifyHierarchyChanged();
+        return true;
+
+    }
+
+    public boolean layoutChildrenColumn(LWComponent c) {
+        this.isChildrenLayoutColumn = true;
+        notify(LWKey.HierarchyChanging);
+        c.layout();
+        notifyHierarchyChanged();
         return true;
     }
 
@@ -1419,6 +1449,8 @@ public abstract class LWContainer extends LWComponent
                 containerCopy.mChildren.add(childCopy);
                 childCopy.setParent(containerCopy);
             }
+            containerCopy.isChildrenLayoutColumn = this.isChildrenLayoutColumn;
+
         }
 
         if (isPatcherOwner)
@@ -1436,6 +1468,27 @@ public abstract class LWContainer extends LWComponent
             return super.paramString();
             
     }
-    
-    
+
+    public static void layoutChildrenRow(List selection) {
+        Iterator<LWComponent> iter = selection.iterator();
+        while (iter.hasNext()) {
+            LWComponent component = iter.next();
+            if (component instanceof LWNode) {
+                LWNode node = (LWNode) component;
+                node.layoutChildrenRow(component);
+            }
+        }
+    }
+
+    public static void layoutChildrenColumn(List selection) {
+        Iterator<LWComponent> iter = selection.iterator();
+        while (iter.hasNext()) {
+            LWComponent component = iter.next();
+            if (component instanceof LWNode) {
+                LWNode node = (LWNode) component;
+                node.layoutChildrenColumn(component);
+            }
+        }
+
+    }
 }
