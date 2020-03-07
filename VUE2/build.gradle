@@ -162,7 +162,7 @@ dependencies {
     implementation files('lib/trippi-1.1.2-core.jar') // TODO upgrade?
 }
 
-sourceCompatibility = 1.5
+sourceCompatibility = 1.7
 targetCompatibility = 1.8
 
 
