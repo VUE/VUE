@@ -151,24 +151,24 @@ public class WriteSearchXMLData {
 
 	private void printToFile() {
 
-		try
+		// try
 
-		{
+	//	{
 
-			OutputFormat format = new OutputFormat(dom);
-			format.setIndenting(true);
+			// OutputFormat format = new OutputFormat(dom);
+			// format.setIndenting(true);
 			
 
-			XMLSerializer serializer = new XMLSerializer(new FileOutputStream(
-					new File("Search.xml")), format);
+			// XMLSerializer serializer = new XMLSerializer(new FileOutputStream(
+		//			new File("Search.xml")), format);
 
-			serializer.serialize(dom);
+			// serializer.serialize(dom);
 
-		} catch (IOException ie) {
+		// } catch (IOException ie) {
 
-			ie.printStackTrace();
+		// 	ie.printStackTrace();
 
-		}
+		// }
 
 	}
 	
