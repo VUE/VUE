@@ -1,13 +1,8 @@
-plugins {
-    // Apply the java plugin to add support for Java
-    id 'java'
+// Apply the java plugin to add support for Java - explicit so that Shadow works
+apply plugin: 'java'
+// Apply the application plugin to add support for building an application
+apply plugin: 'application'
 
-    // Apply the application plugin to add support for building an application
-    id 'application'
-
-    // id 'nebula.lint' version '9.3.2'
-}
-//gradleLint.rules += 'all-dependency'
 
 repositories {
     flatDir {
@@ -40,16 +35,16 @@ dependencies {
 
     implementation 'javax.xml:jaxrpc-api:1.1'
     // The next two not apparently needed?
-    // runtime 'com.sun.xml.rpc:jaxrpc-impl:1.1.+'
+    // runtimeOnly 'com.sun.xml.rpc:jaxrpc-impl:1.1.+'
     // implementation 'com.sun.xml.rpc:jaxrpc-spi:1.1.+'
 
     implementation 'javax.xml.bind:jaxb-api:1.0.+' // todo upgrade this and its impl see https://www.jesperdj.com/2018/09/30/jaxb-on-java-9-10-11-and-beyond/
-    runtime 'com.sun.xml.bind:jaxb-impl:1.0.+' // todo try 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+    runtimeOnly 'com.sun.xml.bind:jaxb-impl:1.0.+' // todo try 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
 
     implementation files('lib/jax-qname.jar')
 
     implementation 'javax.xml.soap:saaj-api:1.3.5' // now included, but deprecated in java 9
-    runtime 'com.sun.xml.messaging.saaj:saaj-impl:1.3.28'
+    runtimeOnly 'com.sun.xml.messaging.saaj:saaj-impl:1.3.28'
 
     // Castor data-binding framework
     implementation 'org.codehaus.castor:castor-xml:1.4.1'
@@ -78,7 +73,7 @@ dependencies {
     implementation 'commons-codec:commons-codec:1.3'
     implementation 'commons-discovery:commons-discovery:0.2'
     implementation 'commons-logging:commons-logging:1.2'
-    implementation files('lib/apache-commons.jar') // TODO use some variant of 'commons-net:commons-net:1.1.0' and 'commons-vfs:commons-vfs:1.0' to replace this.
+    implementation files('lib/apache-commons.jar') // TODO this is some really old 'commons-net:commons-net:1.1.0' with extra classes I can't find anywhere else.
 
     // Apache FOP (Formatting Objects Processor)
     implementation 'fop:fop:0.20.5' // todo upgrade https://mvnrepository.com/artifact/org.apache.xmlgraphics/fop
@@ -91,7 +86,7 @@ dependencies {
 
     // Apache Xerces
     // implementation files('lib/xml-apis.jar')
-    runtime 'xerces:xercesImpl:2.12.0'
+    runtimeOnly 'xerces:xercesImpl:2.12.0'
 
     // Apache XML-RPC
     implementation 'xmlrpc:xmlrpc:1.1' // todo upgrade
