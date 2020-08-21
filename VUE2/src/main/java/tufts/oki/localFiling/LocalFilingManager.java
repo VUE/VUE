@@ -160,36 +160,36 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         		
         	if (rootCabinets.size() == 0) {
 
-                    for (int i = 0; i < drives.length; i++) {
-            	  
-                        //-----------------------------------------------------------------------------
-                        // TODO: Why are we looking for drives on non-window platforms?
-                        // Are there cases where such files could ever exists?  SMF 2008-04-16
-                        //-----------------------------------------------------------------------------
-                    
-                        File file = new File(drives[i]+":" + java.io.File.separator);
-            	
-                        //	* Trying out a test for removable disks here...
-     
-                        boolean isRemovableDisk = false;
-            		
-                        //isRemovableDisk = view.getSystemTypeDescription(file).equals("Removable Disk");
-                        //	System.out.println("is removable disk : " + isRemovableDisk);
-                        //}
-            	
-                        //isRemovableDisk = !FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
-                
-                        if (!isRemovableDisk && file.exists()) {
-                            if (Log.isDebugEnabled()) Log.debug(this + "; checking " + file);
-                            String idStr = drives[i]+":" + java.io.File.separator;
-                            //this.rootCabinets.put(idStr, new LocalCabinet(this, null, idStr));
-                            LocalCabinet newRoot = LocalCabinet.instance(idStr, agent, null);
-                            //	LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
-                            rootCabinets.add (newRoot);
-                            if (drives[i].compareTo("C:") == 0)
-                                cwd = newRoot;
-                        }                
+                for (String drive : drives) {
+
+                    //-----------------------------------------------------------------------------
+                    // TODO: Why are we looking for drives on non-window platforms?
+                    // Are there cases where such files could ever exists?  SMF 2008-04-16
+                    //-----------------------------------------------------------------------------
+
+                    File file = new File(drive + ":" + File.separator);
+
+                    //	* Trying out a test for removable disks here...
+
+                    boolean isRemovableDisk = false;
+
+                    //isRemovableDisk = view.getSystemTypeDescription(file).equals("Removable Disk");
+                    //	System.out.println("is removable disk : " + isRemovableDisk);
+                    //}
+
+                    //isRemovableDisk = !FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
+
+                    if (!isRemovableDisk && file.exists()) {
+                        if (Log.isDebugEnabled()) Log.debug(this + "; checking " + file);
+                        String idStr = drive + ":" + File.separator;
+                        //this.rootCabinets.put(idStr, new LocalCabinet(this, null, idStr));
+                        LocalCabinet newRoot = LocalCabinet.instance(idStr, agent, null);
+                        //	LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
+                        rootCabinets.add(newRoot);
+                        if (drive.compareTo("C:") == 0)
+                            cwd = newRoot;
                     }
+                }
                 }
         	
         }

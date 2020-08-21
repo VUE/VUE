@@ -110,9 +110,9 @@ public class LWTransfer implements Transferable {
 
         // TODO BUG: support for TypeList is being incorrectly reported as true here
         // even if there is no old-style meta-data!
-                
-        for (int i = 0; i < supportedFlavors.length; i++)
-            if (flavor.equals(supportedFlavors[i]))
+
+        for (DataFlavor supportedFlavor : supportedFlavors)
+            if (flavor.equals(supportedFlavor))
                 return true;
 
         return false;

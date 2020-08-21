@@ -180,30 +180,30 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
                     handleMenuSelection(e);
         	}
             });
-        for (int i = 0; i < values.length; i++) {
-           // JMenuItem item;
-           // T value;
-           // Icon icon = null;
-           // if (values[i] instanceof Action) {
-           //     Action a = (Action) values[i];
-           //     item = new JMenuItem((String) a.getValue(Action.NAME));
-           //     value = (T) a.getValue(ValueKey);
-           //     icon = (Icon) a.getValue(Action.SMALL_ICON);
-           // } else {
-           //     item = new JMenuItem();
-           //     value = (T) values[i];
-           // }
-           // item.putClientProperty(ValueKey, value);
-           // if (icon == null)
-           //     icon = makeIcon(value);
-           // if (icon != null)
-           //     item.setIcon(icon);
-           // if (names != null)
-           //     item.setText(names[i]);
-       // 	((Component)values[i]).addActionListener(menuItemAction);
-        //	this.addActionListener(menuItemAction);
-          //  mPopup.add(item);
-        	addItem(values[i]);
+        for (Object value : values) {
+            // JMenuItem item;
+            // T value;
+            // Icon icon = null;
+            // if (values[i] instanceof Action) {
+            //     Action a = (Action) values[i];
+            //     item = new JMenuItem((String) a.getValue(Action.NAME));
+            //     value = (T) a.getValue(ValueKey);
+            //     icon = (Icon) a.getValue(Action.SMALL_ICON);
+            // } else {
+            //     item = new JMenuItem();
+            //     value = (T) values[i];
+            // }
+            // item.putClientProperty(ValueKey, value);
+            // if (icon == null)
+            //     icon = makeIcon(value);
+            // if (icon != null)
+            //     item.setIcon(icon);
+            // if (names != null)
+            //     item.setText(names[i]);
+            // 	((Component)values[i]).addActionListener(menuItemAction);
+            //	this.addActionListener(menuItemAction);
+            //  mPopup.add(item);
+            addItem(value);
         }
 
   /*      if (createCustom) {
@@ -285,9 +285,10 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
             PropertyChangeListener[] listeners = getPropertyChangeListeners();
             if (listeners.length > 0) {
                 PropertyChangeEvent event = new LWPropertyChangeEvent(this, getPropertyKey(), oldValue, newValue);
-                for (int i = 0; i< listeners.length; i++) {
-                    if (DEBUG.TOOL && (DEBUG.EVENTS || DEBUG.META)) System.out.println(this + " fires " + event + " to " + listeners[i]);
-                    listeners[i].propertyChange(event);
+                for (PropertyChangeListener listener : listeners) {
+                    if (DEBUG.TOOL && (DEBUG.EVENTS || DEBUG.META))
+                        System.out.println(this + " fires " + event + " to " + listener);
+                    listener.propertyChange(event);
                 }
             }
         }

@@ -3294,8 +3294,7 @@ public class Actions implements VueConstants
                 } else {
                     y = oldCenterY - layoutRegion/2;
                 }
-                for (int i = 0; i < comps.length; i++) {
-                    LWComponent c = comps[i];
+                for (LWComponent c : comps) {
                     c.setLocation(c.getX(), y);
                     y += c.getHeight() + verticalGap;
                 }
@@ -3505,8 +3504,8 @@ public class Actions implements VueConstants
         IMAGE_MENU_ACTIONS[i++] = ImageSmaller;
         IMAGE_MENU_ACTIONS[i++] = ImageToNaturalSize;
 
-        for (int x = 0; x < ImageSizes.length; x++) {
-            IMAGE_MENU_ACTIONS[i++] = new ImageSizeAction(ImageSizes[x]);
+        for (int imageSize : ImageSizes) {
+            IMAGE_MENU_ACTIONS[i++] = new ImageSizeAction(imageSize);
         }
 
         IMAGE_MENU_ACTIONS[i++] = ImageHide;
@@ -3535,10 +3534,10 @@ public class Actions implements VueConstants
         final int maxDim = (int) Math.max(c.getWidth(), c.getHeight());
 
         //Log.debug("SMALLER MAXDIM " + maxDim);
-        
-        for (int i = 0; i < ImageSizes.length; i++) {
-            if (ImageSizes[i] < maxDim)
-                return ImageSizes[i];
+
+        for (int imageSize : ImageSizes) {
+            if (imageSize < maxDim)
+                return imageSize;
         }
         
         return ImageSizes[ImageSizes.length - 1];

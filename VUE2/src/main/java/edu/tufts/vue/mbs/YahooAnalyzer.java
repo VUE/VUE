@@ -80,17 +80,15 @@ public class YahooAnalyzer implements LWComponentAnalyzer {
     			
     		//	Iterator iterator = collection.iterator();
     			Object[] obj = collection.toArray();
-    			for (int p = 0; p < obj.length; p++)
-    			{
-    				com.google.common.collect.AbstractMapEntry o = (AbstractMapEntry) obj[p];
-    				
-    			    
-    			    if (o.getKey().equals("Title") || o.getKey().equals("Date") || o.getKey().equals("Creator") || o.getKey().equals("Description"))       				
-    			    {
-    			    	System.out.println(o.toString());
-    			    	context += o.getValue() + ".  ";
-    			    }
-    			}
+                for (Object value : obj) {
+                    AbstractMapEntry o = (AbstractMapEntry) value;
+
+
+                    if (o.getKey().equals("Title") || o.getKey().equals("Date") || o.getKey().equals("Creator") || o.getKey().equals("Description")) {
+                        System.out.println(o.toString());
+                        context += o.getValue() + ".  ";
+                    }
+                }
     		}
     	}
         

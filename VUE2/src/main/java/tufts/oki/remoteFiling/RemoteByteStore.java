@@ -428,8 +428,8 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
                 
         //  Copy the file stream into a buffer.
         try {
-            for (int i = 0; i < b.length; i++) {
-                stream.write(b[i]);
+            for (byte value : b) {
+                stream.write(value);
             }
             stream.close();
         }

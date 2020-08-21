@@ -52,28 +52,28 @@ public class FolderDataset  extends Dataset {
           if(!file.isDirectory()) throw new Exception("FolderDataset.loadDataset: The file " + fileName +" is not a folder");
           File[] children = file.listFiles();
           List<LWComponent> nodeList = new ArrayList<LWComponent>();
-          for(int i =0;i<children.length;i++) { 
-              String nodeLabel = children[i].getName();
-              
+        for (File child : children) {
+            String nodeLabel = child.getName();
+
 //               node.setLabel(nodeLabel);
-                  String key = ((getHeading() == null) || getHeading().size() < 1) ? DEFAULT_METADATA_LABEL : getHeading().get(1);
-                  
- 
-                      Resource resource = map.getResourceFactory().get(children[i]);
-                      LWNode node = new LWNode(nodeLabel);
-                      node.setResource(resource);
-                      
-                      
-                      VueMetadataElement vm = new VueMetadataElement();
-                      vm.setKey(key);
-                      vm.setValue(children[i].getAbsolutePath());
-                      vm.setType(VueMetadataElement.CATEGORY);
-                      node.getMetadataList().addElement(vm);
-                      
-                  node.layout();
-                  map.add(node);
-                  nodeList.add(node);
-          }
+            String key = ((getHeading() == null) || getHeading().size() < 1) ? DEFAULT_METADATA_LABEL : getHeading().get(1);
+
+
+            Resource resource = map.getResourceFactory().get(child);
+            LWNode node = new LWNode(nodeLabel);
+            node.setResource(resource);
+
+
+            VueMetadataElement vm = new VueMetadataElement();
+            vm.setKey(key);
+            vm.setValue(child.getAbsolutePath());
+            vm.setType(VueMetadataElement.CATEGORY);
+            node.getMetadataList().addElement(vm);
+
+            node.layout();
+            map.add(node);
+            nodeList.add(node);
+        }
           LayoutAction.random.act(new LWSelection(nodeList));
         return  map;
     }

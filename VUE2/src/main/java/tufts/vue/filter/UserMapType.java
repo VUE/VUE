@@ -111,9 +111,9 @@ public class UserMapType {
 		Vector v = new Vector();
 		
 		if( pProperties != null) {
-			for( int i=0; i< pProperties.length; i++) {
-				v.add( pProperties[i]);
-				}
+			for (UserProperty pProperty : pProperties) {
+				v.add(pProperty);
+			}
 			}
 		
 		mProperties = v;
@@ -298,11 +298,11 @@ public class UserMapType {
 		if( (pTypes == null) || (pID == null) ) {
 			return null;
 			}
-		for( int i=0; i< pTypes.length; i++) {
-			if( pID.equals( pTypes[i].getID() ) ) {
-				return pTypes[i];
-				}
+		for (UserMapType pType : pTypes) {
+			if (pID.equals(pType.getID())) {
+				return pType;
 			}
+		}
 		return null;
 	}
 	

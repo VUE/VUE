@@ -592,8 +592,8 @@ public class DR implements osid.dr.DigitalRepository {
     }
     
     public static boolean isSupportedMetadataField(String field){
-        for(int i=0;i<DC_FIELDS.length;i++) {
-            if(DC_FIELDS[i].equalsIgnoreCase(field))
+        for (String dcField : DC_FIELDS) {
+            if (dcField.equalsIgnoreCase(field))
                 return true;
         }
         return false;

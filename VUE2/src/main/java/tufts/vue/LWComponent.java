@@ -476,11 +476,9 @@ public class LWComponent
                 if(key.cssName.indexOf(";") > 0)
                 {
                     String[] names = key.cssName.split(";");
-                    for(int i=0;i<names.length;i++)
-                    {
-                        if(supportsProperty(key) && names[i].equals(cssName))
-                        {
-                          applied = key.setValueFromCSS(this,names[i],cssValue);
+                    for (String name : names) {
+                        if (supportsProperty(key) && name.equals(cssName)) {
+                            applied = key.setValueFromCSS(this, name, cssValue);
                         }
                     }
                 }

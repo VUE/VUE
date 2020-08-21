@@ -282,29 +282,28 @@ public class PreferencesDialog extends JDialog {
 		Preferences p = Preferences
 				.userNodeForPackage(edu.tufts.vue.preferences.PreferencesManager.class);
 
-		for (int i = 0; i < classesA.length; i++) 
-		{
-			Enumeration nodes = node.breadthFirstEnumeration();
-			
-				if (classesA[i] instanceof VuePreference)
-					vp = (VuePreference)classesA[i];
-				else 	
-					vp = getPreferenceObject((Class)classesA[i]);
-				while (nodes.hasMoreElements()) {
-					DefaultMutableTreeNode n = (DefaultMutableTreeNode) nodes
-							.nextElement();
-					if ((n instanceof PrefCategoryTreeNode)
-							&& (((PrefCategoryTreeNode) n).toString().equals(PreferencesManager.mapCategoryKeyToName(vp
-									.getCategoryKey())))) {
-						try {
-							n.add(new PrefTreeNode(vp));							
-						} catch (BackingStoreException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}		
-		}
+        for (Object o : classesA) {
+            Enumeration nodes = node.breadthFirstEnumeration();
+
+            if (o instanceof VuePreference)
+                vp = (VuePreference) o;
+            else
+                vp = getPreferenceObject((Class) o);
+            while (nodes.hasMoreElements()) {
+                DefaultMutableTreeNode n = (DefaultMutableTreeNode) nodes
+                        .nextElement();
+                if ((n instanceof PrefCategoryTreeNode)
+                        && (((PrefCategoryTreeNode) n).toString().equals(PreferencesManager.mapCategoryKeyToName(vp
+                        .getCategoryKey())))) {
+                    try {
+                        n.add(new PrefTreeNode(vp));
+                    } catch (BackingStoreException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
 	}
 
 	private void createSplitPane() {

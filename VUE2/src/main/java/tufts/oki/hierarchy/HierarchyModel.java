@@ -274,9 +274,8 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
     public osid.hierarchy.NodeIterator getAllNodes() throws osid.hierarchy.HierarchyException 
     {
         Vector list = new Vector();
-        
-        for (Iterator i = map.values().iterator(); i.hasNext();)
-           list.add((osid.hierarchy.Node)i.next());
+
+        for (Object o : map.values()) list.add((osid.hierarchy.Node) o);
         
         return (osid.hierarchy.NodeIterator)(new HierarchyNodeIterator(list));
     }
@@ -330,13 +329,12 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
     public osid.hierarchy.NodeIterator getRootNodes() throws osid.hierarchy.HierarchyException 
     {
         Vector rootNodes = new Vector();
-     
-        for (Iterator i = map.values().iterator(); i.hasNext();)
-        {
-            osid.hierarchy.Node nextNode = (osid.hierarchy.Node)i.next();
-            
+
+        for (Object o : map.values()) {
+            osid.hierarchy.Node nextNode = (osid.hierarchy.Node) o;
+
             if (nextNode.isRoot())
-              rootNodes.add(nextNode);
+                rootNodes.add(nextNode);
         }
         
         return (osid.hierarchy.NodeIterator)(new HierarchyNodeIterator(rootNodes));

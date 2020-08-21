@@ -194,17 +194,15 @@ public class NumericField  extends JTextField  {
 			
 			char[] source = str.toCharArray();
 			String text;
-			
-			for (int n = 0 ; n < source.length ; n++)  {
-				char c = source[n];
 
-				if (mValidChars.indexOf(c) == -1)
-					return;
-				if (c == '-' && offset > 0)
-					return;
-				if (c == '.' && ((text = mDocNumericField.getText()) != null) && text.indexOf('.') != -1)
-				return;
-				}
+            for (char c : source) {
+                if (mValidChars.indexOf(c) == -1)
+                    return;
+                if (c == '-' && offset > 0)
+                    return;
+                if (c == '.' && ((text = mDocNumericField.getText()) != null) && text.indexOf('.') != -1)
+                    return;
+            }
 
 			super.insertString(offset, str, a);
 		}

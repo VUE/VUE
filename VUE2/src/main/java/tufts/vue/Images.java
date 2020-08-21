@@ -221,8 +221,7 @@ public class Images
         Log.debug("listing disk cache: done; entries=" + files.length);
         
         synchronized (RawCache) {
-            for (int i = 0; i < files.length; i++) {
-                File file = files[i];
+            for (File file : files) {
                 String name = file.getName();
                 if (name.charAt(0) == '.')
                     continue;
@@ -234,7 +233,7 @@ public class Images
                     if (key != null) {
                         RawCache.put(key, new CacheEntry(file));
                         //RefCache.put(key, file);
-                   }
+                    }
                 } catch (Throwable t) {
                     Log.error("failed to load cache with [" + name + "]; key=" + key);
                 }
@@ -3115,10 +3114,10 @@ public class Images
         }
         if (DEBUG.WORK && image != null) {
             String[] tryProps = new String[] { "name", "title", "description", "comment" };
-            for (int i = 0; i < tryProps.length; i++) {
-                Object p = image.getProperty(tryProps[i], null);
-                if (p != null && p != java.awt.Image.UndefinedProperty)
-                    System.err.println("FOUND PROPERTY " + tryProps[i] + "=" + p);
+            for (String tryProp : tryProps) {
+                Object p = image.getProperty(tryProp, null);
+                if (p != null && p != Image.UndefinedProperty)
+                    System.err.println("FOUND PROPERTY " + tryProp + "=" + p);
             }
         }
         

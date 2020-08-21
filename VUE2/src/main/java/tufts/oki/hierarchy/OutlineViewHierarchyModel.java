@@ -106,8 +106,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         }
             
         //tricky with the map.. must pay attention for debugging
-        for (Iterator li = container.getLinks().iterator(); li.hasNext();) {
-            LWLink link = (LWLink)li.next();
+        for (LWLink link : container.getLinks()) {
             HierarchyNode linkNode = createHierarchyNode(hierarchyNode, link);
         }
             
@@ -212,15 +211,13 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 return;
             }
 
-            for (Iterator i = nodes.iterator(); i.hasNext();)
-            {
-                HierarchyNode hierarchyNode = (HierarchyNode)i.next();
-                
-                if (newLabel == null)
-                {
-                  newLabel = getNodeLabel(hierarchyNode.getLWComponent());
+            for (Object node : nodes) {
+                HierarchyNode hierarchyNode = (HierarchyNode) node;
+
+                if (newLabel == null) {
+                    newLabel = getNodeLabel(hierarchyNode.getLWComponent());
                 }
-                
+
                 hierarchyNode.updateDisplayName(newLabel);
                 revalidateTree(hierarchyNode);
             }
@@ -275,9 +272,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             childNode = createHierarchyNode(parentNode, addedChild);
             
             //for each link associated with the added LWNode, add to the parent hierarchy node
-            for (Iterator i = addedChild.getLinks().iterator(); i.hasNext();)
-            {
-                LWLink link = (LWLink)i.next();       
+            for (LWLink link : addedChild.getLinks()) {
                 HierarchyNode linkNode = createHierarchyNode(childNode, link);
             }
                

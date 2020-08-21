@@ -1395,8 +1395,7 @@ public class FontEditorPanel extends JPanel
     private void stripAllListeners(AbstractButton b)
     {
     	  ActionListener[] l = b.getListeners(ActionListener.class);
-          for (int i=0;i<l.length;i++)
-          	b.removeActionListener(l[i]);
+        for (ActionListener actionListener : l) b.removeActionListener(actionListener);
           
           return;
     }

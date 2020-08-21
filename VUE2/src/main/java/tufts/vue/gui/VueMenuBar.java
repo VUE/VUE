@@ -377,32 +377,32 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 boolean fedoraFlag = false;
                 //publishMenu.removeAll();
                 final List<Action> publishActions = new java.util.ArrayList();
-                for(int i =0;i<dataSource.length;i++) {
+                for (edu.tufts.vue.dsm.DataSource source : dataSource) {
                     try {
-                        final org.osid.repository.Repository r = dataSource[i].getRepository();
+                        final org.osid.repository.Repository r = source.getRepository();
                         if (r == null) {
-                            if (DEBUG.DR) Log.debug("null repository in " + dataSource[i]);
+                            if (DEBUG.DR) Log.debug("null repository in " + source);
                             continue;
                         }
                         if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
-                        	if(!fedoraFlag) {
-                        		typeActions.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
-                        		fedoraFlag = true;
-                        		if (DEBUG.DR) Log.debug("PUBLISHABLE: " + dataSource[i]);	
-                        	}
-                        	publishActions.add(PublishActionFactory.createPublishAction(dataSource[i]));
+                            if (!fedoraFlag) {
+                                typeActions.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+                                fedoraFlag = true;
+                                if (DEBUG.DR) Log.debug("PUBLISHABLE: " + source);
+                            }
+                            publishActions.add(PublishActionFactory.createPublishAction(source));
                             count++;
                         } else if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
-                        	if(!sakaiFlag) {                  
-                        		typeActions.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
-                        		sakaiFlag = true;
-                        		if (DEBUG.DR) Log.debug("PUBLISHABLE: " + dataSource[i]);
-                        	}
-                        	publishActions.add(PublishActionFactory.createPublishAction(dataSource[i]));
+                            if (!sakaiFlag) {
+                                typeActions.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
+                                sakaiFlag = true;
+                                if (DEBUG.DR) Log.debug("PUBLISHABLE: " + source);
+                            }
+                            publishActions.add(PublishActionFactory.createPublishAction(source));
                             count++;
                         }
-  
-                    } catch(org.osid.repository.RepositoryException ex) {
+
+                    } catch (org.osid.repository.RepositoryException ex) {
                         Log.error("changed:", ex);
                     }
                 }
@@ -1265,8 +1265,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     }
     
     public static JMenu buildMenu(JMenu menu, Action[] actions) {
-        for (int i = 0; i < actions.length; i++) {
-            Action a = actions[i];
+        for (Action a : actions) {
             if (a == null)
                 menu.addSeparator();
             else

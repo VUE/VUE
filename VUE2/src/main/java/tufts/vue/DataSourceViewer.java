@@ -653,12 +653,12 @@ public class DataSourceViewer extends ContentViewer
                             if (widgetStack != null) {
                                 Component[] comps = widgetStack.getComponents();
                                 int found =0;
-                                for (int i = 0; i < comps.length; i++) {
-                                    String compName = comps[i].getName();
-                                    if ((compName != null) && (compName.indexOf(displayName)!= -1)) {
-                                        if ((found == instanceIndex) || (found == instanceIndex+1))
-                                            widgetStack.remove(comps[i]);
-                                        
+                                for (Component comp : comps) {
+                                    String compName = comp.getName();
+                                    if ((compName != null) && (compName.indexOf(displayName) != -1)) {
+                                        if ((found == instanceIndex) || (found == instanceIndex + 1))
+                                            widgetStack.remove(comp);
+
                                         found++;
                                     }
                                 }

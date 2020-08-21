@@ -155,14 +155,14 @@ public class GUI
 
 
     public static void parseArgs(String[] args) {
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-skip_custom_laf")) {
+        for (String arg : args) {
+            if (arg.equals("-skip_custom_laf")) {
                 SKIP_CUSTOM_LAF = true;
-            } else if (args[i].equals("-skip_ocean_theme")) {
+            } else if (arg.equals("-skip_ocean_theme")) {
                 SKIP_OCEAN_THEME = true;
-            } else if (args[i].equals("-win") || args[i].equals("-nativeWindowsLookAndFeel")) {
+            } else if (arg.equals("-win") || arg.equals("-nativeWindowsLookAndFeel")) {
                 FORCE_WINDOWS_LAF = true;
-            } else if (args[i].equals("-nowin")) {
+            } else if (arg.equals("-nowin")) {
                 SKIP_WIN_NATIVE_LAF = true;
             }
         }
@@ -583,11 +583,11 @@ public class GUI
 
         //dumpGraphicsDevice(GDevice, "VUE-ACTIVE");
 
-        for (int i = 0; i < GScreenDevices.length; i++) {
-            if (GScreenDevices[i] == GDevice)
-                dumpGraphicsDevice(GScreenDevices[i],"VUE-ACTIVE");
+        for (GraphicsDevice gScreenDevice : GScreenDevices) {
+            if (gScreenDevice == GDevice)
+                dumpGraphicsDevice(gScreenDevice, "VUE-ACTIVE");
             else
-                dumpGraphicsDevice(GScreenDevices[i], null);
+                dumpGraphicsDevice(gScreenDevice, null);
         }
     }
 
@@ -2200,9 +2200,9 @@ public class GUI
     public static final Insets EmptyInsets = new Insets(0,0,0,0);
         
     private static boolean anyIcons(Component[] items) {
-        for (int i = 0; i < items.length; i++) {
-            if (items[i] instanceof AbstractButton) {
-                if (((AbstractButton)items[i]).getIcon() != null)
+        for (Component item : items) {
+            if (item instanceof AbstractButton) {
+                if (((AbstractButton) item).getIcon() != null)
                     return true;
             }
         }
@@ -2210,9 +2210,9 @@ public class GUI
     }
     
     private static void enforceIcons(Component[] items) {
-        for (int i = 0; i < items.length; i++) {
-            if (items[i] instanceof AbstractButton) {
-                AbstractButton menuItem = (AbstractButton) items[i];
+        for (Component item : items) {
+            if (item instanceof AbstractButton) {
+                AbstractButton menuItem = (AbstractButton) item;
                 if (menuItem.getIcon() == null)
                     menuItem.setIcon(EmptyIcon16);
             }
@@ -2237,8 +2237,7 @@ public class GUI
     }
 
     public static void addToMenu(JPopupMenu menu, Action[] actions) {
-        for (int i = 0; i < actions.length; i++) {
-            Action a = actions[i];
+        for (Action a : actions) {
             if (a == null)
                 menu.addSeparator();
             else
@@ -2247,8 +2246,7 @@ public class GUI
         adjustMenuIcons(menu);
     }
     public static void addToMenu(JMenu menu, Action[] actions) {
-        for (int i = 0; i < actions.length; i++) {
-            Action a = actions[i];
+        for (Action a : actions) {
             if (a == null)
                 menu.addSeparator();
             else
@@ -2265,8 +2263,7 @@ public class GUI
     public static JPopupMenu buildMenu(Action[] actions) {
         JPopupMenu menu = new JPopupMenu();
         menu.setBorder(BorderFactory.createEmptyBorder(5,0,5,0));
-        for (int i = 0; i < actions.length; i++) {
-            Action a = actions[i];
+        for (Action a : actions) {
             if (a == null)
                 menu.addSeparator();
             else
@@ -2516,9 +2513,9 @@ public class GUI
 
         private void clearMenuActions() {
             MouseListener[] ml = getMouseListeners();
-            for (int i = 0; i < ml.length; i++) {
-                if (ml[i] instanceof GUI.PopupMenuHandler)
-                    removeMouseListener(ml[i]);
+            for (MouseListener mouseListener : ml) {
+                if (mouseListener instanceof PopupMenuHandler)
+                    removeMouseListener(mouseListener);
             }
         }
 
@@ -3526,9 +3523,9 @@ public class GUI
         if (propValue != null && propValue instanceof String[]) {
             System.out.println("Supported windows property names:");
             String[] propNames = (String[]) propValue;
-            for (int i = 0; i < propNames.length; i++) {
-                Object value = Toolkit.getDefaultToolkit().getDesktopProperty(propNames[i]);
-                System.out.println(propNames[i] + " = " + value);
+            for (String name : propNames) {
+                Object value = Toolkit.getDefaultToolkit().getDesktopProperty(name);
+                System.out.println(name + " = " + value);
             }
         }
     }

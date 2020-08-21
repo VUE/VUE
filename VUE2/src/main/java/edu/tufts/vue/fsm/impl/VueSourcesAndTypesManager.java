@@ -53,18 +53,18 @@ implements edu.tufts.vue.fsm.SourcesAndTypesManager
 
 				// accumulate types across repositories, excluding duplicates
 				java.util.Vector vector = new java.util.Vector();
-				for (int i=0; i < numRepositories; i++) {
-					org.osid.shared.TypeIterator typeIterator = repositories[i].getSearchTypes();
-					while (typeIterator.hasNextType()) {
-						org.osid.shared.Type type = typeIterator.nextType();
-						String typeString = edu.tufts.vue.util.Utilities.typeToString(type);
-						
-						// no duplicates
-						if (!(vector.contains(typeString))) {
-							vector.addElement(typeString);
-						}
-					}
-				}
+                for (org.osid.repository.Repository repository : repositories) {
+                    org.osid.shared.TypeIterator typeIterator = repository.getSearchTypes();
+                    while (typeIterator.hasNextType()) {
+                        org.osid.shared.Type type = typeIterator.nextType();
+                        String typeString = edu.tufts.vue.util.Utilities.typeToString(type);
+
+                        // no duplicates
+                        if (!(vector.contains(typeString))) {
+                            vector.addElement(typeString);
+                        }
+                    }
+                }
 				
 				// convert vector to array
 				int size = vector.size();

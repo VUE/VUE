@@ -141,8 +141,8 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
             // we can't set the label (title) for it that way. -- SMF
             String[] dirs = { "Desktop", "My Documents", "Documents", "Pictures", "My Documents\\My Pictures", "Photos", "My Documents\\My Photos","Music", "My Documents\\My Music"};
             int added = 0;
-            for (int i = 0; i < dirs.length; i++) {
-                File dir = new File(home, dirs[i]);
+            for (String s : dirs) {
+                File dir = new File(home, s);
                 if (dir.exists() && dir.canRead() && dir.isDirectory()) { // TODO: create workaround for Vista bug
                     // TODO: the above tests ALWAYS RETURN TRUE ON WINDOWS VISTA as of 2008-04-08
                     // (listing the directory will generate an IO error for you, at least, but that will be a very slow way to do this...)
@@ -150,7 +150,7 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
 
                     // no longer needed: URLResource / CabinetResource will handle for us now
                     //r.setTitle(dirs[i].substring(dirs[i].lastIndexOf("\\") == -1 ? 0 : dirs[i].lastIndexOf("\\")+1, dirs[i].length()));
-                    
+
                     cabVector.add(r);
                     added++;
                 }
@@ -174,8 +174,7 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
         }
         if (volumes != null && volumes.exists() && volumes.canRead()) {
             File[] vols = volumes.listFiles();
-            for (int i = 0; i < vols.length; i++) {
-                File v = vols[i];
+            for (File v : vols) {
                 if (!v.canRead() || v.getName().startsWith("."))
                     continue;
                 CabinetResource r = CabinetResource.create(LocalCabinet.instance(v, agent, null));

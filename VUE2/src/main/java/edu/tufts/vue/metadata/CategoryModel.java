@@ -120,11 +120,11 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     
     public void loadDefaultVUEOntologies() {
         defaultOntologyUrls = tufts.vue.VueResources.getStringArray("metadata.load.files");
-        for(int i =0;i<defaultOntologyUrls.length;i++) {
+        for (String defaultOntologyUrl : defaultOntologyUrls) {
             try {
-                loadOntology(/*tufts.vue.VueResources.getBundle().getClass()*/tufts.vue.VueResources.class.getResource(defaultOntologyUrls[i]));
-            } catch(Throwable t) {
-                Log.error("Problem loading metadata: "+defaultOntologyUrls[i]+" Error:"+t.getMessage());
+                loadOntology(/*tufts.vue.VueResources.getBundle().getClass()*/tufts.vue.VueResources.class.getResource(defaultOntologyUrl));
+            } catch (Throwable t) {
+                Log.error("Problem loading metadata: " + defaultOntologyUrl + " Error:" + t.getMessage());
             }
         }
     }

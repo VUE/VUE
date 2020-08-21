@@ -4679,8 +4679,8 @@ public class DockWindow
         void setMenuActions(Action[] actions) {
             int count = 0;
             if (actions != null) {
-                for (int i = 0; i < actions.length; i++) {
-                    if (actions[i] != null)
+                for (Action action : actions) {
+                    if (action != null)
                         count++;
                 }
             }
@@ -4847,9 +4847,9 @@ public class DockWindow
 
         private void clearMenuActions() {
             MouseListener[] ml = getMouseListeners();
-            for (int i = 0; i < ml.length; i++) {
-                if (ml[i] instanceof GUI.PopupMenuHandler)
-                    removeMouseListener(ml[i]);
+            for (MouseListener mouseListener : ml) {
+                if (mouseListener instanceof GUI.PopupMenuHandler)
+                    removeMouseListener(mouseListener);
             }
         }
 

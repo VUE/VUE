@@ -163,9 +163,9 @@ import javax.swing.border.*;
 		public void buildSourcesCombo( LWMap pMap) {
 		
 			mSource.removeAllItems();
-			for(int i=0; i< mDefaultSourceItems.length; i++) {
-				mSource.addItem( mDefaultSourceItems[i] );
-				}
+            for (SourceItem mDefaultSourceItem : mDefaultSourceItems) {
+                mSource.addItem(mDefaultSourceItem);
+            }
 			
 			//UserMapType [] pMap.getUserMapTypes();
 			

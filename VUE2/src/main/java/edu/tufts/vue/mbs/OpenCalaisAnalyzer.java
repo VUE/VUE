@@ -251,19 +251,19 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 
 					// Iterator iterator = collection.iterator();
 					Object[] obj = collection.toArray();
-					for (int p = 0; p < obj.length; p++) {
-						com.google.common.collect.AbstractMapEntry o = (AbstractMapEntry) obj[p];
-						// System.out.println(o.getKey());
-						String key = o.getKey().toString().toLowerCase();
-						if (key.startsWith("title") || key.startsWith("date")
-								|| key.startsWith("creator")
-								|| key.startsWith("description")) {
-							// System.out.println(o.toString());
-							context += "The " + o.getKey().toString().trim()
-									+ " is " + o.getValue().toString().trim()
-									+ ".  ";
-						}
-					}
+                    for (Object value : obj) {
+                        AbstractMapEntry o = (AbstractMapEntry) value;
+                        // System.out.println(o.getKey());
+                        String key = o.getKey().toString().toLowerCase();
+                        if (key.startsWith("title") || key.startsWith("date")
+                                || key.startsWith("creator")
+                                || key.startsWith("description")) {
+                            // System.out.println(o.toString());
+                            context += "The " + o.getKey().toString().trim()
+                                    + " is " + o.getValue().toString().trim()
+                                    + ".  ";
+                        }
+                    }
 				}
 			}
 		} else {

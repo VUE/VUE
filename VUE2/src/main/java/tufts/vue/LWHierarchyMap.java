@@ -69,14 +69,11 @@ public class LWHierarchyMap extends LWMap
             
                 LWComponent component = hierarchyNode.getLWComponent();
                 addNode((LWNode)component);
-            
-                for (Iterator li = component.getLinks().iterator(); li.hasNext();)
-                {
-                    LWLink link = (LWLink)li.next();
-                
+
+                for (LWLink link : component.getLinks()) {
                     //gotta think about adding a link only one time
-                    if(!getChildList().contains(link)) 
-                      addLink(link);
+                    if (!getChildList().contains(link))
+                        addLink(link);
                 }
             }
         }

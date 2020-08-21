@@ -88,17 +88,16 @@ public class VueToolUtils
     	if( names != null) {
             mVueTools = new VueTool[toolCount];
             int count=0;
-            for (int i = 0; i < names.length; i++) {
-            	
-            	
-                debug("Loading tool " + names[i] );
-                
-                if (!names[i].equals("separator"))
-                {
-//                	if (names[i].contains("."))                		
-                		mVueTools[count++] = VueToolUtils.loadToolFromMap(names[i]);
-                	
-                }                
+            for (String name : names) {
+
+
+                debug("Loading tool " + name);
+
+                if (!name.equals("separator")) {
+//                	if (names[i].contains("."))
+                    mVueTools[count++] = VueToolUtils.loadToolFromMap(name);
+
+                }
             }
     	}
     	
@@ -109,11 +108,10 @@ public class VueToolUtils
     	 //you can specify the separators for the toolbar in the props so you need to remove them from
         //the count here.
         int toolCount = 0;
-        
-        for (int i=0;i< names.length;i++)
-        {
-        	if (!names[i].equals("separator"))
-        		toolCount++;
+
+        for (String name : names) {
+            if (!name.equals("separator"))
+                toolCount++;
         }
         
         return toolCount;
@@ -150,16 +148,15 @@ public class VueToolUtils
         if( names != null) {
             mVueTools = new VueTool[toolCount];
             int count=0;
-            for (int i = 0; i < names.length; i++) {
-            	
-            	
-                debug("Loading tool " + names[i] );
-                
-                if (!names[i].equals("separator"))
-                {
-//                	if (names[i].contains("."))                		
-                		mVueTools[count++] = VueToolUtils.loadTool(names[i]);
-                	
+            for (String name : names) {
+
+
+                debug("Loading tool " + name);
+
+                if (!name.equals("separator")) {
+//                	if (names[i].contains("."))
+                    mVueTools[count++] = VueToolUtils.loadTool(name);
+
                 }
             }
         }
@@ -180,10 +177,10 @@ public class VueToolUtils
 			
             tool.setOverlayUpIcon( VueResources.getImageIcon( pName+".overlay"));
             tool.setOverlayDownIcon( VueResources.getImageIcon( pName+".overlaydown") );
-		
-            for(int i=0; i<subtools.length; i++) {
-                VueTool subTool = loadTool(pName+"."+subtools[i]); // recursion...
-                subTool.setParentTool( tool);
+
+            for (String subtool : subtools) {
+                VueTool subTool = loadTool(pName + "." + subtool); // recursion...
+                subTool.setParentTool(tool);
                 tool.addSubTool(subTool);
             }
             // load menu overlays (if any)

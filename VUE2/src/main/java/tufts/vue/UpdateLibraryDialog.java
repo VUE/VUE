@@ -208,9 +208,9 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
 			// find the ids of all providers in VUE
 			java.util.Vector installedProviderVector = new java.util.Vector();
 			edu.tufts.vue.dsm.DataSource[] dataSources = dataSourceManager.getDataSources();
-			for (int i=0; i < dataSources.length; i++) {
-				installedProviderVector.addElement(dataSources[i].getProviderId().getIdString());
-			}
+            for (edu.tufts.vue.dsm.DataSource dataSource : dataSources) {
+                installedProviderVector.addElement(dataSource.getProviderId().getIdString());
+            }
 			
             org.osid.provider.ProviderIterator providerIterator = factory.getProvidersNeedingUpdate();
             while (providerIterator.hasNextProvider()) {

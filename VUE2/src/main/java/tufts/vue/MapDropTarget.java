@@ -1638,8 +1638,8 @@ public class MapDropTarget
         //if (DEBUG.DND && DEBUG.META) {
         if (DEBUG.DND) {
             String[] pairs = query.split("&");
-            for (int i = 0; i < pairs.length; i++) {
-                System.out.println("\tquery pair " + pairs[i]);
+            for (String pair : pairs) {
+                System.out.println("\tquery pair " + pair);
             }
             System.out.println("data " + data);
         }

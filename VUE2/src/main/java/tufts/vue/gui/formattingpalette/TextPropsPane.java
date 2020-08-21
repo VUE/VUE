@@ -160,12 +160,12 @@ public class TextPropsPane extends JPanel implements CaretListener// ,
 		Font[] fonts = ge.getAllFonts();
 		Vector list = new Vector();
 		// Process each font
-		for (int i = 0; i < fonts.length; i++) {
-			// Get font's family and face
-			String familyName = fonts[i].getFamily();
-			String faceName = fonts[i].getName();
-			list.add(faceName);
-		}
+        for (Font font : fonts) {
+            // Get font's family and face
+            String familyName = font.getFamily();
+            String faceName = font.getName();
+            list.add(faceName);
+        }
 
 		return list;
 	}

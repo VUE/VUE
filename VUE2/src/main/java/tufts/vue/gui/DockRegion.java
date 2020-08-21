@@ -191,9 +191,9 @@ class DockRegion
         java.util.Arrays.sort(windows, SortByX);
 
         java.util.ListIterator i = mDockedWindows.listIterator();
-        for (int j = 0;  j < windows.length; j++) {
+        for (Object window : windows) {
             i.next();
-            i.set(windows[j]);
+            i.set(window);
         }
             
         DockWindow prev = null;

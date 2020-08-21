@@ -1752,8 +1752,7 @@ public class MetadataSearchMainGUI extends JPanel
             final JComboBox box = comboBoxes.get(i);
             box.removeAllItems();
 
-            for (int j = 0; j < choices.length; j++)
-                box.addItem(choices[j]);
+            for (Object choice : choices) box.addItem(choice);
             
             box.setEnabled(choices.length > 1);
 

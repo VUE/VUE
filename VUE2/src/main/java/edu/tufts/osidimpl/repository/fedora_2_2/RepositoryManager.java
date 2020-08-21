@@ -161,9 +161,9 @@ public class RepositoryManager
         // just call get assets on each repository
         java.util.Vector result = new java.util.Vector();
         try {
-            for (int i=0, length = repositories.length; i < length; i++) {
+            for (org.osid.repository.Repository value : repositories) {
                 org.osid.repository.AssetIterator assetIterator =
-                        repositories[i].getAssetsBySearch(searchCriteria,searchType,null);
+                        value.getAssetsBySearch(searchCriteria, searchType, null);
                 while (assetIterator.hasNextAsset()) {
                     result.addElement(assetIterator.nextAsset());
                 }

@@ -105,11 +105,11 @@ public class FedoraRESTSearchAdapter {
     public static String getQueryFromConditions(Condition[] conds) throws org.osid.repository.RepositoryException{
         try {
             String query = new String();
-            for(int i=0;i<conds.length;i++) {
-                query += conds[i].getProperty();
+            for (Condition cond : conds) {
+                query += cond.getProperty();
 //            query += conds[i].getOperator();
                 query += "%7E"; // temporary fix
-                query += URLEncoder.encode(conds[i].getValue(),"ISO-8859-1");
+                query += URLEncoder.encode(cond.getValue(), "ISO-8859-1");
                 query += "%20";
             }
             query = query.substring(0,query.length()-3);

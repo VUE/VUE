@@ -24,12 +24,12 @@ implements edu.tufts.vue.dsm.AssetResolver
 		try {
 			edu.tufts.vue.dsm.DataSourceManager dsm = VueDataSourceManager.getInstance();
 			edu.tufts.vue.dsm.DataSource[] dataSources = dsm.getDataSources();
-			for (int i=0; i < dataSources.length; i++) {
-				if (dataSources[i].getRepositoryId().isEqual(repositoryId)) {
-					return new VueAssetReference(dataSources[i].getOsidLoadKey(),
-												 assetId.getIdString());
-				}
-			}
+            for (edu.tufts.vue.dsm.DataSource dataSource : dataSources) {
+                if (dataSource.getRepositoryId().isEqual(repositoryId)) {
+                    return new VueAssetReference(dataSource.getOsidLoadKey(),
+                            assetId.getIdString());
+                }
+            }
 		} catch (Throwable t) {
 			edu.tufts.vue.util.Logger.log(t,"getting reference for Asset");
 		}

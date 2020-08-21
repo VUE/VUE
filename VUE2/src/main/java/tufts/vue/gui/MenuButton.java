@@ -377,9 +377,10 @@ public abstract class MenuButton<T> extends JButton
             PropertyChangeListener[] listeners = getPropertyChangeListeners();
             if (listeners.length > 0) {
                 PropertyChangeEvent event = new LWPropertyChangeEvent(this, getPropertyKey(), oldValue, newValue);
-                for (int i = 0; i< listeners.length; i++) {
-                    if (DEBUG.TOOL && (DEBUG.EVENTS || DEBUG.META)) System.out.println(this + " fires " + event + " to " + listeners[i]);
-                    listeners[i].propertyChange(event);
+                for (PropertyChangeListener listener : listeners) {
+                    if (DEBUG.TOOL && (DEBUG.EVENTS || DEBUG.META))
+                        System.out.println(this + " fires " + event + " to " + listener);
+                    listener.propertyChange(event);
                 }
             }
         }

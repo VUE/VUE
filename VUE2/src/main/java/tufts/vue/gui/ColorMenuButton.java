@@ -297,28 +297,26 @@ public class ColorMenuButton extends JButton
     	colorPanel.removeAll();
     	colorPanel.setLayout(new GridLayout(0,4,2,2));
     	Color c = this.getColor();
-    	for (int i = 0; i < colors.length ; i++)
-    	{
-    		JButton colorButton = new JButton();
-    		colorButton.setFocusable(false);
-    		colorButton.setBorderPainted(false);
-    		colorButton.setContentAreaFilled(false);
-    		 Icon icon = makeIcon(colors[i]);
-    		colorButton.setIcon(icon);
-    		colorButton.setPreferredSize(new Dimension(20,20));
-    		colorButton.addActionListener(this);
-    		Color blobColor = colors[i];
-    		
-    		if (c != null && blobColor != null && blobColor.getRed() == c.getRed() && blobColor.getBlue() == c.getBlue() && blobColor.getGreen() == c.getGreen() && blobColor.getAlpha() == c.getAlpha())
-    		{
-    			//System.out.println("MATCH");
-    			colorButton.setBorderPainted(true);
-    			
-    			colorButton.setBorder(BorderFactory.createLineBorder(Color.gray));
-    		}
-    		
-    		colorPanel.add(colorButton);
-    	}
+        for (Color value : colors) {
+            JButton colorButton = new JButton();
+            colorButton.setFocusable(false);
+            colorButton.setBorderPainted(false);
+            colorButton.setContentAreaFilled(false);
+            Icon icon = makeIcon(value);
+            colorButton.setIcon(icon);
+            colorButton.setPreferredSize(new Dimension(20, 20));
+            colorButton.addActionListener(this);
+            Color blobColor = value;
+
+            if (c != null && blobColor != null && blobColor.getRed() == c.getRed() && blobColor.getBlue() == c.getBlue() && blobColor.getGreen() == c.getGreen() && blobColor.getAlpha() == c.getAlpha()) {
+                //System.out.println("MATCH");
+                colorButton.setBorderPainted(true);
+
+                colorButton.setBorder(BorderFactory.createLineBorder(Color.gray));
+            }
+
+            colorPanel.add(colorButton);
+        }
     	
     	ColorPreference customColor = null;
     	
@@ -534,9 +532,10 @@ public class ColorMenuButton extends JButton
             PropertyChangeListener[] listeners = getPropertyChangeListeners();
             if (listeners.length > 0) {
                 PropertyChangeEvent event = new LWPropertyChangeEvent(this, getPropertyKey(), oldValue, newValue);
-                for (int i = 0; i< listeners.length; i++) {
-                    if (DEBUG.TOOL && (DEBUG.EVENTS || DEBUG.META)) System.out.println(this + " fires " + event + " to " + listeners[i]);
-                    listeners[i].propertyChange(event);
+                for (PropertyChangeListener listener : listeners) {
+                    if (DEBUG.TOOL && (DEBUG.EVENTS || DEBUG.META))
+                        System.out.println(this + " fires " + event + " to " + listener);
+                    listener.propertyChange(event);
                 }
             }
         }

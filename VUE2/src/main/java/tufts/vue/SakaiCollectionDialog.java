@@ -41,21 +41,21 @@ public class SakaiCollectionDialog extends SizeRestrictedDialog implements javax
 			new javax.swing.tree.DefaultMutableTreeNode("Sites");
 			this.treeModel = new javax.swing.tree.DefaultTreeModel(root);
 			//System.out.println("num ds " + dataSources.length);
-			for (int i=0; i < dataSources.length; i++) {
-				org.osid.repository.Repository repository = dataSources[i].getRepository();
-				//System.out.println("repository is " + repository.getDisplayName());
-				org.osid.repository.AssetIterator assetIterator = repository.getAssetsByType(_collectionAssetType);
-				while (assetIterator.hasNextAsset()) {
-					org.osid.repository.Asset asset = assetIterator.nextAsset();
-					//System.out.println("asset is " + asset.getDisplayName());
-					SakaiSiteUserObject userObject = new SakaiSiteUserObject();
-					userObject.setId(asset.getId().getIdString());
-					userObject.setDisplayName(asset.getDisplayName());
-					//System.out.println("another obj " + userObject);
-					javax.swing.tree.DefaultMutableTreeNode nextTreeNode = new javax.swing.tree.DefaultMutableTreeNode(userObject);				
-					this.treeModel.insertNodeInto(nextTreeNode,root,0);
-				}
-			}
+            for (edu.tufts.vue.dsm.DataSource dataSource : dataSources) {
+                org.osid.repository.Repository repository = dataSource.getRepository();
+                //System.out.println("repository is " + repository.getDisplayName());
+                org.osid.repository.AssetIterator assetIterator = repository.getAssetsByType(_collectionAssetType);
+                while (assetIterator.hasNextAsset()) {
+                    org.osid.repository.Asset asset = assetIterator.nextAsset();
+                    //System.out.println("asset is " + asset.getDisplayName());
+                    SakaiSiteUserObject userObject = new SakaiSiteUserObject();
+                    userObject.setId(asset.getId().getIdString());
+                    userObject.setDisplayName(asset.getDisplayName());
+                    //System.out.println("another obj " + userObject);
+                    javax.swing.tree.DefaultMutableTreeNode nextTreeNode = new javax.swing.tree.DefaultMutableTreeNode(userObject);
+                    this.treeModel.insertNodeInto(nextTreeNode, root, 0);
+                }
+            }
 			this.tree = new JTree(this.treeModel);
 			this.jsp = new JScrollPane(this.tree);
 			add(this.jsp);

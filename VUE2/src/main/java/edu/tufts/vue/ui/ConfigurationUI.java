@@ -649,8 +649,8 @@ public class ConfigurationUI extends javax.swing.JPanel {
                     javax.swing.JPasswordField field1 = (javax.swing.JPasswordField)fieldVector.elementAt(i);
                     char[] password = field1.getPassword();
                     StringBuffer sb = new StringBuffer();
-                    for (int j=0; j < password.length; j++) {
-                        sb.append(password[j]);
+                    for (char c : password) {
+                        sb.append(c);
                     }
                     //String enc = edu.tufts.vue.util.Encryption.encrypt(sb.toString());
                     //String dec = edu.tufts.vue.util.Encryption.decrypt(enc);

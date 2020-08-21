@@ -9003,13 +9003,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         boolean use_scroller = false;
         boolean use_menu = false;
 
-        for (int i = 0; i < args.length; i++) {
-                 if (args[i].equals("-zoom"))   test_zoom = true;
-            else if (args[i].equals("-node"))   test_node = true;
-            else if (args[i].equals("-panner")) show_panner = true;
-            else if (args[i].equals("-scroll")) use_scroller = true;
-            else if (args[i].equals("-menu"))   use_menu = true;
-            else if (args[i].equals("-map"))    test_map = true;
+        for (String arg : args) {
+            if (arg.equals("-zoom")) test_zoom = true;
+            else if (arg.equals("-node")) test_node = true;
+            else if (arg.equals("-panner")) show_panner = true;
+            else if (arg.equals("-scroll")) use_scroller = true;
+            else if (arg.equals("-menu")) use_menu = true;
+            else if (arg.equals("-map")) test_map = true;
         }
         
         

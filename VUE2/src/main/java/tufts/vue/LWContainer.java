@@ -1142,14 +1142,12 @@ public abstract class LWContainer extends LWComponent
     public static void bringToFront(List selectionList)
     {
         LWComponent[] comps = sort(selectionList, ReverseOrder);
-        for (int i = 0; i < comps.length; i++)
-            comps[i].getParent().bringToFront(comps[i]);
+        for (LWComponent comp : comps) comp.getParent().bringToFront(comp);
     }
     public static void bringForward(List selectionList)
     {
         LWComponent[] comps = sort(selectionList, ForwardOrder);
-        for (int i = 0; i < comps.length; i++)
-            comps[i].getParent().bringForward(comps[i]);
+        for (LWComponent comp : comps) comp.getParent().bringForward(comp);
     }
     /** 
      * Make component(s) paint last & hit first (on top)
@@ -1157,14 +1155,12 @@ public abstract class LWContainer extends LWComponent
     public static void sendToBack(List selectionList)
     {
         LWComponent[] comps = sort(selectionList, ForwardOrder);
-        for (int i = 0; i < comps.length; i++)
-            comps[i].getParent().sendToBack(comps[i]);
+        for (LWComponent comp : comps) comp.getParent().sendToBack(comp);
     }
     public static void sendBackward(List selectionList)
     {
         LWComponent[] comps = sort(selectionList, ReverseOrder);
-        for (int i = 0; i < comps.length; i++)
-            comps[i].getParent().sendBackward(comps[i]);
+        for (LWComponent comp : comps) comp.getParent().sendBackward(comp);
     }
 
     public boolean bringToFront(LWComponent c)
