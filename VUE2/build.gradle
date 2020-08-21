@@ -31,6 +31,22 @@ def resourceProps = file('src/main/resources/tufts/vue/VueResources.properties')
 version = resourceProps['vue.version']
 
 
+sourceCompatibility = 1.7
+targetCompatibility = 1.8
+
+
+
+// java {
+//     withJavadocJar()
+// }
+
+
+jar {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                   'Implementation-Version': project.version)
+    }
+}
 dependencies {
     // javax
     implementation 'javax.activation:javax.activation-api:1.2.0' // todo now included but deprecation/rename in newer java
@@ -157,21 +173,4 @@ dependencies {
     implementation files('lib/simplyhtml2.jar') // couldn't find
     implementation files('lib/splash.jar') // couldn't find
     implementation files('lib/trippi-1.1.2-core.jar') // TODO upgrade?
-}
-
-sourceCompatibility = 1.7
-targetCompatibility = 1.8
-
-
-
-// java {
-//     withJavadocJar()
-// }
-
-
-jar {
-    manifest {
-        attributes('Implementation-Title': project.name,
-                   'Implementation-Version': project.version)
-    }
 }
