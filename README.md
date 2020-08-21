@@ -19,7 +19,7 @@ though it is in the process of being re-organized to suit Gradle/Maven.
 ## Compiling and Running
 
 The easiest method to compile and run VUE code is using Gradle, and the gradle wrapper is included.
-Just go into the _VUE2_ folder and run `./gradlew` or `gradlew` depending on your platform (non-Windows vs Windows).
+Just run `./gradlew` or `gradlew` depending on your platform (non-Windows vs Windows).
 The following useful tasks might be interesting:
 
 | Task name | Action |
