@@ -361,8 +361,9 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
             VueMetadataElement vme = getOntologyListElement(i);
             OntType type = (OntType)vme.getObject();
             if(DEBUG_LOCAL) Log.debug("containsOntologicalType - vme.getValue() " + vme.getValue() + " --- ontType from properties " + ontType);
-            if(ontType.equals(vme.getValue()));
+            if(ontType.equals(vme.getValue())) {
                 return true;
+            }
         }
         return false;
     }
