@@ -1,5 +1,10 @@
+plugins {
+  id "name.remal.check-dependency-updates" version "1.0.211"
+}
+
 // Apply Shadow so we can make a bundled jar
 apply plugin: 'com.github.johnrengelman.shadow'
+
 // Apply the java plugin to add support for Java - explicit so that Shadow works
 apply plugin: 'java'
 // Apply the application plugin to add support for building an application
