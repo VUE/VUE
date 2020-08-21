@@ -152,12 +152,12 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 		gbConstraints.weighty = 1;
 		panel.add(hierarchyCheckbox, gbConstraints);
 
-		resourceCheckbox.setSelected(((Boolean)getValue(resourceIconName)).booleanValue());
+		resourceCheckbox.setSelected((Boolean) getValue(resourceIconName));
 		//behaviorCheckbox.setSelected(((Boolean)getValue(behaviorIconName)).booleanValue());
-		notesCheckbox.setSelected(((Boolean)getValue(notesIconName)).booleanValue());
-		pathwayCheckbox.setSelected(((Boolean)getValue(pathwayIconName)).booleanValue());
-		metaDataCheckbox.setSelected(((Boolean)getValue(metaDataIconName)).booleanValue());
-		hierarchyCheckbox.setSelected(((Boolean)getValue(hierarchyIconName)).booleanValue());
+		notesCheckbox.setSelected((Boolean) getValue(notesIconName));
+		pathwayCheckbox.setSelected((Boolean) getValue(pathwayIconName));
+		metaDataCheckbox.setSelected((Boolean) getValue(metaDataIconName));
+		hierarchyCheckbox.setSelected((Boolean) getValue(hierarchyIconName));
 
                 // Add listeners after setting values, otherwise we get spurious initial events:
 		resourceCheckbox.addItemListener(this);
@@ -190,17 +190,17 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 
 	public boolean getMetaDataIconValue()
 	{
-		return ((Boolean)getValue(metaDataIconName)).booleanValue();
+		return (Boolean) getValue(metaDataIconName);
 	}
 	
 	public boolean getHierarchyIconValue()
 	{
-		return ((Boolean)getValue(hierarchyIconName)).booleanValue();
+		return (Boolean) getValue(hierarchyIconName);
 	}
 	
 	public boolean getResourceIconValue()
 	{
-		return ((Boolean)getValue(resourceIconName)).booleanValue();				
+		return (Boolean) getValue(resourceIconName);
 	}
 	
 	public boolean getBehaviorIconValue()
@@ -210,12 +210,12 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	
 	public boolean getNotesIconValue()
 	{
-		return ((Boolean)getValue(notesIconName)).booleanValue();
+		return (Boolean) getValue(notesIconName);
 	}
 	
 	public boolean getPathwayIconValue()
 	{
-		return ((Boolean)getValue(pathwayIconName)).booleanValue();
+		return (Boolean) getValue(pathwayIconName);
 	}
 	
 	public void itemStateChanged(ItemEvent e) {
@@ -258,13 +258,13 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 			previousHierarchyValue = Boolean.valueOf(hierarchyCheckbox.isSelected());		
 		
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		p.putBoolean(getPrefName(prefName), ((Boolean)b).booleanValue());
+		p.putBoolean(getPrefName(prefName), (Boolean) b);
 		_fireVuePrefEvent(prefName);
 	}
 	
 	public Object getValue(String prefName){
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(prefName), ((Boolean)getDefaultValue(prefName)).booleanValue()));
+		Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(prefName), (Boolean) getDefaultValue(prefName)));
 		return b;
 	
 	}

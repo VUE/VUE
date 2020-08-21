@@ -32,7 +32,7 @@ public class LongValueIterator
     public long nextLongValue()
     throws org.osid.shared.SharedException {
         if (i < vector.size()) {
-            return ((Long)vector.elementAt(i++)).longValue();
+            return (Long) vector.elementAt(i++);
         } else {
             throw new org.osid.shared.SharedException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
         }

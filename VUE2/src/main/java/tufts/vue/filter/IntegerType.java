@@ -46,8 +46,8 @@ public class IntegerType extends DefaultType {
         System.out.println("INTEGER COMPARE : value1 ="+value1.getClass() +" value2="+ value2.getClass()+" operators  1:"+s1.getOperator()+ "operator 2"+s2.getOperator());
         if(!(value1 instanceof Integer) || !(value2 instanceof Integer))
             return false;
-        int v1 = ((Integer)value1).intValue();
-        int v2 = ((Integer)value2).intValue();
+        int v1 = (Integer) value1;
+        int v2 = (Integer) value2;
         
         if(s1.getOperator().getDisplayName().equals(OP_EQUAL)) {
              if(s2.getOperator().getDisplayName().equals(OP_EQUAL)) {

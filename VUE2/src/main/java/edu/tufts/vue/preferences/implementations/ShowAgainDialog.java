@@ -64,7 +64,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     }
     public boolean showAgain()
     {
-    	return (((Boolean)showAgainPref.getValue()).booleanValue());
+    	return ((Boolean) showAgainPref.getValue());
     }
     private static int newcnt = 1;
     private void setUpUI(JPanel panel)
@@ -109,7 +109,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
         gbc.anchor=GridBagConstraints.EAST;
         gbc.fill=GridBagConstraints.BOTH;
         showAgainBox.setText(VueResources.getString("showagaindialog.donotshow.tooltip"));
-        showAgainBox.setSelected(!((Boolean)showAgainPref.getValue()).booleanValue());
+        showAgainBox.setSelected(!(Boolean) showAgainPref.getValue());
         dialogContentPane.add(showAgainBox,gbc);
 
         gbc.gridx=1;

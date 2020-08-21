@@ -60,7 +60,7 @@ public class GravitationalLayout extends AbstractLayout{
                 map.add(node1);
             } else {
                 node1 = nodeMap.get(node1Label);
-                int nc= repeatMap.get(node1Label).intValue();
+                int nc= repeatMap.get(node1Label);
                 repeatMap.put(node1Label,new Integer(nc+1));
             }
             if(!nodeMap.containsKey(node2Label)) {
@@ -70,18 +70,18 @@ public class GravitationalLayout extends AbstractLayout{
                 nodeMap.put(node2Label,node2);
             } else {
                 node2 = nodeMap.get(node2Label);
-                int nc= repeatMap.get(node2Label).intValue();
+                int nc= repeatMap.get(node2Label);
                 repeatMap.put(node2Label,new Integer(nc+1));
             }
             LWLink link = new LWLink(node1,node2);
             map.add(link);
             double angle = Math.random()*Math.PI*4;
-            int nc1= repeatMap.get(node1.getLabel()).intValue();
+            int nc1= repeatMap.get(node1.getLabel());
             // nc1 = nc1*nc1;
             double fact1 = Math.sqrt(nc1);
             node1.setLocation(MAP_SIZE*(1+Math.cos(angle)/fact1),MAP_SIZE*(1+Math.sin(angle)/fact1));
             angle = Math.random()*Math.PI*4;
-            int nc2= repeatMap.get(node2.getLabel()).intValue();
+            int nc2= repeatMap.get(node2.getLabel());
             //nc2=nc2*nc2;
             double fact2 = Math.sqrt(nc2);
             node2.setLocation(MAP_SIZE*(1+Math.cos(angle)/fact2),MAP_SIZE*(1+Math.sin(angle)/fact2));

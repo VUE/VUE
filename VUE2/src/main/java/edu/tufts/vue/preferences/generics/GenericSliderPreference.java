@@ -130,7 +130,7 @@ public abstract class GenericSliderPreference extends BasePref implements Change
 
 	public Object getValue() {
 		 Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		 return p.getInt(getPrefName(), ((Integer)getDefaultValue()).intValue());
+		 return p.getInt(getPrefName(), (Integer) getDefaultValue());
 	}		
 
 	public void setMessage(String s) {

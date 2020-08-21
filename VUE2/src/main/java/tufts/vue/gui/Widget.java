@@ -72,7 +72,7 @@ public class Widget extends javax.swing.JPanel
     public static boolean isHidden(JComponent c)
     {
     	Boolean currentProp = (Boolean)c.getClientProperty(HIDDEN_KEY);
-    	boolean current = currentProp == null ? false : currentProp.booleanValue();
+    	boolean current = currentProp == null ? false : currentProp;
     	return current;
     }
     /** Hide the entire widget, including it's title.  Do not affect expansion state. */
@@ -120,7 +120,7 @@ public class Widget extends javax.swing.JPanel
     public static boolean isExpanded(JComponent c)
     {
     	Boolean currentProp = (Boolean)c.getClientProperty(EXPANSION_KEY);
-    	boolean current = currentProp == null ? false : currentProp.booleanValue();
+    	boolean current = currentProp == null ? false : currentProp;
     	return current;
     }
     protected static void setExpandedImpl(JComponent c, boolean expand) {
@@ -188,7 +188,7 @@ public class Widget extends javax.swing.JPanel
     protected static boolean setBoolean(JComponent c, String key, boolean newValue) {
         Boolean currentProp = (Boolean) c.getClientProperty(key);
         // default for property value not there is false:
-        boolean current = currentProp == null ? false : currentProp.booleanValue();
+        boolean current = currentProp == null ? false : currentProp;
         if (current != newValue) {
             if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " WIDGET-CHANGE " + key + "=" + newValue);
             c.putClientProperty(key, newValue ? Boolean.TRUE : Boolean.FALSE);
@@ -199,7 +199,7 @@ public class Widget extends javax.swing.JPanel
 
     protected static boolean isBooleanTrue(JComponent c, Object key) {
         Boolean boolProp = (Boolean) c.getClientProperty(key);
-        return boolProp != null && boolProp.booleanValue();
+        return boolProp != null && boolProp;
     }
     
   
@@ -253,7 +253,7 @@ public class Widget extends javax.swing.JPanel
     public static boolean isLoading(JComponent c)
     {
     	Boolean currentProp = (Boolean)c.getClientProperty(LOADING_KEY);
-    	boolean current = currentProp == null ? false : currentProp.booleanValue();
+    	boolean current = currentProp == null ? false : currentProp;
     	return current;
     }
 

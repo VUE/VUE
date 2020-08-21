@@ -723,14 +723,14 @@ public class DockWindow
         if (key == Widget.EXPANSION_KEY) {
 
             if (!mWasVisible) {
-                boolean expand = ((Boolean) e.getNewValue()).booleanValue();
+                boolean expand = (Boolean) e.getNewValue();
                 setRolledUp(!expand, isDisplayable(), true);
             }
             
         } else if (key == Widget.HIDDEN_KEY) {
 
             if (!mWasVisible) {
-                boolean hide = ((Boolean) e.getNewValue()).booleanValue();
+                boolean hide = (Boolean) e.getNewValue();
                 if (hide)
                     dismiss();
                 else

@@ -110,7 +110,7 @@ public class AlignmentDropDown extends JPanel {
                                            boolean cellHasFocus) {
             //Get the selected index. (The index param isn't
             //always valid, so just use the value.)
-            int selectedIndex = ((Integer)value).intValue();
+            int selectedIndex = (Integer) value;
 
             if (isSelected) {
                 setBackground(list.getSelectionBackground());

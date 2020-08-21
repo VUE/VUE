@@ -92,7 +92,7 @@ public class IntegerPreference extends BasePref
 	}
 
 	public Integer getValue(){
-		Integer i = (p.getInt(getPrefName(), getDefaultValue().intValue()));
+		Integer i = (p.getInt(getPrefName(), getDefaultValue()));
 		return i;
 	
 	}
@@ -104,7 +104,7 @@ public class IntegerPreference extends BasePref
 	public void setValue(Integer i)
 	{
 		previousValue = getValue(); 		
-		p.putInt(getPrefName(), i.intValue());
+		p.putInt(getPrefName(), i);
 		_fireVuePrefEvent();
 	}
 }

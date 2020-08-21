@@ -62,7 +62,7 @@ public class HierarchicalLayout extends AbstractLayout{
                 map.add(node1);
             } else {
                 node1 = nodeMap.get(node1Label);
-                int nc= repeatMap.get(node1Label).intValue();
+                int nc= repeatMap.get(node1Label);
                 repeatMap.put(node1Label,new Integer(nc+1));
                 Point2D p = node1.getLocation();
                 node1.setLocation(p.getX()-40,p.getY());
@@ -76,7 +76,7 @@ public class HierarchicalLayout extends AbstractLayout{
                 map.add(node2);
             } else {
                 node2 = nodeMap.get(node2Label);
-                int nc= repeatMap.get(node2Label).intValue();
+                int nc= repeatMap.get(node2Label);
                 Point2D p = node2.getLocation();
                 node2.setLocation(p.getX()-40,p.getY());
                 repeatMap.put(node2Label,new Integer(nc+1));

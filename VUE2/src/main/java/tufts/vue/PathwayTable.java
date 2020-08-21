@@ -644,7 +644,7 @@ public class PathwayTable extends JTable
             	  {
                       boolean bool = false;
                       if (value instanceof Boolean)
-                          bool = ((Boolean)value).booleanValue();
+                          bool = (Boolean) value;
                       
                       setFont(ArrowIconFont);
                       setForeground(Color.white);                      
@@ -872,7 +872,7 @@ public class PathwayTable extends JTable
             {
                 boolean bool = false;
                 if (obj instanceof Boolean)
-                    bool = ((Boolean)obj).booleanValue();
+                    bool = (Boolean) obj;
                 
                 if (col == PathwayTableModel.COL_VISIBLE) {
                     setIcon(bool ? eyeOpen : eyeClosed);
@@ -951,7 +951,7 @@ public class PathwayTable extends JTable
                     if (entry.hasVariableDisplayMode()) {
                         boolean isMapView = false;
                         if (obj instanceof Boolean)
-                            isMapView = ((Boolean)obj).booleanValue();
+                            isMapView = (Boolean) obj;
                     
                         if (isMapView) {
                             setBorder(NodeIconBorder);

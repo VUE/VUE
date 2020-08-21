@@ -348,7 +348,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 					if (cString == null)
 						cString = "1";
 				}
-				entity.setCount((Integer.valueOf(cString)).intValue());
+				entity.setCount(Integer.valueOf(cString));
 				Node doubleNode = nnm.getNamedItem("relevance");
 				try {
 					cString = doubleNode.getNodeValue();

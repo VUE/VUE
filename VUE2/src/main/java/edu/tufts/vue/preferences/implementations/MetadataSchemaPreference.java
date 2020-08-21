@@ -128,18 +128,18 @@ public class MetadataSchemaPreference extends BasePref implements ItemListener
 		dublinCoreCheckbox.addItemListener(this);
 		vraCheckbox.addItemListener(this);
 
-		dublinCoreCheckbox.setSelected(((Boolean)getValue(dublinCoreName)).booleanValue());
-		vraCheckbox.setSelected(((Boolean)getValue(vraName)).booleanValue());
+		dublinCoreCheckbox.setSelected((Boolean) getValue(dublinCoreName));
+		vraCheckbox.setSelected((Boolean) getValue(vraName));
 
 		return panel;
 	}
 
 	public boolean getDublinCoreValue() {
-		return ((Boolean)getValue(dublinCoreName)).booleanValue();				
+		return (Boolean) getValue(dublinCoreName);
 	}
 
 	public boolean getVRAValue() {
-		return ((Boolean)getValue(vraName)).booleanValue();
+		return (Boolean) getValue(vraName);
 	}
 
 	public void itemStateChanged(ItemEvent e) {
@@ -182,13 +182,13 @@ public class MetadataSchemaPreference extends BasePref implements ItemListener
 			previousVraValue = Boolean.valueOf(vraCheckbox.isSelected());
 
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		p.putBoolean(getPrefName(prefName), ((Boolean)b).booleanValue());
+		p.putBoolean(getPrefName(prefName), (Boolean) b);
 		_fireVuePrefEvent(prefName);
 	}
 
 	public Object getValue(String prefName) {
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(prefName), ((Boolean)getDefaultValue(prefName)).booleanValue()));
+		Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(prefName), (Boolean) getDefaultValue(prefName)));
 		return b;
 	}
 

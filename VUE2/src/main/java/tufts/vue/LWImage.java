@@ -937,7 +937,7 @@ public class LWImage extends LWComponent
     //----------------------------------------------------------------------------------------
 
     public static final Key KEY_Rotation = new Key("image.rotation", KeyType.STYLE) { // rotation in radians
-            public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation(((Double)val).doubleValue()); }
+            public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation((Double) val); }
             public Object getValue(LWComponent c) { return new Double(((LWImage)c).getRotation()); }
         };
     

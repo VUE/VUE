@@ -728,10 +728,10 @@ public class WidgetStack extends Widget
                 out(GUI.name(e.getSource()) + " property \"" + key + "\" newValue=[" + GUI.name(e.getNewValue()) + "]");
 
             if (key == EXPANSION_KEY) {
-                setWidgetExpanded( ((Boolean)e.getNewValue()).booleanValue() );
+                setWidgetExpanded((Boolean) e.getNewValue());
                 
             } else if (key == HIDDEN_KEY) {
-                setWidgetHidden( ((Boolean)e.getNewValue()).booleanValue() );
+                setWidgetHidden((Boolean) e.getNewValue());
 
             } else if (key == MENU_ACTIONS_KEY) {
                 mMenuButton.setMenuActions((Action[]) e.getNewValue());

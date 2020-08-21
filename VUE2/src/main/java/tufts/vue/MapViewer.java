@@ -312,7 +312,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         PresentationTool.AutoZoomPreference.addVuePrefListener
             (new VuePrefListener() {
                     public void preferenceChanged(VuePrefEvent pe) {
-                        AutoZoomEnabledInPresentations = ((Boolean)pe.getNewValue()).booleanValue();    			
+                        AutoZoomEnabledInPresentations = (Boolean) pe.getNewValue();
                     }
                 });
 
@@ -347,7 +347,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         // Having this static flag set again by every open viewer when this
                         // preference changes is overkill, but harmless.
 
-                        AutoZoomEnabled = ((Boolean)pe.getNewValue()).booleanValue();
+                        AutoZoomEnabled = (Boolean) pe.getNewValue();
 
                         // If we're over a node in the active viewer, immediately zoom-up or zoom-off.
                         

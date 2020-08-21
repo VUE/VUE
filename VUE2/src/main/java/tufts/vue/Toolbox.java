@@ -98,7 +98,7 @@ public class Toolbox {
 			Integer		alreadyVisitedAtLevel = alreadyVisited.get(comp);
 
 			// If this component has already been visited at a higher depth, don't revisit it.
-			if (alreadyVisitedAtLevel == null || alreadyVisitedAtLevel.intValue() < depth) {
+			if (alreadyVisitedAtLevel == null || alreadyVisitedAtLevel < depth) {
 				alreadyVisited.put(comp, new Integer(depth));
 
 				boolean		compIsUserSelected = userSelection.contains(comp),

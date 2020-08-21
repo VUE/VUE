@@ -89,7 +89,7 @@ public class ArrowToolPanel extends ToolPanel
                     setForeground(list.getForeground());
                 }   		
                 
-                int val = ((Integer)value).intValue();
+                int val = (Integer) value;
                 if (val ==0)
                     {
                 	setText(VueResources.getString("arrowtoolpanel.none"));

@@ -36,7 +36,7 @@ implements org.osid.shared.LongValueIterator
     throws org.osid.shared.SharedException
     {
 		try {
-			return ((Long)iterator.next()).longValue();
+			return (Long) iterator.next();
 		} catch (Throwable t) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
 		}

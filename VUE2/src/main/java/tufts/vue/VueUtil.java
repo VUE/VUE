@@ -1101,7 +1101,7 @@ class VOptionPane extends JOptionPane
 		if (selectedValue != null) {
 			if (options == null) {
 				if (selectedValue instanceof Integer) {
-					result = ((Integer)selectedValue).intValue();
+					result = (Integer) selectedValue;
 				}
 			} else {
 				for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++) {

@@ -3506,7 +3506,7 @@ public class LWComponent
     }
 
     public void setPersistIsStyle(Boolean b) {
-        setFlag(Flag.STYLE, b.booleanValue());
+        setFlag(Flag.STYLE, b);
 
     }
 
@@ -3516,7 +3516,7 @@ public class LWComponent
     }
 
     public void setPersistIsSlideStyled(Boolean b) {
-        setFlag(Flag.SLIDE_STYLE, b.booleanValue());
+        setFlag(Flag.SLIDE_STYLE, b);
 
     }
 
@@ -7369,7 +7369,7 @@ public class LWComponent
     }
 
     public void setXMLhidden(Boolean b) {
-        setVisible(!b.booleanValue());
+        setVisible(!b);
     }
 
     /** persist with a true value only if HideCause.PRUNE is set */
@@ -7382,7 +7382,7 @@ public class LWComponent
     public void setXMLpruned(Boolean b) {
         // note: should normally only be called if b is true,
         // as when false it shouldn't be persisted at all
-        setPruned(b.booleanValue());
+        setPruned(b);
     }
 
 

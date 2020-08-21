@@ -98,7 +98,7 @@ public class ImageTool extends VueTool
         public Object getPropertyKey() { return LWImage.KEY_Rotation; }
         public Object getPropertyValue() { return new Double(Math.toRadians(getValue())); }
         public void setPropertyValue(Object value) {
-            setValue((int) (Math.toDegrees(((Double)value).doubleValue()) + 0.5));
+            setValue((int) (Math.toDegrees((Double) value) + 0.5));
         }
 
         private boolean isSnappedValue(int value) {

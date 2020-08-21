@@ -321,7 +321,7 @@ public class LWLink extends LWComponent
     public void setXMLpruned(Boolean b) {
         // note: should normally only be called if b is true,
         // as when false it shouldn't be persisted at all
-        setPruned(b.booleanValue());
+        setPruned(b);
     }
     
 

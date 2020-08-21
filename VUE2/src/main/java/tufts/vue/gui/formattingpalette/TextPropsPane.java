@@ -525,19 +525,19 @@ public class TextPropsPane extends JPanel implements CaretListener// ,
 			Boolean b = (Boolean) attsSet.getAttribute(StyleConstants.Bold);
 
 			if (b != null) {
-				boldButton.setSelected(b.booleanValue());
+				boldButton.setSelected(b);
 			} else
 				boldButton.setSelected(false);
 
 			b = (Boolean) attsSet.getAttribute(StyleConstants.Underline);
 			if (b != null)
-				underlineButton.setSelected(b.booleanValue());
+				underlineButton.setSelected(b);
 			else
 				underlineButton.setSelected(false);
 
 			b = (Boolean) attsSet.getAttribute(StyleConstants.Italic);
 			if (b != null)
-				italicButton.setSelected(b.booleanValue());
+				italicButton.setSelected(b);
 			else
 				italicButton.setSelected(false);
 
@@ -545,7 +545,7 @@ public class TextPropsPane extends JPanel implements CaretListener// ,
 			Integer ival = ((Integer) attsSet.getAttribute(StyleConstants.Alignment));
 			int align =0;
 			if (ival != null)
-				align = ival.intValue();
+				align = ival;
 
 			alignmentButton.getComboBox().setSelectedIndex(align);
 			
@@ -560,7 +560,7 @@ public class TextPropsPane extends JPanel implements CaretListener// ,
 			Integer sizeInt = ((Integer)attsSet.getAttribute(StyleConstants.FontSize));
 			
 			if (sizeInt != null)
-				size = sizeInt.intValue();
+				size = sizeInt;
 			
 			if (size > 0)
 			{

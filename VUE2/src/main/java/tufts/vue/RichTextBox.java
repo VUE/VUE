@@ -1029,7 +1029,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
        			out("got style");
        		int diff =0;
        		Integer i = new Integer(a.toString());
-       		diff = i.intValue();
+       		diff = i;
        		//minS.height = minS.height - diff;
        		if (VUE.getActiveViewer() !=null)
        		{
@@ -1201,7 +1201,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     			out("got style");
     		int diff =0;
     		Integer i = new Integer(a.toString());
-    		diff = i.intValue();
+    		diff = i;
     		if (VUE.getActiveViewer()!=null)
     		{
     			  java.awt.Container parent = getParent();    			      			  
