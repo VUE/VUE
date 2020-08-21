@@ -211,8 +211,8 @@ public class VueMetadataElement implements tufts.vue.XMLUnmarshalListener
                 //-----------------------------------------------------------------------------
                 // Fix for files saved before 11/27/2007 -- file:/ prefix didn't work in
                 // rdf search, so used http://vue.tufts.edu#custom.rdfs instead.
-                if (key != null && key.indexOf("file") != -1 && key.indexOf("custom.rdfs") != -1) {
-                    if (key.indexOf("#") != -1) {
+                if (key != null && key.contains("file") && key.contains("custom.rdfs")) {
+                    if (key.contains("#")) {
                         Log.info("patching key in: " + key + "=" + value);
                         this.key = "http://vue.tufts.edu/custom.rdfs" + key.substring(key.indexOf("#"), key.length());
                         Log.info(" patched key to: " + key + "=" + value);

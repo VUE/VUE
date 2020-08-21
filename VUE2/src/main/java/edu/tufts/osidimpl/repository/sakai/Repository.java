@@ -364,7 +364,7 @@ implements org.osid.repository.Repository
 					result = match(subAssetIterator.nextAsset(), result, criteria);
 				}
 			} else {
-				if (asset.getDisplayName().toLowerCase().indexOf(criteria) != -1) {
+				if (asset.getDisplayName().toLowerCase().contains(criteria)) {
 					result.addElement(asset);
 				}
 			}

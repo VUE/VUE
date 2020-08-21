@@ -54,7 +54,7 @@ public class StringType extends DefaultType {
             if(s2.getOperator().getDisplayName().equals(OP_EQUAL)) {
                 return v1.equals(v2);
             } else if (s2.getOperator().getDisplayName().equals(OP_CONTAIN)) {
-                return v1.indexOf(v2) != -1;
+                return v1.contains(v2);
             }else if(s2.getOperator().getDisplayName().equals(OP_START)) {
                 return v1.startsWith(v2);
             } else if(s2.getOperator().getDisplayName().equals(OP_END)) {

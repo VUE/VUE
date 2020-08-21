@@ -182,7 +182,7 @@ public class Util
             }
             if (DEBUG) out("Mac mrj.version: \"" + mrj + "\" = " + MacMRJVersion);
             
-        } else if (osn.indexOf("windows".toUpperCase()) >= 0) {
+        } else if (osn.contains("windows".toUpperCase())) {
             WindowsPlatform = true;
             OSisMacLeopard = false;
             //if (DEBUG) out("Windows Platform: " + PlatformName);
@@ -199,10 +199,10 @@ public class Util
         if (term == null)
             term = "";
         
-        allowColor = term.indexOf("color") >= 0;
+        allowColor = term.contains("color");
         if (!allowColor) {
             term = System.getenv("SSH_TERM");
-            if (term != null && term.indexOf("color") >= 0)
+            if (term != null && term.contains("color"))
                 allowColor = true;
         }
 
@@ -404,7 +404,7 @@ public class Util
         if (MacAquaLAF_set == false) {
             MacAquaLAF =
                 isMacPlatform() &&
-                javax.swing.UIManager.getLookAndFeel().getName().toLowerCase().indexOf("aqua") >= 0;
+                        javax.swing.UIManager.getLookAndFeel().getName().toLowerCase().contains("aqua");
             MacAquaLAF_set = true;
         }
         return MacAquaLAF;

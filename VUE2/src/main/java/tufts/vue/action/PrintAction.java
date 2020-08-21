@@ -112,7 +112,7 @@ public class PrintAction extends tufts.vue.VueAction
         }
         boolean viewerPrint = false;
         if (ae.getActionCommand() != null &&
-            ae.getActionCommand().indexOf("Visible") >= 0)
+                ae.getActionCommand().contains("Visible"))
             viewerPrint = true;
 
         // if any tool windows open in W2K/1.4.2 when start this thread,
