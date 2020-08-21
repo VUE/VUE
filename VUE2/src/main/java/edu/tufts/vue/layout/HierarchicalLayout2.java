@@ -28,38 +28,35 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 
 	public void layout(LWSelection selection) throws Exception {
 		HashMap<String, LWNode>	processedNodes = new HashMap<String, LWNode>();
-		Iterator<LWComponent>	iter = selection.iterator();
 
-		// Layout the children and parents of each selected node.  The selected nodes
+        // Layout the children and parents of each selected node.  The selected nodes
 		// themselves are not moved.  If more than one node in a connected graph is selected,
 		// the first one encountered in the selection iterator will be the one around which the
 		// graph is layed out.
-		while (iter.hasNext()) {
-			LWComponent comp = iter.next();
+        for (LWComponent comp : selection) {
+            if (comp instanceof LWNode && !comp.isManagedLocation() && (processedNodes.get(comp.getID()) == null)) {
+                LWNode node = (LWNode) comp;
 
-			if (comp instanceof LWNode && !comp.isManagedLocation() && (processedNodes.get(comp.getID()) == null)) {
-				LWNode			node = (LWNode)comp;
+                if (DEBUG_LOCAL) {
+                    Log.info("Laying out node " + node.getLabel() + ".");
+                }
 
-				if (DEBUG_LOCAL) {
-					Log.info("Laying out node " + node.getLabel() + ".");
-				}
+                Vector<LWNode> nodes = new Vector<LWNode>();
+                HierarchyLayer nodeLayer = new HierarchyLayer(node);
 
-				Vector<LWNode>	nodes = new Vector<LWNode>();
-				HierarchyLayer	nodeLayer = new HierarchyLayer(node);
+                nodes.add(node);
+                findChildrenAndParents(nodes, nodeLayer, processedNodes);
 
-				nodes.add(node);
-				findChildrenAndParents(nodes, nodeLayer, processedNodes);
+                if (DEBUG_LOCAL) {
+                    nodeLayer.printLayers();
+                }
 
-				if (DEBUG_LOCAL) {
-					nodeLayer.printLayers();
-				}
+                layoutLayers(node, nodeLayer);
 
-				layoutLayers(node, nodeLayer);
-
-				nodes.removeAllElements();
-				nodeLayer.removeAllElements();
-			}
-		}
+                nodes.removeAllElements();
+                nodeLayer.removeAllElements();
+            }
+        }
 
 		processedNodes.clear();
 	}

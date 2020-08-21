@@ -165,10 +165,9 @@ public class LWCFilter {
     }
     public void removeStatements(Key key) {
         Vector removeStatements = new Vector();
-        Iterator i = statements.iterator();
-        while(i.hasNext()) {
-            Statement statement = (Statement)i.next();
-            if(((String)statement.getKey().getKey()).equals(key.getKey().toString()))
+        for (Object o : statements) {
+            Statement statement = (Statement) o;
+            if (((String) statement.getKey().getKey()).equals(key.getKey().toString()))
                 removeStatements.add(statement);
         }
         this.statements.removeAll(removeStatements);
@@ -289,17 +288,16 @@ public class LWCFilter {
          * }
          * }
          **/
-        
-        Iterator i = statements.iterator();
-        while(i.hasNext()) {
-            Statement statement = (Statement) i.next();
-            boolean result = matchStatementComponent(statement,pLWC);
-            
-            if( mIsAny && result) {
+
+        for (Object o : statements) {
+            Statement statement = (Statement) o;
+            boolean result = matchStatementComponent(statement, pLWC);
+
+            if (mIsAny && result) {
                 // if looking for ANY and MATCH return true
                 return true;
             }
-            if(  (!mIsAny) && (!result) ) {
+            if ((!mIsAny) && (!result)) {
                 // if it's ALL and no match, return false
                 return false;
             }

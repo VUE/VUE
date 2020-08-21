@@ -189,10 +189,9 @@ public class PreferencesDialog extends JDialog {
 		rootNode = new DefaultMutableTreeNode(
 				VueResources.getString("preferencedailog.vuepreference"));
 
-		Iterator i = PreferencesManager.getCategories().iterator();
 		// Build Category List.
-		while (i.hasNext()) {
-			String prefKey = (String)i.next();
+		for (Object o : PreferencesManager.getCategories()) {
+			String prefKey = (String) o;
 			String category = VueResources.getString("preferences.category." + prefKey);
 			System.out.println(category);
 			//System.out.println(category);

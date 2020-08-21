@@ -138,9 +138,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 			visit(fstNode, 0);
 		}
 
-		Iterator<CalaisEntity> it = m_entities.iterator();
-		while (it.hasNext()) {
-			CalaisEntity prop = it.next();
+		for (CalaisEntity prop : m_entities) {
 			results.put(prop.getType(), new AnalyzerResult(prop.getType(), prop.getName(), prop.getRelevance(), prop.getCount()));
 		}
 
@@ -210,12 +208,10 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 			visit(fstNode, 0);
 		}
 
-		Iterator<CalaisEntity> it = m_entities.iterator();
-		while (it.hasNext()) {
-			CalaisEntity prop = it.next();
+		for (CalaisEntity prop : m_entities) {
 			results.put(prop.getType(), new AnalyzerResult(prop.getType(), prop
 					.getName(), prop.getRelevance(), prop.getCount()));
-			
+
 			System.out.println("Analyzer Result : " + prop.getType() + "," + prop.getName() + "," + prop.getRelevance() + "," + prop.getCount());
 		}
 
@@ -310,10 +306,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 			visit(fstNode, 0);
 		}
 
-		Iterator<CalaisEntity> it = m_entities.iterator();
-
-		while (it.hasNext()) {
-			Entity prop = it.next();
+		for (Entity prop : m_entities) {
 			results.add(new AnalyzerResult(prop.getType(), prop.getName()));
 		}
 

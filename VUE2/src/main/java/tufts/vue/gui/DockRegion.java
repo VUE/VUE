@@ -74,9 +74,8 @@ class DockRegion
     }
 
     private static DockRegion findRegion(int y, int height) {
-        Iterator i = sAllRegions.iterator();
-        while (i.hasNext()) {
-            DockRegion r = (DockRegion) i.next();
+        for (Object sAllRegion : sAllRegions) {
+            DockRegion r = (DockRegion) sAllRegion;
             if (r.mGravity == TOP) {
                 if (r.mDockY == y)
                     return r;
@@ -85,7 +84,7 @@ class DockRegion
                 // title is riding along the bottom, include
                 // it in the bottom dock.
                 if (r.mDockY == y + height ||
-                    r.mDockY == y + DockWindow.CollapsedHeight)
+                        r.mDockY == y + DockWindow.CollapsedHeight)
                     return r;
             }
         }
@@ -99,14 +98,11 @@ class DockRegion
             return null;
     }
     private static void clearAll() {
-        Iterator i = sAllRegions.iterator();
-        while (i.hasNext())
-            ((DockRegion)i.next()).mDockedWindows.clear();
+        for (Object sAllRegion : sAllRegions) ((DockRegion) sAllRegion).mDockedWindows.clear();
     }
     private static void updateAll() {
-        Iterator i = sAllRegions.iterator();
-        while (i.hasNext()) {
-            DockRegion region = (DockRegion) i.next();
+        for (Object sAllRegion : sAllRegions) {
+            DockRegion region = (DockRegion) sAllRegion;
             region.sortByX();
             region.updateRolledWidths();
         }
@@ -171,9 +167,8 @@ class DockRegion
     }
 
     private void updateRolledWidths() {
-        Iterator i = mDockedWindows.iterator();
-        while (i.hasNext()) {
-            DockWindow dw = (DockWindow) i.next();
+        for (Object mDockedWindow : mDockedWindows) {
+            DockWindow dw = (DockWindow) mDockedWindow;
             if (dw.isRolledUp())
                 dw.setSize(getRolledWidth(dw), dw.getHeight());
         }

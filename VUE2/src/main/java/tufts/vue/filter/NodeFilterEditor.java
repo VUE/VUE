@@ -214,9 +214,8 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     public class ElementComboBoxModel extends DefaultComboBoxModel {
         public void setElements(Vector v) {
             removeAllElements();
-            Iterator i = v.iterator();
-            while(i.hasNext()) {
-                addElement(i.next());
+            for (Object o : v) {
+                addElement(o);
             }
             addElement(new String(ADD_ELEMENT)) ;
             fireContentsChanged(this,0,v.size()+1);

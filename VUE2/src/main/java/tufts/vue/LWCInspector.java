@@ -534,9 +534,7 @@ class LWCInspector extends javax.swing.JPanel
         throws NumberFormatException
     {
         float h = Float.parseFloat(text);
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getSelection()) {
             c.setSize(c.getWidth(), h);
             //c.setAbsoluteSize(c.getAbsoluteWidth(), h);
         }
@@ -545,9 +543,7 @@ class LWCInspector extends javax.swing.JPanel
         throws NumberFormatException
     {
         float v = Float.parseFloat(text);
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getSelection()) {
             c.setLocation(v, c.getY());
         }
     }
@@ -555,9 +551,7 @@ class LWCInspector extends javax.swing.JPanel
         throws NumberFormatException
     {
         float v = Float.parseFloat(text);
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getSelection()) {
             c.setLocation(c.getX(), v);
         }
     }
@@ -565,9 +559,7 @@ class LWCInspector extends javax.swing.JPanel
         throws NumberFormatException
     {
         float s = Float.parseFloat(text);
-        Iterator i = getSelection().iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getSelection()) {
             c.setScale(s);
         }
     }

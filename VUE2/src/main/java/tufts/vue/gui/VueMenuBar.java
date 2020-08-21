@@ -887,23 +887,19 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				
 				//Iterator i = pathways.iterator();
 				final Collection coll = pathways.getElementList();
-				final Iterator i = coll.iterator();
-				while (i.hasNext())
-				{
-					final LWPathway path = (LWPathway) i.next();
-					final JMenuItem menuItem = new JMenuItem(path.getDisplayLabel());
-					if (path.getEntries().isEmpty())
-						menuItem.setEnabled(false);
+                for (Object o : coll) {
+                    final LWPathway path = (LWPathway) o;
+                    final JMenuItem menuItem = new JMenuItem(path.getDisplayLabel());
+                    if (path.getEntries().isEmpty())
+                        menuItem.setEnabled(false);
 
-					menuItem.addActionListener(new ActionListener()
-					{
-						public void actionPerformed(ActionEvent e)
-						{
-                                                    Actions.startPresentation(path, this);
-						}
-					});
-					playbackMenu.add(menuItem);
-				}
+                    menuItem.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            Actions.startPresentation(path, this);
+                        }
+                    });
+                    playbackMenu.add(menuItem);
+                }
 				
 			}
         	

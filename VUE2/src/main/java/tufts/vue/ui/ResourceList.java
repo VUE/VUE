@@ -166,10 +166,8 @@ public class ResourceList extends JList
 
         // can easily change this to faster ArrayList v.s. vector by subclassing AbstractListModel
         // We don't need synchronized as list only in use one at a time, by the awt.
-        
-        Iterator i = resourceBag.iterator();
-        while (i.hasNext())
-            mDataModel.addElement(i.next());
+
+        for (Object o : resourceBag) mDataModel.addElement(o);
         
         setModel(mDataModel);
 

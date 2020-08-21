@@ -52,10 +52,9 @@ public class NodeFilter extends AbstractTableModel  {
     
     public synchronized void removeStatements(Key key) {
         Vector removeStatements = new Vector();
-        Iterator i = statementVector.iterator();
-        while(i.hasNext()) {
-            Statement statement = (Statement)i.next();
-            if(((String)statement.getKey().getKey()).equals(key.getKey().toString()))
+        for (Object o : statementVector) {
+            Statement statement = (Statement) o;
+            if (((String) statement.getKey().getKey()).equals(key.getKey().toString()))
                 removeStatements.add(statement);
         }
         removeAll(removeStatements);
@@ -85,9 +84,8 @@ public class NodeFilter extends AbstractTableModel  {
         removeAll(statements.getStatementVector());
     }
     public synchronized  void removeAll(Vector statements) {
-        Iterator i = statements.iterator();
-        while(i.hasNext()) {
-            Statement s = (Statement)i.next();
+        for (Object statement : statements) {
+            Statement s = (Statement) statement;
             statementVector.remove(s);
         }
     }
@@ -117,10 +115,9 @@ public class NodeFilter extends AbstractTableModel  {
     
     /* compares statement with all the statement and returns true only if the statement is true. */
     public boolean compare(Statement statement) {
-        Iterator i = statementVector.iterator();
-        while(i.hasNext()) {
-            Statement nodeStatement = (Statement) i.next();
-            if(nodeStatement.compare(statement))
+        for (Object o : statementVector) {
+            Statement nodeStatement = (Statement) o;
+            if (nodeStatement.compare(statement))
                 return true;
         }
         return false;

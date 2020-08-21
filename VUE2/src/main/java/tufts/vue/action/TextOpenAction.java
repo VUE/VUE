@@ -369,41 +369,33 @@ public class TextOpenAction  extends VueAction {
         
         if(ZOTERO_PROTOTYPE)
         {
-            Iterator<String[]> nodes = linksList.iterator();
-            
-            while(nodes.hasNext())
-            {
-                String[] arr = nodes.next();
+
+            for (String[] arr : linksList) {
                 LWNode node = nodeMap.get(arr[0]);
-                
-                if(DEBUG_LOCAL)
-                {
+
+                if (DEBUG_LOCAL) {
                     System.out.println("TextOpenAction: linkslist arr length " + arr.length);
                 }
-                
-                for(int i=1;i<arr.length;i++)
-                {
-                  String linkKey = arr[0] + "|" +  arr[i];
-                  
-                  if(DEBUG_LOCAL)
-                  {
-                      System.out.println("TextOpenAction: linkKey " + linkKey);
-                  }
-                  
-                  if(!linkMap.containsKey(linkKey)) 
-                  {
-                      
-                    if(DEBUG_LOCAL)
-                    {
-                      System.out.println("TextOpenAction: accepted -- " + linkKey);  
+
+                for (int i = 1; i < arr.length; i++) {
+                    String linkKey = arr[0] + "|" + arr[i];
+
+                    if (DEBUG_LOCAL) {
+                        System.out.println("TextOpenAction: linkKey " + linkKey);
                     }
-                      
-                    LWNode node2 = nodeMap.get(arr[i]);
-                    LWLink link = new LWLink(node,node2);
-                    linkMap.put(linkKey,link);
-                
-                    map.add(link);
-                  }
+
+                    if (!linkMap.containsKey(linkKey)) {
+
+                        if (DEBUG_LOCAL) {
+                            System.out.println("TextOpenAction: accepted -- " + linkKey);
+                        }
+
+                        LWNode node2 = nodeMap.get(arr[i]);
+                        LWLink link = new LWLink(node, node2);
+                        linkMap.put(linkKey, link);
+
+                        map.add(link);
+                    }
                 }
             }
         }

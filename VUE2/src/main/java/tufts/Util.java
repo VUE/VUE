@@ -1734,9 +1734,7 @@ public class Util
         }
 
         public synchronized void clear() {
-            Iterator i = values().iterator();
-            while (i.hasNext())
-                ((Reference)i.next()).clear();
+            for (Object o : values()) ((Reference) o).clear();
             super.clear();
         }
         
@@ -2923,13 +2921,12 @@ public class Util
         if (args.length > 0 && args[0].equals("-charsets")) {
             Map cs = java.nio.charset.Charset.availableCharsets();
             //System.out.println("Charsets: " + cs.values());
-            Iterator i = cs.values().iterator();
-            while (i.hasNext()) {
-                java.nio.charset.Charset o = (java.nio.charset.Charset) i.next();
+            for (Object value : cs.values()) {
+                java.nio.charset.Charset o = (java.nio.charset.Charset) value;
                 System.out.println(o
-                                   + "\t" + o.aliases()
-                                   //+ " " + o.getClass()
-                                   );
+                                + "\t" + o.aliases()
+                        //+ " " + o.getClass()
+                );
             }
             System.exit(0);
         }

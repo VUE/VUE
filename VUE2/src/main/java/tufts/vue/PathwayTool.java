@@ -171,9 +171,8 @@ public class PathwayTool extends VueSimpleTool
             rebuilding = true;
             try {
                 if (mPathwayList != null) {
-                    Iterator i = mPathwayList.iterator();
-                    while (i.hasNext()) {
-                        addElement(((LWPathway)i.next()).getDisplayLabel());
+                    for (LWPathway lwPathway : mPathwayList) {
+                        addElement(lwPathway.getDisplayLabel());
                     }
                 }
             } finally {

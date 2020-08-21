@@ -68,12 +68,10 @@ public class RelRandomLayout extends Layout {
     }
     
     public void layout(LWSelection selection) {
-        Iterator<LWComponent> i = selection.iterator();
-        while (i.hasNext()) {
-            LWComponent c = i.next();
-            if(c instanceof LWNode) {
-                LWNode node = (LWNode)c;
-                node.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
+        for (LWComponent c : selection) {
+            if (c instanceof LWNode) {
+                LWNode node = (LWNode) c;
+                node.setLocation(MAP_SIZE * Math.random(), MAP_SIZE * Math.random());
             }
         }
     }

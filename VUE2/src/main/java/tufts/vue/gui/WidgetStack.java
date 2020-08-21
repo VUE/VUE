@@ -367,9 +367,8 @@ public class WidgetStack extends Widget
 
     private WidgetTitle findFirstOpenExpander() {
         WidgetTitle w;
-        Iterator i = mWidgets.iterator();
-        while (i.hasNext()) {
-            w = (WidgetTitle) i.next();
+        for (Object mWidget : mWidgets) {
+            w = (WidgetTitle) mWidget;
             if (w.isExpander && w.mExpanded && w.isVisible())
                 return w;
         }

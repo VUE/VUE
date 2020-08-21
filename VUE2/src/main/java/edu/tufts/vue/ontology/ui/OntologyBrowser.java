@@ -388,9 +388,7 @@ public class OntologyBrowser extends JPanel {
     }
 
     private void fireOntologySelectionChanged(TypeList selection) {
-        Iterator<OntologySelectionListener> i = ontologySelectionListenerList.iterator();
-        while (i.hasNext()) {
-            OntologySelectionListener osl = i.next();
+        for (OntologySelectionListener osl : ontologySelectionListenerList) {
             osl.ontologySelected(new OntologySelectionEvent(selection));
         }
     }

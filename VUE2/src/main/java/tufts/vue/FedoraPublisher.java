@@ -117,26 +117,24 @@ public class FedoraPublisher {
         tufts.vue.action.ActionUtil.marshallMap(tempFile,map);
         
         LWMap cloneMap =   tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
-        
-        Iterator i = cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-        while(i.hasNext()) {
-            LWComponent component = (LWComponent) i.next();
-            if(component.hasResource() && (component instanceof LWNode || component instanceof LWLink) && (component.getResource() instanceof URLResource)){
+
+        for (LWComponent component : cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER)) {
+            if (component.hasResource() && (component instanceof LWNode || component instanceof LWLink) && (component.getResource() instanceof URLResource)) {
                 URLResource resource = (URLResource) component.getResource();
                 String pid = getFedoraPid(component);
-                if(resource.isLocalFile()) {
-                    File localFile = new File(resource.getSpec().replace(FILE_PREFIX,""));
-                    addObjectToRepository(ds,OTHER_CM, localFile,  component, cloneMap);
-                    String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
+                if (resource.isLocalFile()) {
+                    File localFile = new File(resource.getSpec().replace(FILE_PREFIX, ""));
+                    addObjectToRepository(ds, OTHER_CM, localFile, component, cloneMap);
+                    String ingestUrl = HTTP + "://" + properties.getProperty("fedora22Address") + ":" + properties.getProperty("fedora22Port") + FEDORA_URL_PATH + "get/" + pid + "/" + RESOURCE_DS;
                     component.setResource(URLResource.create(ingestUrl));
-                } else if(!(resource instanceof Osid2AssetResource)) {
-                    addObjectToRepository(ds,REMOTE_CM,null,component,cloneMap);
-                    String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
+                } else if (!(resource instanceof Osid2AssetResource)) {
+                    addObjectToRepository(ds, REMOTE_CM, null, component, cloneMap);
+                    String ingestUrl = HTTP + "://" + properties.getProperty("fedora22Address") + ":" + properties.getProperty("fedora22Port") + FEDORA_URL_PATH + "get/" + pid + "/" + RESOURCE_DS;
                     component.setResource(URLResource.create(ingestUrl));
                 }
                 //        System.out.println("Replacing resource: "+resource+ " with "+ingestUrl+" resource is "+resource.getClass());
-                
-                
+
+
             }
         }
         tufts.vue.action.ActionUtil.marshallMap(tempFile,cloneMap);

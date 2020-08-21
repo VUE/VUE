@@ -641,11 +641,9 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						userSelection.clear();
 						userSelection.addAll(guiSelection);
 
-						Iterator<LWComponent> deepNodes = deepSelection.iterator();
-
-						while (deepNodes.hasNext()) {
-							userSelection.remove(deepNodes.next());
-						}
+                        for (LWComponent lwComponent : deepSelection) {
+                            userSelection.remove(lwComponent);
+                        }
 
 						// Find deepSelection.
 						deepSelection.clear();

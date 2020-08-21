@@ -3901,9 +3901,8 @@ public class DockWindow
     // everyone who's to our right...
     private void attachSiblingsForMoving() {
         if (isMac && isDocked()) {
-            Iterator i = mDockRegion.getDockedWindows().iterator();
-            while (i.hasNext()) {
-                DockWindow dw = (DockWindow) i.next();
+            for (Object o : mDockRegion.getDockedWindows()) {
+                DockWindow dw = (DockWindow) o;
                 if (dw != this) {
                     if (DEBUG.DOCK) out("attaching sibling " + dw);
                     MacOSX.addChildWindow(_win, dw._win);

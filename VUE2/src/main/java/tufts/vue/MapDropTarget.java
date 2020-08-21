@@ -1138,19 +1138,18 @@ public class MapDropTarget
             drop.hit.setResource((Resource)drop.items.get(0));
             
         } else {
-            
-            Iterator i = drop.items.iterator();
-            while (i.hasNext()) {
-                Resource resource = (Resource) i.next();
-  //              System.out.println("Following resource has been dropped"+ resource);
+
+            for (Object o : drop.items) {
+                Resource resource = (Resource) o;
+                //              System.out.println("Following resource has been dropped"+ resource);
                 if (drop.hitParent != null && !drop.isLinkAction) {
 
                     // create new node children of the hit node
                     //drop.hitParent.addChild(createNode(drop, resource, null));
                     drop.hitParent.dropChild(createNode(drop, resource, drop.nextDropLocation()));
-                
+
                 } else {
-                    
+
                     createNode(drop, resource, drop.nextDropLocation());
                 }
             }

@@ -1363,20 +1363,20 @@ public class VUE
             // initDataSources();
             
             try {
-                Iterator i = FilesToOpen.iterator();
-                while (i.hasNext()) {
-                    final String fileName = (String) i.next();
+                for (Object o : FilesToOpen) {
+                    final String fileName = (String) o;
                     openedUserMap = true;
                     GUI.invokeAfterAWT(new Runnable() {
-                            public void run() {
-                                VUE.activateWaitCursor();
-                                //LWMap map = OpenAction.loadMap(fileName);
-                                if (DEBUG.Enabled) Log.debug("opening map during startup " + fileName);
-                                if (fileName != null) {
-                                    displayMap(new File(fileName));
-                                    //openedUserMap = true;
-                                }
-                            }});
+                        public void run() {
+                            VUE.activateWaitCursor();
+                            //LWMap map = OpenAction.loadMap(fileName);
+                            if (DEBUG.Enabled) Log.debug("opening map during startup " + fileName);
+                            if (fileName != null) {
+                                displayMap(new File(fileName));
+                                //openedUserMap = true;
+                            }
+                        }
+                    });
                 }
             } finally {
                 VUE.clearWaitCursor();                

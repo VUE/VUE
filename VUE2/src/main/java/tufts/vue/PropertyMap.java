@@ -235,17 +235,16 @@ public class PropertyMap extends java.util.HashMap<String,Object> implements Tab
         if (listeners != null && listeners.size() > 0) {
             notifyCount++;
             if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifyListeners " + listeners.size() + " of " + super.toString());
-            Iterator i = listeners.iterator();
-            while (i.hasNext()) {
-                Listener l = (Listener) i.next();
+            for (Object listener : listeners) {
+                Listener l = (Listener) listener;
                 if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifying: " + tufts.vue.gui.GUI.namex(l));
-                
+
                 // Note: we can DEADLOCK in MetaDataPane.propertyMapChanged (if it's
                 // synchronized) waiting against AWT which is already locking
                 // MetaDataPane, and waiting to lock this object (locked by an
                 // ImageLoader thread) to enter removeListener above.
-                
-                l.tableBagChanged(this); 
+
+                l.tableBagChanged(this);
             }
             if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifyListeners completed " + listeners.size());
         }

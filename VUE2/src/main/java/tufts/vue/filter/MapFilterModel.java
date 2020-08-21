@@ -52,9 +52,8 @@ public class MapFilterModel  extends AbstractTableModel{
     public synchronized void remove(Key key) {
         int i = keyVector.indexOf(key);
         keyVector.remove(keyVector.indexOf(key));
-        Iterator iter = tufts.vue.VUE.getActiveMap().getAllDescendents().iterator();
-        while(iter.hasNext()) 
-            ((tufts.vue.LWComponent)iter.next()).getNodeFilter().removeStatements(key);
+        for (tufts.vue.LWComponent lwComponent : tufts.vue.VUE.getActiveMap().getAllDescendents())
+            lwComponent.getNodeFilter().removeStatements(key);
         tufts.vue.VUE.getActiveMap().getLWCFilter().removeStatements(key);
         notifyListeners(new MapFilterModelEvent(this,key,MapFilterModelEvent.KEY_DELETED));
     }
@@ -73,15 +72,14 @@ public class MapFilterModel  extends AbstractTableModel{
         listeners.remove(l);
     }
     private synchronized void notifyListeners(MapFilterModelEvent e)  {
-        Iterator i = listeners.iterator();
-        while (i.hasNext()) {
-            Listener l = (Listener) i.next();
+        for (Object listener : listeners) {
+            Listener l = (Listener) listener;
             try {
                 l.mapFilterModelChanged(e);
             } catch (Exception ex) {
                 System.err.println(this + " notifyListeners: exception during selection change notification:"
-                + "\n\tselection: " + this
-                + "\n\tfailing listener: " + l);
+                        + "\n\tselection: " + this
+                        + "\n\tfailing listener: " + l);
                 ex.printStackTrace();
                 //java.awt.Toolkit.getDefaultToolkit().beep();
             }

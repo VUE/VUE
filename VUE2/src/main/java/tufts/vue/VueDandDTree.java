@@ -181,10 +181,10 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         }
         if (rootNode.getResource().getClientType() == FAVORITES){
             if (resourceList != null){
-                java.util.Iterator iter = resourceList.iterator();
-                while(iter.hasNext()) {
-                    Resource resource = (Resource) iter.next();
-                    if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getClientType()+ " resource class:"+resource.getClass());
+                for (Object o : resourceList) {
+                    Resource resource = (Resource) o;
+                    if (DEBUG.DND)
+                        System.out.println("RESOURCE FOUND: " + resource + " type =" + resource.getClientType() + " resource class:" + resource.getClass());
                     ResourceNode newNode;
 
                     // TODO: ALL THIS CODE IS IDENNTICAL TO THAT IN DataSourceList
@@ -192,41 +192,42 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
 
                         final CabinetResource cr = (CabinetResource) resource;
                         newNode = new CabinetNode(cr, CabinetNode.LOCAL);
-                        if(DEBUG.DND) System.out.println("CABINET RESOURCE: " + resource+ "Entry: "+cr.getEntry()+ "entry type:"+cr.getEntry().getClass()+" type:"+cr.getEntry());
+                        if (DEBUG.DND)
+                            System.out.println("CABINET RESOURCE: " + resource + "Entry: " + cr.getEntry() + "entry type:" + cr.getEntry().getClass() + " type:" + cr.getEntry());
                     } else {
-                        newNode    =new  ResourceNode(resource);
+                        newNode = new ResourceNode(resource);
                     }
                     this.setRootVisible(true);
                     model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
                     this.expandPath(new TreePath(rootNode.getPath()));
                     //this.expandRow(0);
                     this.setRootVisible(false);
-                    
+
                 }
             }else  if (fileList != null){
-                java.util.Iterator iter = fileList.iterator();
-                while(iter.hasNext()) {
-                    File file = (File)iter.next();
-                    System.out.println("File Drop: " +file);
-                   try{
+                for (Object o : fileList) {
+                    File file = (File) o;
+                    System.out.println("File Drop: " + file);
+                    try {
                         final LocalFilingManager manager = LocalFileDataSource.getLocalFilingManager();
                         osid.shared.Agent agent = null;
-                        LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
+                        LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(), agent, null);
                         CabinetResource res = CabinetResource.create(cab);
                         CabinetEntry entry = res.getEntry();
                         CabinetNode cabNode = null;
                         if (entry instanceof RemoteCabinetEntry)
                             cabNode = new CabinetNode(res, CabinetNode.REMOTE);
                         else
-                            
+
                             cabNode = new CabinetNode(res, CabinetNode.LOCAL);
                         this.setRootVisible(true);
                         model.insertNodeInto(cabNode, rootNode, (rootNode.getChildCount()));
                         cabNode.explore();
-                    }catch (Exception ex){}
+                    } catch (Exception ex) {
+                    }
                     this.expandPath(new TreePath(rootNode.getPath()));
                     this.setRootVisible(false);
-                    
+
                 }
                 
             }

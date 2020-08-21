@@ -930,24 +930,18 @@ public class SearchAction extends AbstractAction
         LWMap searchResultMap = new LWMap("Search Result " + ResultMapCount++);
             
         HashMap<LWComponent,LWComponent> duplicates = new HashMap<LWComponent,LWComponent>();
-            
-        Iterator<LWComponent> components = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator();   
-        while(components.hasNext())
-            {
-                LWComponent next = components.next();
-                if(comps.contains(next))
-                    {
-                        LWComponent duplicate = next.duplicate();
-                   
-                        duplicates.put(next,duplicate);
-                   
-                        LWComponent parent = next.getParent();
-                        if(parent !=null && !comps.contains(parent))
-                            {
-                                if(parent instanceof LWNode)
-                                    {    
-                                        duplicate.setLocation(parent.getLocation());
-                                    }
+
+        for (LWComponent next : VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE)) {
+            if (comps.contains(next)) {
+                LWComponent duplicate = next.duplicate();
+
+                duplicates.put(next, duplicate);
+
+                LWComponent parent = next.getParent();
+                if (parent != null && !comps.contains(parent)) {
+                    if (parent instanceof LWNode) {
+                        duplicate.setLocation(parent.getLocation());
+                    }
                        
                                 /*if(next instanceof LWLink)
                                   {
@@ -960,52 +954,42 @@ public class SearchAction extends AbstractAction
                                   if(tail != null && comps.contains(tail))
                                   ((LWLink)duplicate).setTail(tail); // double OOPS
                                   }*/
-                       
-                      
-                       
-                                // do we need this code any more? see
-                                // "raw image" search bug in jira
-                                // if we do, links may have to be handled
-                                // correctly for these nodes as well
-                                if(LWNode.isImageNode(parent))
-                                    {
-                                        if(!comps.contains(parent))
-                                            {
-                                                if(!(parent instanceof LWSlide) && !parent.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                                                   && (!parent.hasAncestorOfType(LWSlide.class)))   
-                                                    searchResultMap.add(parent.duplicate());
-                                            }
-                                    }   
-                                else
-                                    {    
-                                        if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                                           && (!(duplicate.hasAncestorOfType(LWSlide.class))))  
-                                            searchResultMap.add(duplicate);
-                                    }
 
-                       
-                            }
-                  
+
+                    // do we need this code any more? see
+                    // "raw image" search bug in jira
+                    // if we do, links may have to be handled
+                    // correctly for these nodes as well
+                    if (LWNode.isImageNode(parent)) {
+                        if (!comps.contains(parent)) {
+                            if (!(parent instanceof LWSlide) && !parent.hasFlag(Flag.SLIDE_STYLE)
+                                    && (!parent.hasAncestorOfType(LWSlide.class)))
+                                searchResultMap.add(parent.duplicate());
+                        }
+                    } else {
+                        if (!(duplicate instanceof LWSlide) && !duplicate.hasFlag(Flag.SLIDE_STYLE)
+                                && (!(duplicate.hasAncestorOfType(LWSlide.class))))
+                            searchResultMap.add(duplicate);
                     }
+
+
+                }
+
             }
-            
-            
-        Iterator<LWComponent> components2 = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE).iterator(); 
-        while(components2.hasNext())
-            {
-                LWComponent next = components2.next();
-                
-                if(next instanceof LWLink && duplicates.get(next) != null)
-                    {
-                        LWLink link = (LWLink)next;
-                        LWComponent head = link.getHead();
-                        if(head != null && comps.contains(head))
-                            ((LWLink)duplicates.get(next)).setHead(duplicates.get(head)); 
-                        LWComponent tail = link.getTail();
-                        if(tail != null && comps.contains(tail))
-                            ((LWLink)duplicates.get(next)).setTail(duplicates.get(tail)); 
-                    }
+        }
+
+
+        for (LWComponent next : VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE)) {
+            if (next instanceof LWLink && duplicates.get(next) != null) {
+                LWLink link = (LWLink) next;
+                LWComponent head = link.getHead();
+                if (head != null && comps.contains(head))
+                    ((LWLink) duplicates.get(next)).setHead(duplicates.get(head));
+                LWComponent tail = link.getTail();
+                if (tail != null && comps.contains(tail))
+                    ((LWLink) duplicates.get(next)).setTail(duplicates.get(tail));
             }
+        }
             
         VUE.displayMap(searchResultMap);
             

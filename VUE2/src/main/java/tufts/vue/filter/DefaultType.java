@@ -67,10 +67,9 @@ public class DefaultType implements tufts.vue.filter.Type {
     
     public java.util.List getSettableOperators() {
         List settableOperatorList = new Vector();
-        Iterator i = operatorList.iterator();
-        while(i.hasNext()) {
-            Operator operator = (Operator) i.next();
-            if(operator.isSettable())
+        for (Object o : operatorList) {
+            Operator operator = (Operator) o;
+            if (operator.isSettable())
                 settableOperatorList.add(operator);
         }
         return settableOperatorList;

@@ -56,12 +56,10 @@ public class SearchLayout extends Layout {
         int count = 0;
         int total = 0;
         // determine the mean node size
-        Iterator<LWComponent> iter = selection.iterator();
-        while (iter.hasNext()) {
-         
-            LWComponent c = iter.next();
+        for (LWComponent c : selection) {
+
             if (c.isManagedLocation())
-                continue; 
+                continue;
             if (c instanceof LWNode) {
                 LWNode node = (LWNode) c;
                 centerX += node.getLocation().getX();

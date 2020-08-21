@@ -216,107 +216,98 @@ public class ImageMap extends VueAction {
         for (LWComponent layer : reverse(map.getChildren())) {         
                 //for (LWComponent c : reverse(layer.getChildren()))
 //                for (LWComponent c : reverse()
-                	
-            
-        
-		
-		Iterator<LWComponent> iter = layer.getAllDescendents(ChildKind.PROPER, new ArrayList(), Order.DEPTH).iterator();
-			//comps.iterator();
+
+
+            //comps.iterator();
 			//container.getAllDescendents(
 			//	LWComponent.ChildKind.PROPER).iterator();
 
-		while (iter.hasNext()) {
-			LWComponent comp = (LWComponent) iter.next();
+            for (LWComponent lwComponent : (Iterable<LWComponent>) layer.getAllDescendents(ChildKind.PROPER, new ArrayList(), Order.DEPTH)) {
+                LWComponent comp = (LWComponent) lwComponent;
 
-			String type = "node";
-			if (container instanceof LWGroup) 
-				type = "group";
+                String type = "node";
+                if (container instanceof LWGroup)
+                    type = "group";
 
-			if (!(comp instanceof LWNode) && !(comp instanceof LWGroup))
-				continue;
+                if (!(comp instanceof LWNode) && !(comp instanceof LWGroup))
+                    continue;
 
-			  String href = null;
-			  String altLabel = null;
-	          Resource res = null;
-	            if (comp instanceof LWNode)
-	            {
-	            	 if(comp.getResource() != null){
-	                     res = comp.getResource();
-	                     //res = resource.toString();
-	                     altLabel=res.getSpec();
-	                     
-	                     // see VUE-873 getSpec() should be fine for now
-	                     //if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
-	                 } 
-	            }
-	           
-			  
-		        if (res == null)
-		        	href ="";
-	            else if(res.equals("null"))
-	        	   href = "";
-	           else 
-	        	   href = "href=\"" + res.getSpec() + "\" target=\"_blank\"";
-            
-            String notes ="";
-            
-            notes = comp.getNotes();
-	             
-            if (notes == null)
-            	notes ="";
-            else
-            {
-            	notes = VueUtil.formatLines(notes, 20);
-            	notes ="class=\"tooltip\" title=\""+notes+"\" "; 
-            }
-			if (!comp.hasChildren()) {
-				arrayList.add(" <area "+href+" "+notes+" id=\"" + type
-						+ (nodeCounter++) + "\" shape=\"rect\" coords=\""
-						+ getRectCoords(getRectNode(comp),zoom) + "\"></area>\n");
-			} else {
-				Collection<LWComponent> children = comp.getAllDescendents();
-				LWComponent[] array = new LWComponent[children.size()];
-				children.toArray(array);
-				for (int i = array.length - 1; i >= 0; i--) 
-				{
-					if (array[i] instanceof LWNode)
-					{
-						  String childHref;
-						  Resource childRes = array[i].getResource();
-						   if (childRes == null)
-					        	childHref ="";
-				            else if(childRes.equals("null"))
-				        	   childHref = "";
-				           else 
-				        	   childHref = "href=\"" + childRes.getSpec() + "\" target=\"_blank\"";	
-						   
-						arrayList.add(0, " <area "+childHref+" "+notes+" id=\"" + type
-								+ (nodeCounter++)
-								+ "\" shape=\"rect\" coords=\""
-								+ getRectCoords(getRectNode(array[i]),zoom)
-								+ "\"></area>\n");
-					}
-				}
+                String href = null;
+                String altLabel = null;
+                Resource res = null;
+                if (comp instanceof LWNode) {
+                    if (comp.getResource() != null) {
+                        res = comp.getResource();
+                        //res = resource.toString();
+                        altLabel = res.getSpec();
 
-				arrayList.add(" <area "+href+" "+notes+" id=\"" + type
-						+ (nodeCounter++) + "\" shape=\"rect\" coords=\""
-						+ getRectCoords(getRectNode(comp),zoom) + "\"></area>\n");
+                        // see VUE-873 getSpec() should be fine for now
+                        //if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
+                    }
+                }
 
-				//if (comp instanceof LWGroup) {
-				//	String groupOutput = writeMapforContainer((LWGroup) comp,map,zoom);
-				//	arrayList.add(groupOutput);
-				//}
-			}// end else
 
-		}// end while
+                if (res == null)
+                    href = "";
+                else if (res.equals("null"))
+                    href = "";
+                else
+                    href = "href=\"" + res.getSpec() + "\" target=\"_blank\"";
+
+                String notes = "";
+
+                notes = comp.getNotes();
+
+                if (notes == null)
+                    notes = "";
+                else {
+                    notes = VueUtil.formatLines(notes, 20);
+                    notes = "class=\"tooltip\" title=\"" + notes + "\" ";
+                }
+                if (!comp.hasChildren()) {
+                    arrayList.add(" <area " + href + " " + notes + " id=\"" + type
+                            + (nodeCounter++) + "\" shape=\"rect\" coords=\""
+                            + getRectCoords(getRectNode(comp), zoom) + "\"></area>\n");
+                } else {
+                    Collection<LWComponent> children = comp.getAllDescendents();
+                    LWComponent[] array = new LWComponent[children.size()];
+                    children.toArray(array);
+                    for (int i = array.length - 1; i >= 0; i--) {
+                        if (array[i] instanceof LWNode) {
+                            String childHref;
+                            Resource childRes = array[i].getResource();
+                            if (childRes == null)
+                                childHref = "";
+                            else if (childRes.equals("null"))
+                                childHref = "";
+                            else
+                                childHref = "href=\"" + childRes.getSpec() + "\" target=\"_blank\"";
+
+                            arrayList.add(0, " <area " + childHref + " " + notes + " id=\"" + type
+                                    + (nodeCounter++)
+                                    + "\" shape=\"rect\" coords=\""
+                                    + getRectCoords(getRectNode(array[i]), zoom)
+                                    + "\"></area>\n");
+                        }
+                    }
+
+                    arrayList.add(" <area " + href + " " + notes + " id=\"" + type
+                            + (nodeCounter++) + "\" shape=\"rect\" coords=\""
+                            + getRectCoords(getRectNode(comp), zoom) + "\"></area>\n");
+
+                    //if (comp instanceof LWGroup) {
+                    //	String groupOutput = writeMapforContainer((LWGroup) comp,map,zoom);
+                    //	arrayList.add(groupOutput);
+                    //}
+                }// end else
+
+            }// end while
 		
         }
 		String buf = "";
-		Iterator<String> iter2 = arrayList.iterator();
-		while (iter2.hasNext()) {
-			String st = iter2.next();
-			buf += st;
-		}
+        for (String st : arrayList) {
+            buf += st;
+        }
 		return buf;
 	}
     private  void createHtml(String imageName, String fileName,double zoom) {

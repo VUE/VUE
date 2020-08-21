@@ -360,12 +360,11 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
      *  @return The cabinet entry with the desired display name.  Throws ITEM_DOES_NOT_EXIST if name is unknown.
      */
     public osid.filing.CabinetEntry getCabinetEntryByName(String name) throws osid.filing.FilingException {
-         Iterator i = children.iterator();
-        while(i.hasNext()) {
+        for (Object child : children) {
 //        for (int i = 0; i < children.size(); i++) {
-            LocalCabinetEntry entry = (LocalCabinetEntry) i.next();
+            LocalCabinetEntry entry = (LocalCabinetEntry) child;
             //System.out.println ("getCabinetEntryByName - scan: " + entry.getDisplayName());
-            if (name.compareTo (entry.getDisplayName()) == 0) {
+            if (name.compareTo(entry.getDisplayName()) == 0) {
                 return (osid.filing.CabinetEntry) entry;
             }
         }
@@ -381,16 +380,14 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
      *  @return The cabinet entry corresponding to the identifier passed.
      */
     public osid.filing.CabinetEntry getCabinetEntryById(osid.shared.Id id) throws osid.filing.FilingException {
- Iterator i = children.iterator();
-        while(i.hasNext()) {
-     //   for (int i = 0; i < children.size(); i++) {
-            LocalCabinetEntry entry = (LocalCabinetEntry) i.next();
+        for (Object child : children) {
+            //   for (int i = 0; i < children.size(); i++) {
+            LocalCabinetEntry entry = (LocalCabinetEntry) child;
             try {
-                if (id.isEqual (entry.getId())) {
+                if (id.isEqual(entry.getId())) {
                     return (osid.filing.CabinetEntry) entry;
                 }
-            }
-            catch (osid.shared.SharedException ex) {
+            } catch (osid.shared.SharedException ex) {
                 /*  Not exactly sure what could go wrong with an Id comparison,
                  *  but the compiler insists on catching this exception.
                  *  This will fall through to ITEM_DOES_NOT_EXIST exception throw.
@@ -492,16 +489,14 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     public void remove(osid.filing.CabinetEntry entry) throws osid.filing.FilingException {
 
         osid.shared.Id entry_id = entry.getId();
-         Iterator i = children.iterator();
-        while(i.hasNext()) {
+        for (Object child : children) {
 //        for (int i = 0; i < children.size(); i++) {
-            LocalCabinetEntry ent = (LocalCabinetEntry)i.next();
+            LocalCabinetEntry ent = (LocalCabinetEntry) child;
             try {
-                if (entry_id.isEqual (ent.getId())) {
-                    children.remove (entry);
+                if (entry_id.isEqual(ent.getId())) {
+                    children.remove(entry);
                 }
-            }
-            catch (osid.shared.SharedException ex) {
+            } catch (osid.shared.SharedException ex) {
                 /*  Unlikely that isEqual() will throw a SharedException.  */
             }
         }

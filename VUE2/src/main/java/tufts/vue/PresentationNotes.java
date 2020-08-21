@@ -889,77 +889,72 @@ public class PresentationNotes {
             PdfPCell cell;            
             int entryCount = 0;
             int entryOnPage =0;
-                       
-            Iterator i = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-            while (i.hasNext())
-            {
-                LWComponent component = (LWComponent) i.next();
-                if (component instanceof LWNode)
-                {
-                	final LWNode node= (LWNode)component;
-                	
-                	final String notes = node.getNotes();                                
-                
-                	entryCount++;                
-                
-                	table = new PdfPTable(new float[]{ 1,1 });
-                	table.getDefaultCell().setBorder(0);
 
-                	table.setSpacingAfter(20.0f);
-                	Paragraph p = new Paragraph();
-                
-                	p.setAlignment(Element.ALIGN_CENTER);
-                                                
-                	Phrase phrase = new Phrase(notes);
-                	
-                	Font f = phrase.getFont();
-                	f.setSize(8.0f);
-                	p.setFont(f);
-                	cell = new PdfPCell(phrase);
-                	cell.setVerticalAlignment(PdfPCell.ALIGN_MIDDLE);
-                	cell.setBorder(0);         
-                
-                	PdfPCell i2 = new PdfPCell();
-                	i2.setFixedHeight(172);
-                	i2.setBorder(0);                                                                                             
-                
-                	//Render the table then throw the images on
-                	PdfContentByte cb = writer.getDirectContent();	            
-                	PdfTemplate tp = cb.createTemplate(SlideSizeX,SlideSizeY);
-	            
-                	Point2D.Float offset = new Point2D.Float();
-                	//center vertically only if landscape mode
-                	//if (format.getOrientation() == PageFormat.LANDSCAPE)
-                	//TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
-                
-                	Rectangle2D bounds = null;
-                
-                	bounds = node.getBounds();
-                
-                	Dimension page = null;
-                
-                
-                	page = new Dimension(SlideSizeX,172);
-                
-                //	PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
-                	double scale = ZoomTool.computeZoomFit(page, 15, bounds, offset, true);
-                	PdfGraphics2D g2d = (PdfGraphics2D)tp.createGraphics(SlideSizeX,SlideSizeY, getFontMapper(),false,60.0f);
-                	DrawContext dc = new DrawContext(g2d,
-                        scale,
-                        -offset.x,
-                        -offset.y,
-                        null, // frame would be the PageFormat offset & size rectangle
-                        node,
-                        false); // todo: absolute links shouldn't be spec'd here
- 
-                	dc.setClipOptimized(false);
-                        dc.setPrintQuality();
-                    node.drawFit(dc,15);
-                    
+            for (LWComponent component : VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER)) {
+                if (component instanceof LWNode) {
+                    final LWNode node = (LWNode) component;
 
-                                                                                            
-                    g2d.dispose();                                                                                                         
-                              
+                    final String notes = node.getNotes();
+
+                    entryCount++;
+
+                    table = new PdfPTable(new float[]{1, 1});
+                    table.getDefaultCell().setBorder(0);
+
+                    table.setSpacingAfter(20.0f);
+                    Paragraph p = new Paragraph();
+
+                    p.setAlignment(Element.ALIGN_CENTER);
+
+                    Phrase phrase = new Phrase(notes);
+
+                    Font f = phrase.getFont();
+                    f.setSize(8.0f);
+                    p.setFont(f);
+                    cell = new PdfPCell(phrase);
+                    cell.setVerticalAlignment(PdfPCell.ALIGN_MIDDLE);
+                    cell.setBorder(0);
+
+                    PdfPCell i2 = new PdfPCell();
+                    i2.setFixedHeight(172);
+                    i2.setBorder(0);
+
+                    //Render the table then throw the images on
+                    PdfContentByte cb = writer.getDirectContent();
+                    PdfTemplate tp = cb.createTemplate(SlideSizeX, SlideSizeY);
+
+                    Point2D.Float offset = new Point2D.Float();
+                    //center vertically only if landscape mode
+                    //if (format.getOrientation() == PageFormat.LANDSCAPE)
+                    //TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
+
+                    Rectangle2D bounds = null;
+
+                    bounds = node.getBounds();
+
+                    Dimension page = null;
+
+
+                    page = new Dimension(SlideSizeX, 172);
+
+                    //	PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
+                    double scale = ZoomTool.computeZoomFit(page, 15, bounds, offset, true);
+                    PdfGraphics2D g2d = (PdfGraphics2D) tp.createGraphics(SlideSizeX, SlideSizeY, getFontMapper(), false, 60.0f);
+                    DrawContext dc = new DrawContext(g2d,
+                            scale,
+                            -offset.x,
+                            -offset.y,
+                            null, // frame would be the PageFormat offset & size rectangle
+                            node,
+                            false); // todo: absolute links shouldn't be spec'd here
+
+                    dc.setClipOptimized(false);
+                    dc.setPrintQuality();
+                    node.drawFit(dc, 15);
+
+
+                    g2d.dispose();
+
                     Image img = Image.getInstance(tp);
                     table.addCell(img);
                     table.addCell(cell);

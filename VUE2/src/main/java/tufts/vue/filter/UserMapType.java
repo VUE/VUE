@@ -316,15 +316,13 @@ public class UserMapType {
 	 */
 	public String getAsHTML( Map pValues) {
 		String str = "Metadata: <p>" ;
-		
-		Iterator it = pValues.keySet().iterator();
-		while( it.hasNext() ) {
-			Object key = it.next();
-			Object value = pValues.get( key);
-			if( value != null) {
-				str = str + " <br> "+key.toString()+" - "+value.toString() ;
-				}
+
+		for (Object key : pValues.keySet()) {
+			Object value = pValues.get(key);
+			if (value != null) {
+				str = str + " <br> " + key.toString() + " - " + value.toString();
 			}
+		}
 		return str;
 	}
 	

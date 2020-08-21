@@ -52,22 +52,20 @@ public class RippleLayout extends Layout {
         for(LWComponent component:selection) {
             double centerX = component.getLocation().getX();
             double centerY = component.getLocation().getY();
-            Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
-            while(i.hasNext()) {
-            	 
-                LWComponent c = i.next();
+            for (LWComponent c : VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER)) {
+
                 if (c.isManagedLocation())
-                    continue; 
-                if(!selection.contains(c) && c instanceof LWNode) {
+                    continue;
+                if (!selection.contains(c) && c instanceof LWNode) {
                     double x = c.getLocation().getX();
                     double y = c.getLocation().getY();
-                    double angle = Math.atan2(centerY-y,x-centerX);
-                    double dist =  Point2D.distance(centerX,centerY,x,y);
-                    if(dist<SHIFT_RANGE) {
-                        double newDist = dist+(SHIFT_RANGE-dist)*MAX_SHIFT/SHIFT_RANGE;
-                        double newX = centerX+newDist*Math.cos(angle);
-                        double newY = centerY-newDist*Math.sin(angle);
-                        c.setLocation(newX,newY);
+                    double angle = Math.atan2(centerY - y, x - centerX);
+                    double dist = Point2D.distance(centerX, centerY, x, y);
+                    if (dist < SHIFT_RANGE) {
+                        double newDist = dist + (SHIFT_RANGE - dist) * MAX_SHIFT / SHIFT_RANGE;
+                        double newX = centerX + newDist * Math.cos(angle);
+                        double newY = centerY - newDist * Math.sin(angle);
+                        c.setLocation(newX, newY);
                     }
                 }
             }

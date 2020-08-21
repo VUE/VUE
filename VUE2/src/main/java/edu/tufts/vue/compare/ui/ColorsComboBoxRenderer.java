@@ -53,24 +53,21 @@ public class ColorsComboBoxRenderer extends javax.swing.DefaultListCellRenderer 
       }
       
       //iterate over Colors, adding opaque JPanel with proper Color for each Color present in List
-      Iterator<Color> i = colors.iterator();
-      while(i.hasNext())
-      {
-          JPanel cp = new JPanel()//;
-          {
-              public java.awt.Dimension getPreferredSize()
-              {
-                  return new java.awt.Dimension(10,20);
-              }
-          };
-          //make square based on height determined by layout manager? for now use hard coded values from above...
-          cp.setSize(cp.getHeight(),cp.getHeight());
-          //cp.setSize(30,30);
-          cp.setOpaque(true);
-          cp.setBackground(i.next());
-          panel.setBorder(javax.swing.BorderFactory.createLineBorder(Color.GRAY));
-          panel.add(cp);
-      }
+        for (Color color : colors) {
+            JPanel cp = new JPanel()//;
+            {
+                public java.awt.Dimension getPreferredSize() {
+                    return new java.awt.Dimension(10, 20);
+                }
+            };
+            //make square based on height determined by layout manager? for now use hard coded values from above...
+            cp.setSize(cp.getHeight(), cp.getHeight());
+            //cp.setSize(30,30);
+            cp.setOpaque(true);
+            cp.setBackground(color);
+            panel.setBorder(javax.swing.BorderFactory.createLineBorder(Color.GRAY));
+            panel.add(cp);
+        }
       
       return panel;  
     }

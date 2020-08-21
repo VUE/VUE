@@ -284,10 +284,8 @@ public abstract class Style {
     }
     public static Style getStyle(String reference, Map<String,Style> map) {
         Set keys = map.keySet();
-        Iterator<String> i = keys.iterator();
-        while(i.hasNext()) {
-            String key = i.next();
-            if(key.substring(LENGTH_PREFIX+1).equals(reference)){
+        for (String key : (Iterable<String>) keys) {
+            if (key.substring(LENGTH_PREFIX + 1).equals(reference)) {
                 return map.get(key);
             }
         }
