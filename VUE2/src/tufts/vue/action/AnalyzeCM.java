@@ -40,7 +40,7 @@ public class AnalyzeCM extends VueAction {
     public void actionPerformed(ActionEvent e) {
 // Functionality moved to MergeMapsChooser Dialog and LWMergeMap 1/26/2007
 /*        try {
-            ArrayList<ConnectivityMatrix> list = new ArrayList();
+            ArrayList<ConnectivityMatrix> list = new ArrayList<>();
             LWMap referenceMap = null;
             Iterator<LWMap> i =   VUE.getLeftTabbedPane().getAllMaps();
             while(i.hasNext()) {

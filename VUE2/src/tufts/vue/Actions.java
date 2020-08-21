@@ -753,11 +753,11 @@ public class Actions implements VueConstants
     //-------------------------------------------------------
 
     
-    private static final List<LWComponent> ScratchBuffer = new ArrayList();
+    private static final List<LWComponent> ScratchBuffer = new ArrayList<>();
     private static LWComponent StyleBuffer; // this holds the style copied by "Copy Style"
     
     private static final LWComponent.CopyContext CopyContext = new LWComponent.CopyContext(new LWComponent.LinkPatcher(), true);
-    private static final List<LWComponent> DupeList = new ArrayList(); // cache for dupe'd items
+    private static final List<LWComponent> DupeList = new ArrayList<>(); // cache for dupe'd items
     
     private static final int CopyOffset = 10;
     
@@ -991,8 +991,8 @@ public class Actions implements VueConstants
                 // When pasting content from one slide to another slide, keep the relative x/y
                 // position of the content from the old slide
                 
-                //final List<LWComponent> pasteToOldLocations = new ArrayList();
-                final List<LWComponent> pasteToNewLocations = new ArrayList();
+                //final List<LWComponent> pasteToOldLocations = new ArrayList<>();
+                final List<LWComponent> pasteToNewLocations = new ArrayList<>();
                 for (LWComponent c : pasted) {
                     final LWContainer oldParent = c.getClientData(LWKey.OLD_PARENT);
                     if (oldParent instanceof LWSlide && oldParent != newParent) {
@@ -1073,7 +1073,7 @@ public class Actions implements VueConstants
                 // the selection will now only contain the top levels in the
                 // the hierarchy of what's selected.
 
-                final Collection toDelete = new ArrayList();
+                final Collection<LWComponent> toDelete = new ArrayList<>();
 
                 for (LWComponent c : s) {
                     if (canEdit(c))
@@ -1886,7 +1886,7 @@ public class Actions implements VueConstants
 
             private void degroup(Iterable<LWComponent> iterable, Collection toSelect)
             {
-                final List<LWComponent> removing = new ArrayList();
+                final List<LWComponent> removing = new ArrayList<>();
                 
                 for (LWComponent c : iterable) {
                     if (c.getParent() instanceof LWGroup) {
@@ -2292,7 +2292,7 @@ public class Actions implements VueConstants
             center.setClientData(tufts.vue.ds.DataAction.ClusterTimeKey, currentActionTime);
             
             final LWContainer commonParent = center.getParent();
-            final List<LWComponent> toReparent = new ArrayList();
+            final List<LWComponent> toReparent = new ArrayList<>();
 
             // this is important both to remove any linked that may be our descendents, as
             // well as grab any linked that are currently children of something else
@@ -2903,7 +2903,7 @@ public class Actions implements VueConstants
 //                     final Collection<LWComponent> linked = center.getLinked();
                     
 // //                     final LWContainer commonParent = center.getParent();
-// //                     final List<LWComponent> toReparent = new ArrayList();
+// //                     final List<LWComponent> toReparent = new ArrayList<>();
 // //                     // this is important both to remove any linked that may be our descendents, as
 // //                     // well as grab any linked that are currently children of something else
 // //                     // (unfortunately, this will also grab them out of other layers if they were there,

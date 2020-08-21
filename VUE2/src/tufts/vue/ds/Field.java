@@ -74,7 +74,7 @@ public class Field implements tufts.vue.XMLUnmarshalListener
     private String mType = TYPE_INTEGER; // starts most specific as default, is cleared upon finding anything else
     private boolean mTypeDetermined = false;
     
-    private final Collection<String> mDataComments = new ArrayList();
+    private final Collection<String> mDataComments = new ArrayList<>();
         
     /** map of values currently present in a given context (e.g., a VUE map) */
     private Multiset<String> mContextValues;
@@ -166,7 +166,7 @@ public class Field implements tufts.vue.XMLUnmarshalListener
             Log.debug("RETURNING RELATED FIELDS for " + this);
             return mRelatedFields;
         } else {
-            Collection<PersistRef> persists = new ArrayList();
+            Collection<PersistRef> persists = new ArrayList<>();
             for (Field f : Association.getPairedFields(this)) {
                 persists.add(new PersistRef(f));
             }

@@ -105,7 +105,7 @@ public class Colors {
         //System.out.println("merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme);
         name = VueResources.getString("merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme);
         
-        colors = new ArrayList();
+        colors = new ArrayList<>();
         
         //System.out.println("merge.weight.colors." + intervals + "." + numColors + "." + scheme);
         Color[] arr = VueResources.getColorArray("merge.weight.colors." + intervals + "." + numColors + "." + scheme);

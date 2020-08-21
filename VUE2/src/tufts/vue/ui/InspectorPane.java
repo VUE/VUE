@@ -89,7 +89,7 @@ public class InspectorPane extends WidgetStack
     
     private static class Pane {
 
-        static Collection<Pane> AllPanes = new ArrayList();
+        static Collection<Pane> AllPanes = new ArrayList<>();
 
         final String name;
         final JComponent widget;

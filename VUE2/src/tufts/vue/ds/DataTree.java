@@ -434,7 +434,7 @@ public class DataTree extends javax.swing.JTree
         if (DEBUG.Enabled) Log.debug("Found " + freshData.size() + " data rows with newer data for map");
 
         final Collection<LWComponent> nodes = map.getAllDescendents();
-        final Collection<LWComponent> patched = new ArrayList();
+        final Collection<LWComponent> patched = new ArrayList<>();
         
         for (LWComponent c : nodes) {
             if (c.isDataRow(mSchema)) {
@@ -790,7 +790,7 @@ public class DataTree extends javax.swing.JTree
 
             mCurrentSearch = null;
 
-            hits = new ArrayList();
+            hits = new ArrayList<>();
 
             Log.debug("SEARCHING WITH CRITERIA " + criteria);
 
@@ -883,7 +883,7 @@ public class DataTree extends javax.swing.JTree
         String getKey() { return null; }
 
         public List<LWComponent> search(final Collection<LWComponent> searchSet) {
-            final List<LWComponent> hits = new ArrayList();
+            final List<LWComponent> hits = new ArrayList<>();
 
             for (LWComponent c : searchSet)
                 if (matches(c))
@@ -978,7 +978,7 @@ public class DataTree extends javax.swing.JTree
         final Multimap<String,Criteria> criteriaByKey = Multimaps.newHashMultimap();
         /** a special OR group that takes priority: anything matching criteria in this group
          * is "hit" no matter what */
-        final Collection<Criteria> globalBooleanOr = new ArrayList();
+        final Collection<Criteria> globalBooleanOr = new ArrayList<>();
         
         public void addCriteria(Criteria criteria) {
 
@@ -1002,7 +1002,7 @@ public class DataTree extends javax.swing.JTree
         }
 
         public List<LWComponent> search(final Collection<LWComponent> searchSet) {
-            final List<LWComponent> hits = new ArrayList();
+            final List<LWComponent> hits = new ArrayList<>();
 
             if (DEBUG.Enabled) {
 
@@ -1793,7 +1793,7 @@ public class DataTree extends javax.swing.JTree
     {
         // todo: we'll want to merge some of this code w/DropHandler code, as
         // this is somewhat of a special case of doing a drop
-        final List<DataRow> newRows = new ArrayList();
+        final List<DataRow> newRows = new ArrayList<>();
 	
         for (DataNode n : mAllRowsNode.getChildren()) {
             if (!n.isMapPresent()) {
