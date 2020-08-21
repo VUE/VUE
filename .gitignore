@@ -45,3 +45,5 @@ signing_code/VUE.app
 .settings/
 .classpath
 .project
+
+*.iml
