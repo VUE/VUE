@@ -72,6 +72,7 @@ public class VueAuthorization implements osid.authorization.Authorization {
      *
      *  @author Mark Norton
      */
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public Object clone() {
         return new VueAuthorization (this.id, this.agentId, this.function, this.qualifier, this.effectiveDate, this.expirationDate, false);
     }

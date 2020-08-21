@@ -151,7 +151,7 @@ public class AuthenticationManager extends OsidManager implements osid.authentic
         //  Interate over all known autentication types and remove them from context.
         osid.shared.TypeIterator it = getAuthenticationTypes();
         try {
-            while (it.hasNext() == true) {
+            while (it.hasNext()) {
                 osid.shared.Type type = it.next();
                 String key = getAuthNTypeKey(type);
                 try {
@@ -188,7 +188,7 @@ public class AuthenticationManager extends OsidManager implements osid.authentic
      */
     public void destroyAuthenticationForType(osid.shared.Type authenticationType) throws osid.authentication.AuthenticationException {
         // Check to see final this is a valid type and if not, throw exception.
-        if (isValidAuthNType (authenticationType) == false) {
+        if (!isValidAuthNType(authenticationType)) {
             throw new osid.authentication.AuthenticationException(osid.authentication.AuthenticationException.UNKNOWN_TYPE);
         }
         

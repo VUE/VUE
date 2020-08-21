@@ -568,7 +568,8 @@ public abstract class LWIcon extends Rectangle2D.Float
      */
     class AALabel extends JLabel
     {
-        AALabel(String s) { super(s); };
+        AALabel(String s) { super(s); }
+
         public void paintComponent(Graphics g) {
             ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
                                              java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);

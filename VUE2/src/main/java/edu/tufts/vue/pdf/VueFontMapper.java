@@ -26,10 +26,10 @@ public class VueFontMapper implements FontMapper {
         public boolean cached;
         /** The font bytes for ttf and afm.
          */        
-        public byte ttfAfm[];
+        public byte[] ttfAfm;
         /** The font bytes for pfb.
          */        
-        public byte pfb[];
+        public byte[] pfb;
         
         /** Constructs default BaseFont parameters.
          * @param fontName the font name or location
@@ -135,13 +135,13 @@ public class VueFontMapper implements FontMapper {
      */
     
     public Font pdfToAwt(BaseFont font, int size) {
-        String names[][] = font.getFullFontName();
+        String[][] names = font.getFullFontName();
         if (names.length == 1)
             return new Font(names[0][3], 0, size);
         String name10 = null;
         String name3x = null;
         for (int k = 0; k < names.length; ++k) {
-            String name[] = names[k];
+            String[] name = names[k];
             if (name[0].equals("1") && name[1].equals("0"))
                 name10 = name[3];
             else if (name[2].equals("1033")) {
@@ -193,11 +193,11 @@ public class VueFontMapper implements FontMapper {
      * @param allNames the returned value of calling {@link BaseFont#getAllFontNames(String, String, byte[])}
      * @param path the full path to the font
      */    
-    public void insertNames(Object allNames[], String path) {
-        String names[][] = (String[][])allNames[2];
+    public void insertNames(Object[] allNames, String path) {
+        String[][] names = (String[][])allNames[2];
         String main = null;
         for (int k = 0; k < names.length; ++k) {
-            String name[] = names[k];
+            String[] name = names[k];
             if (name[2].equals("1033")) {
                 main = name[3];
                 break;
@@ -224,7 +224,7 @@ public class VueFontMapper implements FontMapper {
         File file = new File(dir);
         if (!file.exists() || !file.isDirectory())
             return 0;
-        File files[] = file.listFiles();
+        File[] files = file.listFiles();
         if (files == null)
         	return 0;
         int count = 0;
@@ -233,15 +233,15 @@ public class VueFontMapper implements FontMapper {
             String name = file.getPath().toLowerCase();
             try {
                 if (name.endsWith(".ttf") || name.endsWith(".otf") || name.endsWith(".afm")) {
-                    Object allNames[] = BaseFont.getAllFontNames(file.getPath(), BaseFont.CP1252, null);
+                    Object[] allNames = BaseFont.getAllFontNames(file.getPath(), BaseFont.CP1252, null);
                     insertNames(allNames, file.getPath());
                     ++count;
                 }
                 else if (name.endsWith(".ttc")) {
-                    String ttcs[] = BaseFont.enumerateTTCNames(file.getPath());
+                    String[] ttcs = BaseFont.enumerateTTCNames(file.getPath());
                     for (int j = 0; j < ttcs.length; ++j) {
                         String nt = file.getPath() + "," + j;
-                        Object allNames[] = BaseFont.getAllFontNames(nt, BaseFont.CP1252, null);
+                        Object[] allNames = BaseFont.getAllFontNames(nt, BaseFont.CP1252, null);
                         insertNames(allNames, nt);
                     }
                     ++count;

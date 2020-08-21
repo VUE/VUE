@@ -45,7 +45,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     public interface Acceptor extends tufts.vue.Acceptor<LWComponent> {
         /** @return true if the given object acceptable for selection  */
-        public boolean accept(LWComponent c);
+        boolean accept(LWComponent c);
     }
     private List listeners = new java.util.ArrayList();
     private List controlListeners = new java.util.LinkedList();

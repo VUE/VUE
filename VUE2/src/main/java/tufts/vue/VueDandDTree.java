@@ -410,7 +410,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         try {
             reader = flavor.getReaderForText(transfer);
             if (debug) System.out.println("\treader=" + reader);
-            char buf[] = new char[512];
+            char[] buf = new char[512];
             int got = reader.read(buf);
             value = new String(buf, 0, got);
             if (debug) System.out.println("\t[" + value + "]");
@@ -421,7 +421,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         }
         return value;
     }
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         VUE.init(args);
         
         new Frame("An Active Frame").setVisible(true);

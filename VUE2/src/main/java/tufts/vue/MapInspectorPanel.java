@@ -973,7 +973,7 @@ public class MapInspectorPanel extends JPanel
     //     }
     // }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         VUE.init(args);
         DEBUG.Enabled = DEBUG.EVENTS = true;
         LWMap map = new LWMap("test_map");

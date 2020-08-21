@@ -15,7 +15,6 @@
 package tufts.vue;
 
 /**
- * @see tufts.vue.ActiveChangeSupport
  * @see tufts.vue.ActiveEvent
  *
  * If a particular class impl is only interested in a single type of activeChanged,
@@ -27,7 +26,7 @@ package tufts.vue;
  * @version $Revision: 1.4 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  */
 public interface ActiveListener<T> extends java.util.EventListener {
-    public void activeChanged(ActiveEvent<T> e);
+    void activeChanged(ActiveEvent<T> e);
 }
     
         

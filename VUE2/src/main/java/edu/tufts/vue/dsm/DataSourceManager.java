@@ -28,29 +28,29 @@ package edu.tufts.vue.dsm;
  */
 
 public interface DataSourceManager {
-    public DataSource[] getDataSources();
+    DataSource[] getDataSources();
     
-    public DataSource getDataSource(org.osid.shared.Id repositoryId);
+    DataSource getDataSource(org.osid.shared.Id repositoryId);
     
-    public void add(DataSource dataSource);
+    void add(DataSource dataSource);
     
-    public void remove(org.osid.shared.Id dataSourceId);
+    void remove(org.osid.shared.Id dataSourceId);
     
-    public org.osid.repository.Repository[] getIncludedRepositories();
+    org.osid.repository.Repository[] getIncludedRepositories();
     
-    public DataSource[] getIncludedDataSources();
+    DataSource[] getIncludedDataSources();
     
-    public void save();
+    void save();
     
-    public java.awt.Image getImageForAssetType(org.osid.shared.Type assetType);
+    java.awt.Image getImageForAssetType(org.osid.shared.Type assetType);
     
-    public java.awt.Image getImageForSearchType(org.osid.shared.Type searchType);
+    java.awt.Image getImageForSearchType(org.osid.shared.Type searchType);
     
-    public java.awt.Image getImageForRepositoryType(org.osid.shared.Type repositoryType);
+    java.awt.Image getImageForRepositoryType(org.osid.shared.Type repositoryType);
     
-    public void addDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener) ;
+    void addDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener) ;
     
-    public void removeDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener);
+    void removeDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener);
     
     //public void  notifyDataSourceListeners();
 }

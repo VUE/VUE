@@ -320,7 +320,7 @@ public class FilterEditor extends JPanel  {
     }
     
     public class OperatorCellRenderer extends DefaultTableCellRenderer {
-        Vector keys = new Vector();;
+        Vector keys = new Vector();
         JComboBox editor = null;
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             if(value.toString().equals("")) 
@@ -337,7 +337,7 @@ public class FilterEditor extends JPanel  {
     
     public class KeyCellEditor extends DefaultCellEditor {
         /** setting the defaultCellEditor **/
-        Vector keys = new Vector();;
+        Vector keys = new Vector();
         JComboBox editor = null;
         public KeyCellEditor() {
             super(new JComboBox());
@@ -368,7 +368,7 @@ public class FilterEditor extends JPanel  {
     }
     
     public class KeyCellRenderer extends DefaultTableCellRenderer {
-        Vector keys = new Vector();;
+        Vector keys = new Vector();
         JComboBox editor = null;
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             if(value.toString().equals("")) 

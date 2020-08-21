@@ -20,6 +20,7 @@ import tufts.DocDump;
 
 import static tufts.vue.Resource.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -1724,7 +1725,7 @@ public class Images
         }
 
         /** @return an Image that's already been put into the cache */
-        private final Handle runToResult() {
+        private Handle runToResult() {
             if (DEBUG.IMAGE) debugMark(">>>>>");
             final Handle handle = produceResult();
             if (DEBUG.IMAGE) {
@@ -3473,7 +3474,7 @@ public class Images
      }
     */
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         // GUI init required for fully loading all image codecs (tiff gets left behind otherwise)
         // Ah: the TIFF reader in Java 1.5 apparently comes from the UI library:
@@ -3639,7 +3640,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
             final int got = read(testBuf);
             super.seek(0); // put as back at the start
             
-            final String contentHead = new String(testBuf, 0, got, "US-ASCII");
+            final String contentHead = new String(testBuf, 0, got, StandardCharsets.US_ASCII);
             
             if (DEBUG.IMAGE) {
                 Log.debug(String.format("ContentHead; got=%d; streamPos=%d; length=%d [%s]",
@@ -3676,7 +3677,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
                     int n = read(buf);
                     super.seek(0);
                     Log.debug("Cache contents:\n");
-                    System.out.println(new String(buf, 0, n, "US-ASCII"));
+                    System.out.println(new String(buf, 0, n, StandardCharsets.US_ASCII));
                 }
                 
                 close();

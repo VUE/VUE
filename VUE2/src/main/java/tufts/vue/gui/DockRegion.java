@@ -186,7 +186,7 @@ class DockRegion
         
 
     private void sortByX() {
-        Object windows[] = mDockedWindows.toArray();
+        Object[] windows = mDockedWindows.toArray();
 
         java.util.Arrays.sort(windows, SortByX);
 

@@ -37,7 +37,7 @@ import javax.swing.border.*;
 public class PaletteButton extends JRadioButton
 {
     /* this is thr eolumn threshold array to tell when to add another columng in the palette */
-    static int mColThreshold[] = VueResources.getIntArray("menuFlowThreshold") ;
+    static int[] mColThreshold = VueResources.getIntArray("menuFlowThreshold") ;
 	
     // default offsets for drawing popup arrow via code
     public int mArrowSize = 3;
@@ -120,7 +120,7 @@ public class PaletteButton extends JRadioButton
      * Sets the popup indicator icon icon
      *
      * @param pIcon the icon
-     **
+     **/
      public void setPopupIndicatorIcon( Icon pIcon) {
      mPopupIndicatorIcon = pIcon;
      }
@@ -179,7 +179,7 @@ public class PaletteButton extends JRadioButton
             mItems[0] = pItem;
         } else {
             int len = mItems.length;
-            PaletteButtonItem newItems[] = new PaletteButtonItem[len+1];
+            PaletteButtonItem[] newItems = new PaletteButtonItem[len+1];
             for(int i=0; i< len; i++) {
                 newItems[i] = mItems[i];
             }
@@ -423,7 +423,7 @@ public class PaletteButton extends JRadioButton
      * of the normal rendering to indicate if this button contains
      * a popup handler.
      *
-     * @param Graphics g the Graphics.
+     * @param g the Graphics.
      **/
     public void paint(java.awt.Graphics g) {
         super.paint(g);

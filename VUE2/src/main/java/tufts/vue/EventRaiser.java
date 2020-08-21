@@ -150,7 +150,7 @@ public abstract class EventRaiser<T>
     
     private void traverseFrames()
     {
-        Frame frames[] = Frame.getFrames();
+        Frame[] frames = Frame.getFrames();
 
         if (DEBUG.EVENTS && DEBUG.META) out("FRAMES: " + java.util.Arrays.asList(frames));
 

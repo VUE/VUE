@@ -78,7 +78,7 @@ public class FedoraPublisher {
     public static final String OTHER_CM = "tufts/vue/other";
     public static final String REMOTE_CM = "tufts/vue/remote";
     
-    public static final String RESULT_FIELDS[] = {"pid"};
+    public static final String[] RESULT_FIELDS = {"pid"};
     
     public static final String FILE_PREFIX = "file://";
     
@@ -154,7 +154,7 @@ public class FedoraPublisher {
         String pid = getFedoraPid(comp);
         AutoFinder af = new AutoFinder(fc.getAPIA());
         FieldSearchQuery query =  new FieldSearchQuery();
-        Condition conds[] = new Condition[1];
+        Condition[] conds = new Condition[1];
         conds[0] = new  Condition(); //"pid",ComparisonOperator.eq,mapPid);
         conds[0].setProperty("pid");
         conds[0].setOperator(ComparisonOperator.eq);

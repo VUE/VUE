@@ -1352,7 +1352,7 @@ public class PathwayTable extends JTable
         }
     }
 
-    private final boolean isDoubleClickEvent(MouseEvent e) {
+    private boolean isDoubleClickEvent(MouseEvent e) {
         return (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) // % 2 detects cascading double clicks (reported as a 4 click, 6 click, etc)
             && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0;
     }

@@ -424,7 +424,7 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         if (trace)
             System.out.println ("setWorkingDirectory.2 - cabinet to open: " + cabName);
 
-        String parts[] = this.explodePath(cabName, java.io.File.separatorChar);
+        String[] parts = this.explodePath(cabName, java.io.File.separatorChar);
         if (trace)
             System.out.println ("setWorkingDirectory.2 - node count is: " + parts.length);
         
@@ -766,7 +766,7 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         LocalCabinet root = (LocalCabinet) cwd.getRootCabinet();
 
         //  Parse out the path.
-        String parts[] = this.explodePath(path, cwd.separatorChar());
+        String[] parts = this.explodePath(path, cwd.separatorChar());
         
         //  Check to make sure that the first node is indeed the root node.
         if (root.getDisplayName().compareTo(parts[0]) != 0) {

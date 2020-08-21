@@ -334,11 +334,11 @@ public class VueResources
      * This method returns an ImageIcon based on the file
      * specified by the properties file
      * myIcon=/my/package/myImage.gif
-     * It will use the resource bulde's class to generate a URL
+     * It will use the resource bundle's class to generate a URL
      * to map to local systems.
      *
-     * @param pLookupKey - the key in the properties file
-     *  @returns ImageIcon referenced by the resource bundle's lookupkey balue
+     * @param keyOrPath - the key in the properties file
+     * @returns ImageIcon referenced by the resource bundle's lookupkey value
      **/
 
     public static ImageIcon getImageIcon(Class clazz, String keyOrPath)  {
@@ -568,7 +568,7 @@ public class VueResources
      *
      * @return String - the result String, null if not found
      **/
-    public final static String getString(String key) {
+    public static String getString(String key) {
         String result = null;
         try {
             result = sResourceBundle.getString(key);
@@ -588,13 +588,13 @@ public class VueResources
         return result;
     }
 
-    public final static String getString(String key, String defaultString) {
+    public static String getString(String key, String defaultString) {
         String s = getString(key);
         return s == null ? defaultString : s;
     }
 
     /** convenience method for localization -- if not found, will use the key as the default for debugging */
-    public final static String local(String key) {
+    public static String local(String key) {
         return getString(key, key);
     }
 
@@ -851,7 +851,7 @@ public class VueResources
 //                 }
 //             }
         } catch (java.util.MissingResourceException e) {
-            ; // will try and use default
+            // will try and use default
         } catch (Throwable t) {
             alert("getColor: " + key + " " + t);
             if (DEBUG.INIT) t.printStackTrace();

@@ -9,8 +9,8 @@ import tufts.vue.LWComponent;
 
 public interface LWComponentAnalyzer {
 
-	public List<AnalyzerResult> analyze(LWComponent c, boolean tryFallback);
-	public List<AnalyzerResult> analyze(LWComponent c);
-	public Multimap<String,AnalyzerResult> analyzeResource(LWComponent c) throws Exception;
-	public String getAnalyzerName();
+	List<AnalyzerResult> analyze(LWComponent c, boolean tryFallback);
+	List<AnalyzerResult> analyze(LWComponent c);
+	Multimap<String,AnalyzerResult> analyzeResource(LWComponent c) throws Exception;
+	String getAnalyzerName();
 }

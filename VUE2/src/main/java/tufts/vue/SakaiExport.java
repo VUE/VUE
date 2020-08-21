@@ -101,7 +101,7 @@ public class SakaiExport
 		throws org.osid.repository.RepositoryException
 	{
 		java.util.Vector collectionVector = new java.util.Vector();
-		SakaiCollection collection[] = new SakaiCollection[0];
+		SakaiCollection[] collection = new SakaiCollection[0];
 		
 		// get all the collections
 		if (dataSource.supportsUpdate()) {

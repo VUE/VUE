@@ -79,6 +79,7 @@ public class DataSourceList extends JList implements DropTargetListener
     
     private static final boolean debug = true;
     
+    @SuppressWarnings("PointlessBitwiseExpression")
     private static final int ACCEPTABLE_DROP_TYPES = 0
             | DnDConstants.ACTION_COPY
             | DnDConstants.ACTION_LINK

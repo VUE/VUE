@@ -32,7 +32,7 @@ implements osid.dr.DigitalRepositoryIterator
         /**
         Return true if there are additional  DigitalRepositories ; false otherwise.
         @return boolean
-        @throws An exception with one of the following messages defined in osid.dr.DigitalRepositoryException may be thrown:  OPERATION_FAILED
+        @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
         */
     public boolean hasNext()
     throws osid.dr.DigitalRepositoryException
@@ -43,7 +43,7 @@ implements osid.dr.DigitalRepositoryIterator
         /**
         Return the next DigitalRepositories.
         @return osid.dr.DigitalRepository
-        @throws An exception with one of the following messages defined in osid.dr.DigitalRepositoryException may be thrown:  OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTS
+        @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTS
         */
     public osid.dr.DigitalRepository next()
     throws osid.dr.DigitalRepositoryException

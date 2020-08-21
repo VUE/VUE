@@ -55,9 +55,7 @@ public class InfoField implements osid.dr.InfoField {
      * @return osid.shared.Id A unique Id that is usually set by a create
      *         method's implementation
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public osid.shared.Id getId() throws osid.dr.DigitalRepositoryException {
         return this.id;
@@ -74,9 +72,7 @@ public class InfoField implements osid.dr.InfoField {
      *
      * @return osid.dr.InfoField
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED, NULL_ARGUMENT, UNKNOWN_ID
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NULL_ARGUMENT, UNKNOWN_ID
      */
     public osid.dr.InfoField createInfoField(osid.shared.Id infoPartId,
     java.io.Serializable value) throws osid.dr.DigitalRepositoryException {
@@ -108,9 +104,7 @@ public class InfoField implements osid.dr.InfoField {
      *
      * @param infoFieldId
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED, NULL_ARGUMENT, UNKNOWN_ID
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NULL_ARGUMENT, UNKNOWN_ID
      */
     public void deleteInfoField(osid.shared.Id infoFieldId)  throws osid.dr.DigitalRepositoryException {
         throw new osid.dr.DigitalRepositoryException("A field can't be deleted from FEDORA Repository");
@@ -125,9 +119,7 @@ public class InfoField implements osid.dr.InfoField {
      * @return osid.dr.InfoFieldIterator  The order of the objects returned by
      *         the Iterator is not guaranteed.
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public osid.dr.InfoFieldIterator getInfoFields() throws osid.dr.DigitalRepositoryException {
         return (osid.dr.InfoFieldIterator) (new InfoFieldIterator(infoFieldVector));
@@ -138,9 +130,7 @@ public class InfoField implements osid.dr.InfoField {
      *
      * @return java.io.Serializable
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public java.io.Serializable getValue() throws osid.dr.DigitalRepositoryException {
         
@@ -152,9 +142,7 @@ public class InfoField implements osid.dr.InfoField {
      *
      * @param
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED, NULL_ARGUMENT
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NULL_ARGUMENT
      */
     public void updateValue(java.io.Serializable value)
     throws osid.dr.DigitalRepositoryException {
@@ -171,9 +159,7 @@ public class InfoField implements osid.dr.InfoField {
      *
      * @return osid.dr.InfoPart
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public osid.dr.InfoPart getInfoPart()
     throws osid.dr.DigitalRepositoryException {

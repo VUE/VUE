@@ -60,8 +60,8 @@ class Slides {
     
     
     
-    protected enum Sync { ALL, TO_NODE, TO_SLIDE };
-    
+    protected enum Sync { ALL, TO_NODE, TO_SLIDE }
+
     private static LWSlide CreatePathwaySlide(LWPathway.Entry entry)
     {
         final LWSlide s = LWSlide.instance();

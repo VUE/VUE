@@ -32,18 +32,18 @@ package tufts.vue;
 
 public interface LWEditor<T> {
     /** @return the property key for the property we hold */
-    public Object getPropertyKey();
+    Object getPropertyKey();
     
     /** @return the current property value represented by the editor state */
-    public T produceValue();
+    T produceValue();
     
     /** change the editor state to represent the given property value 
      * @param propertyValue must be of type expected for the given key */
-    public void displayValue(T propertyValue);
+    void displayValue(T propertyValue);
 
     /** Set the enabled state of this editor. Note that if the LWEditor implementor is a subclass of
      * java.awt.Component, this already matches the signature there, and thus this method
      * is already implemented for the interface in those cases. */
-    public void setEnabled(boolean enabled);
+    void setEnabled(boolean enabled);
     
 }

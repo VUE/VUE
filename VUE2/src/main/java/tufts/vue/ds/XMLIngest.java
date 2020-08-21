@@ -274,10 +274,10 @@ public class XMLIngest {
         return isText(node.getNodeType());
     }
 
-    private static final String getNodeType(Node n) {
+    private static String getNodeType(Node n) {
         return getNodeType(n.getNodeType());
     }
-    private static final String getNodeType(int t) {
+    private static String getNodeType(int t) {
         if (t == Node.ATTRIBUTE_NODE) return "attr";
         if (t == Node.CDATA_SECTION_NODE) return "cdata";
         if (t == Node.COMMENT_NODE) return "comment";

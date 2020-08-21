@@ -44,9 +44,7 @@ public class InfoRecord implements osid.dr.InfoRecord {
      * @return osid.shared.Id A unique Id that is usually set by a create
      *         method's implementation
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public osid.shared.Id getId() throws osid.dr.DigitalRepositoryException {
         return this.id;
@@ -63,9 +61,7 @@ public class InfoRecord implements osid.dr.InfoRecord {
      *
      * @return osid.dr.InfoField
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED, NULL_ARGUMENT, UNKNOWN_ID
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NULL_ARGUMENT, UNKNOWN_ID
      */
     public osid.dr.InfoField createInfoField(osid.shared.Id infoPartId,
         java.io.Serializable value) throws osid.dr.DigitalRepositoryException {
@@ -97,9 +93,7 @@ public class InfoRecord implements osid.dr.InfoRecord {
      *
      * @param infoFieldId
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED, NULL_ARGUMENT, UNKNOWN_ID
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NULL_ARGUMENT, UNKNOWN_ID
      */
     public void deleteInfoField(osid.shared.Id infoFieldId)
         throws osid.dr.DigitalRepositoryException {
@@ -116,9 +110,7 @@ public class InfoRecord implements osid.dr.InfoRecord {
      * @return osid.dr.InfoFieldIterator  The order of the objects returned by
      *         the Iterator is not guaranteed.
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public osid.dr.InfoFieldIterator getInfoFields()
         throws osid.dr.DigitalRepositoryException {
@@ -131,9 +123,7 @@ public class InfoRecord implements osid.dr.InfoRecord {
      *
      * @return boolean
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public boolean isMultivalued() throws osid.dr.DigitalRepositoryException {
         return this.isMultivalued;
@@ -144,9 +134,7 @@ public class InfoRecord implements osid.dr.InfoRecord {
      *
      * @return osid.dr.InfoStructure
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public osid.dr.InfoStructure getInfoStructure()
         throws osid.dr.DigitalRepositoryException {

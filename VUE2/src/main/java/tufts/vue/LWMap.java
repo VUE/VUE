@@ -637,10 +637,10 @@ public class LWMap extends LWContainer
             // exclude the layer objects themseleves, but include their children
             
             if ((kind == ChildKind.VISIBLE || kind == ChildKind.EDITABLE) && layer.isHidden()) {
-                ; // exclude invisible
+                // exclude invisible
             }
             else if (kind == ChildKind.EDITABLE && layer.isLocked()) {
-                    ; // exclude locked out
+                // exclude locked out
             }
             else if (layer instanceof Layer) {            
                 // should always be the case (is a Layer)

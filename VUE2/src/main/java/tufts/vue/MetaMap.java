@@ -690,6 +690,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
         }
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public MetaMap clone() {
         final MetaMap clone = new MetaMap();

@@ -20,18 +20,18 @@ package edu.tufts.vue.fsm;
 
 public interface Query
 {
-	public String getForeignIdString();
-	public void setForeignIdString(String foreignIdString);
+	String getForeignIdString();
+	void setForeignIdString(String foreignIdString);
 	
-	public org.osid.repository.Repository getRepository();
-	public void setRepository(org.osid.repository.Repository repository);
+	org.osid.repository.Repository getRepository();
+	void setRepository(org.osid.repository.Repository repository);
 
-	public java.io.Serializable getSearchCriteria();
-	public void setSearchCriteria(java.io.Serializable searchCriteria);
+	java.io.Serializable getSearchCriteria();
+	void setSearchCriteria(java.io.Serializable searchCriteria);
 	
-	public org.osid.shared.Type getSearchType();
-	public void setSearchType(org.osid.shared.Type searchType);
+	org.osid.shared.Type getSearchType();
+	void setSearchType(org.osid.shared.Type searchType);
 	
-	public org.osid.shared.Properties getSearchProperties();
-	public void setSearchProperties(org.osid.shared.Properties searchProperties);
+	org.osid.shared.Properties getSearchProperties();
+	void setSearchProperties(org.osid.shared.Properties searchProperties);
 }

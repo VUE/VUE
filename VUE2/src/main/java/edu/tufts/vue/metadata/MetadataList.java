@@ -565,7 +565,7 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
                 if (o != null) {
                     boolean dumpObj = true;
                     if (o instanceof String[]) {
-                        String s[] = (String[]) o;
+                        String[] s = (String[]) o;
                         if (s.length == 2 && s[0] == key && s[1] == val)
                             dumpObj = false;
                     }
@@ -1096,5 +1096,5 @@ public class MetadataList implements tufts.vue.XMLUnmarshalListener
         // }
     }
     
-    public interface MetadataListListener { public void listChanged(); }
+    public interface MetadataListListener { void listChanged(); }
 }

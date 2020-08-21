@@ -32,7 +32,7 @@ implements osid.shared.TypeIterator
         /**
         Return true if there are additional  Types ; false otherwise.
         @return boolean
-        @throws An exception with one of the following messages defined in osid.dr.DigitalRepositoryException may be thrown:  OPERATION_FAILED
+        @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
         */
     public boolean hasNext()
     throws osid.shared.SharedException
@@ -43,7 +43,7 @@ implements osid.shared.TypeIterator
         /**
         Return the next Type
         @return Type
-        @throws An exception with one of the following messages defined in osid.dr.DigitalRepositoryException may be thrown:  OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTS
+        @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTS
         */
     public osid.shared.Type next()
     throws osid.shared.SharedException

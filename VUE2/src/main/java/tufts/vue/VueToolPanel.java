@@ -158,7 +158,7 @@ public class VueToolPanel extends JPanel
      * This method adds an array of VueTool items and creates
      * main toolbar buttons based on the VueTool.
      *
-     * @param VueTool [] - the list of tools
+     * @param pTools the list of tools
      **/
     public void addTools( VueTool [] pTools, int[] separators) {
     	int separatorIndex =0;
@@ -176,12 +176,13 @@ public class VueToolPanel extends JPanel
     public void addTool( VueTool pTool) {
     	addTool(pTool,false);
     }
+
     /**
      * addTool
      * This method adds a single VueTool to the main toolbar.
-     * It creates a PaleteButton for the tool and adds it to the toolbar panel.
+     * It creates a PaletteButton for the tool and adds it to the toolbar panel.
      *
-     * #param VueTool - the tool to add.
+     * @param pTool the tool to add.
      **/
     public void addTool( VueTool pTool,boolean addToMainToolbar) {
 	
@@ -235,7 +236,7 @@ public class VueToolPanel extends JPanel
      * that's in the radio group.  If found, it selectes the button
      * in the radio group and causes an repaint.  
      *
-     * @param VueTool - the new tool to select
+     * @param pTool the new tool to select
      **/
     public void setSelectedTool( VueTool pTool) {
         if( pTool != null) {      
@@ -281,7 +282,7 @@ public class VueToolPanel extends JPanel
     /**
      * removeTool()
      * This method removes a tool from the VueToolPanel
-     * @param VueTool the tool to remove
+     * @param pTool the tool to remove
      **/
     public void removeTool( VueTool pTool) {
 		
@@ -315,7 +316,7 @@ public class VueToolPanel extends JPanel
             // create button items
             Vector names = pTool.getSubToolIDs();
             int numSubTools = names.size();
-            PaletteButtonItem items [] = new PaletteButtonItem[numSubTools];
+            PaletteButtonItem[] items = new PaletteButtonItem[numSubTools];
             for(int i=0; i<numSubTools; i++) {
                 String name = (String) names.get(i);
                 VueTool subTool = pTool.getSubTool( name);

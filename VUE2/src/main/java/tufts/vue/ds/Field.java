@@ -527,7 +527,7 @@ public class Field implements tufts.vue.XMLUnmarshalListener
             return;
             
         if (value == EMPTY_VALUE) {
-            ; // don't increment value count
+            // don't increment value count
         } else if (valueLen == 0) {
             value = EMPTY_VALUE; // don't increment value count
         } else {

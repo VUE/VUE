@@ -124,7 +124,7 @@ final class Order0 extends Curve {
 	return this;
     }
 
-    public int getSegment(double coords[]) {
+    public int getSegment(double[] coords) {
 	coords[0] = x;
 	coords[1] = y;
 	return PathIterator.SEG_MOVETO;

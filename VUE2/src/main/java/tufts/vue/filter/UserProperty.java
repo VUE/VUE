@@ -45,9 +45,9 @@ public class UserProperty {
 	String mName = null;
 		
 	/** arrayh of UserProperty **/
-	int mType = 0;;
-	
-	/** value **/
+	int mType = 0;
+
+    /** value **/
 	String mValue = null;
 	
 	/** tag array for tagged property **/
@@ -73,8 +73,8 @@ public class UserProperty {
 		mType = pProp.getType();
 		mValue = pProp.getValue();
 		String [] tags = pProp.getTaggedValues();
-		mTags = null;;
-		if( tags != null) {
+		mTags = null;
+        if( tags != null) {
 			mTags = new String[tags.length];
 			for(int i=0; i<tags.length; i++ ) {
 				mTags[i] = tags[i];

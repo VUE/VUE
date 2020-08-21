@@ -2468,7 +2468,7 @@ public class LWNode extends LWContainer
 //         } else
         
         if (false && (dc.isPresenting() || isPresentationContext())) { // old-style "turn off the wrappers"
-            ; // do nothing: no fill
+            // do nothing: no fill
         } else {
             Color fillColor = getRenderFillColor(dc);
             if (fillColor != null && fillColor.getAlpha() != 0) { // transparent if null

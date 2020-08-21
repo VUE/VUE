@@ -80,7 +80,7 @@ public class AutoCompleteDocument extends PlainDocument {
         return field;
     }
     
-	public static void main(String args[]) 
+	public static void main(String[] args)
 	{
         javax.swing.JFrame frame = new javax.swing.JFrame("foo");
         frame.setDefaultCloseOperation( javax.swing.JFrame.EXIT_ON_CLOSE );

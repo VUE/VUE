@@ -185,7 +185,7 @@ public class LWText extends LWComponent {
     // TODO: change these "supports" calls to an arbitrary property list
     // that could have arbitrary properties added to it by plugged-in non-standard tools
     public boolean supportsUserResize() {
-        return (VUE.getActiveViewer().hasActiveTextEdit()) ? false : true;
+        return !VUE.getActiveViewer().hasActiveTextEdit();
     }
 	
     protected void drawNode(DrawContext dc) {
@@ -221,7 +221,7 @@ public class LWText extends LWComponent {
             // off
             // the
             // wrappers"
-            ; // do nothing: no fill
+            // do nothing: no fill
         } else {
             final Color fillColor = getFillColor();
             if (fillColor != null && fillColor.getAlpha() != 0) { // transparent

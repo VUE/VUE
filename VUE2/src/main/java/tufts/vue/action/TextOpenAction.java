@@ -413,7 +413,7 @@ public class TextOpenAction  extends VueAction {
      
     
     
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         String file = args.length == 0 ? "C:\\anoop\\vue\\maps\\Short.rdf" : args[0];
         System.err.println("Attempting to read map from " + file);
         DEBUG.Enabled = true;

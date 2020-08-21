@@ -15,7 +15,6 @@
 package tufts.vue;
 
 /**
- * @see tufts.vue.ActiveChangeSupport
  * @see tufts.vue.ActiveEvent
  * @author Scott Fraize
  * @version $Revision: 1.7 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $

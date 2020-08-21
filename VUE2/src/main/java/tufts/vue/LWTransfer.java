@@ -42,7 +42,7 @@ public class LWTransfer implements Transferable {
         isLocalDrop = t;
     }
     
-    private static final DataFlavor DefaultFlavors[] = {
+    private static final DataFlavor[] DefaultFlavors = {
         LWComponent.DataFlavor,
         DataFlavor.stringFlavor,
         DataFlavor.imageFlavor,

@@ -137,7 +137,7 @@ public class AssociationsPane extends Widget
 
 	public void setActions() {
 //		setMiscAction(this, new AddAssociationListener(), "dockWindow.addButton");
-		setHelpAction(this, VueResources.getString("dockWindow.Datasources.associationsPane.helpText"));;
+		setHelpAction(this, VueResources.getString("dockWindow.Datasources.associationsPane.helpText"));
 
 		enableMenuActions();
 	}
@@ -175,11 +175,11 @@ public class AssociationsPane extends Widget
 
 	public void deleteAssociation() {
 		AssociationsTableModel	model = ((AssociationsTableModel)associationsTable.getModel());
-		int toDelete[] = associationsTable.getSelectedRows(),
-			deleteCount = toDelete.length,
-			lastRow = associationsTable.getRowCount() - 1;
+		int[] toDelete = associationsTable.getSelectedRows();
+        int deleteCount = toDelete.length;
+        int lastRow = associationsTable.getRowCount() - 1;
 
-		while (deleteCount > 0) {
+        while (deleteCount > 0) {
 			deleteCount--;
 
 			int		deleteRow = toDelete[deleteCount];

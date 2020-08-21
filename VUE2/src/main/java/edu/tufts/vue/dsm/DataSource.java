@@ -21,68 +21,68 @@ package edu.tufts.vue.dsm;
 
 public interface DataSource
 {
-	public org.osid.repository.Repository getRepository();
+	org.osid.repository.Repository getRepository();
 	
-	public void setProviderId(org.osid.shared.Id providerId);
+	void setProviderId(org.osid.shared.Id providerId);
 	
-	public org.osid.shared.Id getProviderId();
+	org.osid.shared.Id getProviderId();
 	
-	public org.osid.shared.Id getId();
+	org.osid.shared.Id getId();
 
-	public boolean hasUpdate();
+	boolean hasUpdate();
 	
-	public String getOsidName();
+	String getOsidName();
 	
-	public String getOsidVersion();
+	String getOsidVersion();
 	
-	public String getOsidLoadKey();
+	String getOsidLoadKey();
 	
-	public void setOsidLoadKey(String osidLoadKey);
+	void setOsidLoadKey(String osidLoadKey);
 	
-	public String getProviderDisplayName();
+	String getProviderDisplayName();
 	
-	public String getProviderDescription();
+	String getProviderDescription();
 	
-	public String getCreator();
+	String getCreator();
 	
-	public String getPublisher();
+	String getPublisher();
 	
-	public java.util.Date getReleaseDate();
+	java.util.Date getReleaseDate();
 	
-	public String getLicense();
+	String getLicense();
 	
-	public boolean requestsLicenseAcknowledgement();
+	boolean requestsLicenseAcknowledgement();
 	
-	public org.osid.shared.Id getRepositoryId();
+	org.osid.shared.Id getRepositoryId();
 	
-	public org.osid.shared.Type getRepositoryType();
+	org.osid.shared.Type getRepositoryType();
 	
-	public String getRepositoryDisplayName();
+	String getRepositoryDisplayName();
 	
-	public String getRepositoryDescription();
+	String getRepositoryDescription();
 	
-	public boolean isOnline();
+	boolean isOnline();
 
-	public boolean isIncludedInSearch();
+	boolean isIncludedInSearch();
 	
-	public void setIncludedInSearch(boolean isIncluded);
+	void setIncludedInSearch(boolean isIncluded);
 	
-	public boolean supportsUpdate();
+	boolean supportsUpdate();
 	
-	public org.osid.shared.TypeIterator getAssetTypes();
+	org.osid.shared.TypeIterator getAssetTypes();
 	
-	public org.osid.shared.TypeIterator getSearchTypes();
+	org.osid.shared.TypeIterator getSearchTypes();
 	
-	public boolean hasConfiguration();
+	boolean hasConfiguration();
 	
-	public java.awt.Image getIcon16x16();
+	java.awt.Image getIcon16x16();
 	
-	public String getConfigurationUIHints();
+	String getConfigurationUIHints();
 	
-	public void setConfiguration(java.util.Properties properties)
+	void setConfiguration(java.util.Properties properties)
 		throws org.osid.repository.RepositoryException;	
 
-	public java.util.Properties getConfiguration();
+	java.util.Properties getConfiguration();
 	
-	public boolean supportsSearch();
+	boolean supportsSearch();
 }

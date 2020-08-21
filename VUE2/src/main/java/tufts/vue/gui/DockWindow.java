@@ -3453,7 +3453,7 @@ public class DockWindow
     
     
 
-    /** @param MouseEvent should be the MOUSE_RELEASED event where the window was dropped*/
+    /** @param e should be the MOUSE_RELEASED event where the window was dropped*/
     private void dropWindow(MouseEvent e)
     {
         if (DEBUG.DOCK) out("dropWindow: curBounds " + getBounds());
@@ -3777,8 +3777,8 @@ public class DockWindow
      * This method recursively call's itself on any children.
      *
      * @param allChildren - recursively update all children, otherwise just the immediate child
-     * @param newParentHeight - our height or the one we may be about to take on
-     * @param newParentY - our Y location or the value it may be about to take on
+     * @param upcomingHeight - our height or the one we may be about to take on
+     * @param upcomingY - our Y location or the value it may be about to take on
      *
      */
     private void updateChildLocation(boolean allChildren, int upcomingHeight, int upcomingY) {
@@ -4709,7 +4709,7 @@ public class DockWindow
         private void installGradient(boolean vertical) {
             if (vertical)
                 mGradient = new GradientPaint(getHeight(), 0, TopGradientColor,
-                                              0,           0, false ? Color.gray : BottomGradientColor);
+                                              0,           0, BottomGradientColor);
             else
                 mGradient = new GradientPaint(0,           0, TopGradientColor,
                                               0, TitleHeight, BottomGradientColor);
@@ -5134,7 +5134,7 @@ public class DockWindow
         return dw;
     }
     
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         VUE.init(args);
         //DEBUG.BOXES=true;

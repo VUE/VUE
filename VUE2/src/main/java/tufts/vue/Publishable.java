@@ -32,19 +32,19 @@ package tufts.vue;
 import java.io.IOException;
 public interface Publishable {
       
-    public static final int PUBLISH_NO_MODES = 0;;
-    public static final int PUBLISH_MAP = 1; // just the map
-    public static final int PUBLISH_CMAP = 2; // the map with selected resources in IMSCP format
-    public static final int PUBLISH_ALL = 3; // all resources published to fedora and map published with pointers to resources.
-    public static final int PUBLISH_SAKAI = 4; // an IMSCP to Sakai
-    public static final int PUBLISH_ALL_MODES = 10; // this means that datasource can publish to any mode.
-    public static final int PUBLISH_ZIP = 5; 
+    int PUBLISH_NO_MODES = 0;
+    int PUBLISH_MAP = 1; // just the map
+    int PUBLISH_CMAP = 2; // the map with selected resources in IMSCP format
+    int PUBLISH_ALL = 3; // all resources published to fedora and map published with pointers to resources.
+    int PUBLISH_SAKAI = 4; // an IMSCP to Sakai
+    int PUBLISH_ALL_MODES = 10; // this means that datasource can publish to any mode.
+    int PUBLISH_ZIP = 5;
     /*
      */
-    public int[] getPublishableModes();
+    int[] getPublishableModes();
     
-    public boolean supportsMode(int mode);
-    public void publish(int mode,LWMap map) throws IOException;
+    boolean supportsMode(int mode);
+    void publish(int mode, LWMap map) throws IOException;
         
     
 }

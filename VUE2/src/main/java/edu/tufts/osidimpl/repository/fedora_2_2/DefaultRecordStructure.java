@@ -181,7 +181,7 @@ public class DefaultRecordStructure
                     try {
                         int i = 0;
                         while ( (i = in.read()) != -1 ) {
-                            xml.append(Character.toString((char)i));
+                            xml.append((char) i);
                         }
                     } catch (Throwable t) {}
                     //System.out.println("xml " + xml);

@@ -37,11 +37,11 @@ final class Order2 extends Curve {
     private double ycoeff1;
     private double ycoeff2;
 
-    public static void insert(Vector curves, double tmp[],
-			      double x0, double y0,
-			      double cx0, double cy0,
-			      double x1, double y1,
-			      int direction)
+    public static void insert(Vector curves, double[] tmp,
+                              double x0, double y0,
+                              double cx0, double cy0,
+                              double x1, double y1,
+                              int direction)
     {
 	int numparams = getHorizontalParams(y0, cy0, y1, tmp);
 	if (numparams == 0) {
@@ -95,7 +95,7 @@ final class Order2 extends Curve {
      *     B = 2*CP - 2*C0
      *     A = C0 - 2*CP + C1
      */
-    public static void getEqn(double eqn[], double c0, double cp, double c1) {
+    public static void getEqn(double[] eqn, double c0, double cp, double c1) {
 	eqn[0] = c0;
 	eqn[1] = cp + cp - c0 - c0;
 	eqn[2] = c0 - cp - cp + c1;
@@ -120,7 +120,7 @@ final class Order2 extends Curve {
      * means outside of this method.
      */
     public static int getHorizontalParams(double c0, double cp, double c1,
-					  double ret[]) {
+                                          double[] ret) {
 	if (c0 <= cp && cp <= c1) {
 	    return 0;
 	}
@@ -146,7 +146,7 @@ final class Order2 extends Curve {
      * parametric subranges [0..t] and [t..1].  Store the results back
      * into the array at coords[pos...pos+5] and coords[pos+4...pos+9].
      */
-    public static void split(double coords[], int pos, double t) {
+    public static void split(double[] coords, int pos, double t) {
 	double x0, y0, cx, cy, x1, y1;
 	coords[pos+8] = x1 = coords[pos+4];
 	coords[pos+9] = y1 = coords[pos+5];
@@ -261,7 +261,7 @@ final class Order2 extends Curve {
     }
 
     public double TforY(double y) {
-	double eqn[] = new double[3];
+	double[] eqn = new double[3];
 	getEqn(eqn, y0, cy0, y1);
 	eqn[0] -= y;
 	int numroots = QuadCurve2D.solveQuadratic(eqn, eqn);
@@ -323,7 +323,7 @@ final class Order2 extends Curve {
 	if (ystart == y0 && yend == y1) {
 	    return getWithDirection(dir);
 	}
-	double eqn[] = new double[10];
+	double[] eqn = new double[10];
 	double t0, t1;
 	if (ystart == y0) {
 	    t0 = 0;
@@ -368,7 +368,7 @@ final class Order2 extends Curve {
 	return new Order2(x0, y0, cx0, cy0, x1, y1, -direction);
     }
 
-    public int getSegment(double coords[]) {
+    public int getSegment(double[] coords) {
 	coords[0] = cx0;
 	coords[1] = cy0;
 	if (direction == INCREASING) {

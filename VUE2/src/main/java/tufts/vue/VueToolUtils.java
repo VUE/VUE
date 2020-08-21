@@ -173,7 +173,7 @@ public class VueToolUtils
         tool.setID(pName);
         tool.initFromResources();       
 
-        String subtools[];
+        String[] subtools;
         String defaultTool = null;
         subtools = VueResources.getStringArray( pName+".subtools");
         if (subtools != null) {

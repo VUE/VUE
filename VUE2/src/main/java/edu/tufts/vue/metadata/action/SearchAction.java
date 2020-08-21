@@ -88,7 +88,8 @@ public class SearchAction extends AbstractAction
         Operator(String k) { key = k; localized = VueResources.local(key); }
         /** return localized value -- handy for feeding to a JComboBox */
         public String toString() { return localized; }
-    };
+    }
+
     public static final Object[] AllLogicOps = { Operator.OR, Operator.AND };
     
     /** key that SearchAction uses to put clientData in the LWMap when it owns some filtering state */

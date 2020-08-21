@@ -1600,7 +1600,7 @@ public class FontEditorPanel extends JPanel
 	      maxAttributes.addAttributes(inputAttributes);
 	      return maxAttributes;
 	  }
-	private final void updateFormatControls(CaretEvent e)
+	private void updateFormatControls(CaretEvent e)
 	{
 		if (suspendItemListeners)
 			return;

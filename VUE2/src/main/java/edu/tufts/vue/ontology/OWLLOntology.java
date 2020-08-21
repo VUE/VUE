@@ -84,9 +84,7 @@ public class OWLLOntology extends Ontology {
         readOntTypes(m.listObjectProperties(),cssUrl);
         readOntTypes(m.listNamedClasses(),cssUrl);
     }
-    /**
-     * @param args the command line arguments
-     */
+
     public org.osid.shared.Type getType() {
         return OntologyType.OWL_TYPE;
     }

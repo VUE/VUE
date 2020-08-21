@@ -24,7 +24,7 @@ package edu.tufts.vue.dsm;
 
 public interface AssetReference
 {
-	public String getOsidLoadKey();
+	String getOsidLoadKey();
 
-	public String getAssetIdString();
+	String getAssetIdString();
 }

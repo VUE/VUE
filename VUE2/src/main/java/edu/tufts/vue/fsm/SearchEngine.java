@@ -22,35 +22,35 @@ package edu.tufts.vue.fsm;
 
 public interface SearchEngine
 {
-    public static final int SEARCH_PENDING = 0;
-    public static final int SEARCH_RUNNING = 1;
-    public static final int SEARCH_COMPLETED = 2;
-    public static final int SEARCH_EXCEPTION = 3;
+    int SEARCH_PENDING = 0;
+    int SEARCH_RUNNING = 1;
+    int SEARCH_COMPLETED = 2;
+    int SEARCH_EXCEPTION = 3;
 	
-	public void search(Query[] queries);
+	void search(Query[] queries);
 	
-	public void searchComplete(int searchIndex,
-							   int statusCode,
-							   String exceptionMessage,
-							   long duration,
-							   org.osid.repository.AssetIterator assetIterator,
-							   String foreignIdString);
+	void searchComplete(int searchIndex,
+                        int statusCode,
+                        String exceptionMessage,
+                        long duration,
+                        org.osid.repository.AssetIterator assetIterator,
+                        String foreignIdString);
 	
-	public long getStartTime();
+	long getStartTime();
 	
-	public long getEndTime();
+	long getEndTime();
 	
-	public long getDuration(int index);
+	long getDuration(int index);
 	
-	public int getStatus(int index);
+	int getStatus(int index);
 	
-	public int getNumSearches();
+	int getNumSearches();
 	
-	public org.osid.repository.AssetIterator getAssetIterator(int index);
+	org.osid.repository.AssetIterator getAssetIterator(int index);
 	
-	public org.osid.repository.AssetIterator getAssetIterator(String foreignIdString);
+	org.osid.repository.AssetIterator getAssetIterator(String foreignIdString);
 	
-	public String getExceptionMessage(int index);
+	String getExceptionMessage(int index);
 	
-	public boolean isComplete();
+	boolean isComplete();
 }

@@ -316,7 +316,7 @@ public class RDFOpenAction extends VueAction {
         
     }
     
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         String file = args.length == 0 ? "test.xml" : args[0];
         System.err.println("Attempting to read map from " + file);
         DEBUG.Enabled = true;

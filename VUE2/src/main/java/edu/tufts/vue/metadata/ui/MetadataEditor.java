@@ -849,7 +849,7 @@ public class MetadataEditor extends JPanel
                 setText(shortKey(key));
                 box.add(this);
                 if (DisplayChangesDuringEdit && row == activeEditRow) {
-                    ; // don't draw '+'
+                    // don't draw '+'
                     // if (mdTable.isEditing()) ; // turn them all off
                 } else if (!knownCategory)
                     box.add(addLabel, BorderLayout.EAST);

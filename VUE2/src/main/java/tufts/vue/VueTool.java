@@ -663,7 +663,7 @@ public abstract class VueTool extends AbstractAction
     /**
      * addSubTool
      * Adds the passed VueTool as a subtool of this tool
-     * @param VueTool - the new subtool
+     * @param pTool - the new subtool
      **/
     public void addSubTool(  VueTool pTool) {
         mSubToolMap.put( pTool.getID(), pTool);

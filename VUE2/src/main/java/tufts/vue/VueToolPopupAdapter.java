@@ -104,7 +104,7 @@ public class VueToolPopupAdapter extends MouseAdapter {
      * mouse Released
      * This handles the mouse release events
      *
-     * @param MouseEvent e the event
+     * @param e the event
      **/
     public void mouseReleased(MouseEvent e) {
     	debug(e.paramString() + " on " + e.getSource());
@@ -144,7 +144,7 @@ public class VueToolPopupAdapter extends MouseAdapter {
      * mouseClicked
      * This handles the mouse clicked events
      *
-     * @param MouseEvent e the event
+     * @param e the event
      **/
     public void mouseClicked(MouseEvent e) {
     	debug(e.paramString() + " on " + e.getSource());

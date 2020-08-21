@@ -25,5 +25,5 @@ package edu.tufts.vue.ontology.ui;
  */
 public interface OntologySelectionListener
 {
-    public void ontologySelected(OntologySelectionEvent e);
+    void ontologySelected(OntologySelectionEvent e);
 }

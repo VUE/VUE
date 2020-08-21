@@ -525,7 +525,7 @@ public class MapDropTarget
                           Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
 
     /** @return the string matched by the first group in the given Pattern, or null if no match */
-    private static final String extractText(Pattern pattern, String text) {
+    private static String extractText(Pattern pattern, String text) {
         final Matcher m = pattern.matcher(text);
         String s = null;
         if (m.lookingAt())
@@ -1943,7 +1943,7 @@ public class MapDropTarget
         try {
             reader = flavor.getReaderForText(transfer);
             //if (DEBUG.DND && DEBUG.META) System.out.println("\treader=" + reader);
-            char buf[] = new char[512];
+            char[] buf = new char[512];
             int got = reader.read(buf);
             value = new String(buf, 0, got);
             if (DEBUG.DND && DEBUG.META) System.out.println("\t" + Util.tags(value));

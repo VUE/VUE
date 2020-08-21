@@ -187,8 +187,8 @@ public class VUE
     //	pathwayDock = null;
     	formatDock = null;
     	slideDock = null;
-    	pannerDock = null;;
-    	MapInspector = null;
+    	pannerDock = null;
+        MapInspector = null;
     	ObjectInspector = null;
     	outlineDock = null;
     	floatingZoomDock = null;
@@ -490,7 +490,7 @@ public class VUE
                     // which aren't offically supported at the moment, but just in case we check that.
                     
                     if (activeNode == null || activeNode instanceof LWSlide == false || !activeNode.isPathwayOwned()) {
-                        ; // allow pathway selection
+                        // allow pathway selection
                     } else {
                         return;
                     }
@@ -1596,9 +1596,9 @@ public class VUE
         	// adding the menus and toolbars
         	if (DEBUG.INIT) out("setting JMenuBar...");
         	ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(/*VUE.ToolWindows*/));
-        	if (DEBUG.INIT) out("VueMenuBar installed.");;
-        
-        	if (true){
+        	if (DEBUG.INIT) out("VueMenuBar installed.");
+
+            if (true){
         		ApplicationFrame.addComp(mViewerSplit, BorderLayout.CENTER);
         	}
         	else{

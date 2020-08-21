@@ -47,9 +47,7 @@ public class InfoPartIterator implements osid.dr.InfoPartIterator {
      *
      * @return boolean
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
      */
     public boolean hasNext() throws osid.dr.DigitalRepositoryException {
         return (i < vector.size());
@@ -60,9 +58,7 @@ public class InfoPartIterator implements osid.dr.InfoPartIterator {
      *
      * @return osid.dr.InfoPart
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTSt
+     * @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTSt
      */
     public osid.dr.InfoPart next() throws osid.dr.DigitalRepositoryException {
         if (i >= vector.size()) {

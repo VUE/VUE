@@ -16,16 +16,16 @@ package edu.tufts.osidimpl.repository.sakai;
 
 public interface SakaiContentObject extends java.io.Serializable
 {
-	public String getDisplayName();
-	public void setDisplayName(String displayName);
+	String getDisplayName();
+	void setDisplayName(String displayName);
 	
-	public String getDescription();
-	public void setDescription(String description);
+	String getDescription();
+	void setDescription(String description);
 	
-	public String getMIMEType();
-	public void setMIMEType(String MIMEType);
+	String getMIMEType();
+	void setMIMEType(String MIMEType);
 	
-	public byte[] getBytes();
-	public void setBytes(byte[] bytes);
+	byte[] getBytes();
+	void setBytes(byte[] bytes);
 }
 	

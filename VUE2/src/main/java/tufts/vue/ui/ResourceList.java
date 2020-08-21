@@ -287,7 +287,7 @@ public class ResourceList extends JList
 
     public void activeChanged(final tufts.vue.ActiveEvent e, final tufts.vue.Resource resource) {
         if (getPicked() == resource) {
-            ; // do nothing; already selected
+            // do nothing; already selected
         } else {
             // TODO: if list contains selected item, select it!
             clearSelection();

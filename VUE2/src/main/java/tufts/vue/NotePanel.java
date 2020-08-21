@@ -159,7 +159,7 @@ public class NotePanel extends tufts.vue.gui.Widget
         return "NotePanel[" + mTextPane + "]";
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         DEBUG.Enabled = DEBUG.EVENTS = true;
         DEBUG.KEYS = true;
         NotePanel p = new NotePanel();

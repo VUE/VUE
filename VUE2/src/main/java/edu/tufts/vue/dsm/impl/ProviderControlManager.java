@@ -145,7 +145,7 @@ public class ProviderControlManager
                 // In case an OLD version of VUE was later run which re-created the original dir
                 // somehow, prioritize the new directory if it has more contents than the old,
                 // or, of course, if the old isn't writeable.
-                final String newContents[] = newDir.list();
+                final String[] newContents = newDir.list();
                 Log.info("Found new OsidProviders dir: " + newDir + " contains " + newContents.length + " files");
                 if (oldDir.canWrite() && newContents.length > oldContents.length) {
                     Log.info("prioritizing new dir over old based on contents: " + NewLibraryDir);

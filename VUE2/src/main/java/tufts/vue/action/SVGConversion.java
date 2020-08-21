@@ -25,6 +25,8 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+
 import org.apache.xerces.dom.*;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.*;
@@ -114,7 +116,7 @@ public class SVGConversion extends AbstractAction {
             //using the SVGGraphics object, write the SVG content to the given file
         //    FileWriter out = new FileWriter(location);
         	
-        	Writer out = new OutputStreamWriter(new FileOutputStream(location),"UTF-8");
+        	Writer out = new OutputStreamWriter(new FileOutputStream(location), StandardCharsets.UTF_8);
             svgGenerator.stream(out, true);
             out.flush();
             out.close();

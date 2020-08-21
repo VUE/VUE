@@ -1268,7 +1268,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
     public Window getFocusedWindow() {
         Window w = super.getFocusedWindow();
-        if (LieImpl && mForcingFocus) w = mForcedFocusWindow;;
+        if (LieImpl && mForcingFocus) w = mForcedFocusWindow;
         if (DEBUG.FOCUS) trace("getFocusedWindow", w);
         return w;
     }
@@ -1336,7 +1336,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         return GUI.eventName(e);
     }
 
-    public static void log_test_main(String args[]) {
+    public static void log_test_main(String[] args) {
         
         VUE.init(args);
         

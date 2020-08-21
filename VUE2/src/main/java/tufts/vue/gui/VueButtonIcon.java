@@ -145,7 +145,7 @@ public class VueButtonIcon implements Icon
     public int getIconWidth() { return width; }
     public int getIconHeight() { return height; }
 
-    private final static String _types[] = {"Up","Pressed","Selected","Disabled","Rollover","Menu","Menu Selected"};
+    private final static String[] _types = {"Up","Pressed","Selected","Disabled","Rollover","Menu","Menu Selected"};
 	
     /**
      * paint the entire button as an icon plus it's visible icon graphic

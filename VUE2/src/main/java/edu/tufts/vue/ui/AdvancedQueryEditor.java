@@ -82,9 +82,9 @@ java.awt.event.ActionListener
         // setting editors for columns
         // field column.
         try {
-            String fields[] = { "identifier","title","language","description","end user", "age range" };
-            String endusers[] = { "author","counsellor","learner","manager","parent","teacher","other" };
-            String operators[] = { "eq","lt","lte","gt","gte" };
+            String[] fields = { "identifier","title","language","description","end user", "age range" };
+            String[] endusers = { "author","counsellor","learner","manager","parent","teacher","other" };
+            String[] operators = { "eq","lt","lte","gt","gte" };
             
             javax.swing.JComboBox fieldsComboBox = new javax.swing.JComboBox(fields);
             fieldsComboBox.addActionListener(this);

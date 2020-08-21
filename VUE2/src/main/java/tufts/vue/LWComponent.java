@@ -94,7 +94,7 @@ public class LWComponent
             TREE,
             /** order for layout operations; children before parents */
             DEPTH
-    };
+    }
 
 
 
@@ -260,7 +260,7 @@ public class LWComponent
     }
 
     public interface Listener extends java.util.EventListener {
-        public void LWCChanged(LWCEvent e);
+        void LWCChanged(LWCEvent e);
     }
 
     /*
@@ -527,7 +527,7 @@ public class LWComponent
     // of LWComponent, to use their own type in the first argument to set/getValue, omitting
     // the need for casts in the method.
 
-    public enum KeyType { Default, STYLE, SUB_STYLE, DATA };
+    public enum KeyType { Default, STYLE, SUB_STYLE, DATA }
 
     // todo: TValue may be overkill -- may want to revert to using just Object
     public static class Key<TSubclass extends LWComponent,TValue> {
@@ -714,7 +714,7 @@ public class LWComponent
             setValue(c, value); // this is the only place that the 2-arg setValue should ever be called
         }
 
-        private final void setValueBySlot(TSubclass c, TValue value) {
+        private void setValueBySlot(TSubclass c, TValue value) {
             final Property slot = getSlotSafely(c);
             if (slot == null || slot == NO_SLOT_PROVIDED)
                 return;
@@ -793,7 +793,7 @@ public class LWComponent
             }
         }
 
-        private final void stringSet(TSubclass c, Object v) {
+        private void stringSet(TSubclass c, Object v) {
             setValueWithContext(c, (TValue) v, PROPERTY_SET_DEFAULT); // may want a seperate context here, e.g., PROPERTY_SET_FROM_STRING
         }
 
@@ -3787,7 +3787,7 @@ public class LWComponent
     }
 
     /** @return the slides for drawing as slide icons in the current picking and drawing order */
-    private final Iterable<LWSlide> seenSlideIcons(DrawContext dc) {
+    private Iterable<LWSlide> seenSlideIcons(DrawContext dc) {
 //         if (mEntries == null || mEntries.size() == 0) {
 //             // this is sort of overkill, as we shouldn't even be calling this if hasEntries is false
 //             return Util.EmptyIterable;
@@ -5682,7 +5682,6 @@ public class LWComponent
         // (and ultimate picking when impl is optimized)
 
         if (parent == null) {
-            ;
         } else {
             parent.transformZero(g);
         }
@@ -6533,7 +6532,7 @@ public class LWComponent
     // if we ever hava a viewer that's implementing a constant auto-fit feature, it will
     // fall behind until we handle this in proper model/view split fashion.
 
-    private final void layoutSlideIcons(DrawContext dc) {
+    private void layoutSlideIcons(DrawContext dc) {
         if (mEntries == null)
             return;
 
@@ -8058,7 +8057,7 @@ public class LWComponent
 
 
 
-    public static void main(String args[]) throws Exception
+    public static void main(String[] args) throws Exception
     {
         VUE.init(args);
 

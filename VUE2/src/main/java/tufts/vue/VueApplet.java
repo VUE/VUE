@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collection;
@@ -268,7 +269,7 @@ public class VueApplet extends JApplet {
 	{
 		return isZotero;
 	}
-	private final void processAppletParameters() {
+	private void processAppletParameters() {
 		String zoteroPlugin = this.getParameter(this.zoteroPlugin);
 		if (zoteroPlugin != null)
 			zoteroPlugin = zoteroPlugin.toLowerCase();
@@ -409,7 +410,7 @@ public class VueApplet extends JApplet {
         //      is.setCharacterStream(reader);
         InputStream is;
 		try {
-			is = new java.io.ByteArrayInputStream(content.getBytes("UTF-8"));
+			is = new java.io.ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
 			final org.w3c.dom.Document doc = factory.newDocumentBuilder().parse((InputStream) is);
 			NodeList nodeLst = doc.getElementsByTagName("link");
 			
@@ -484,7 +485,7 @@ public class VueApplet extends JApplet {
 			e.printStackTrace();
 		}
 		return null;
-			};
+			}
 		});
 		
 	}
@@ -505,7 +506,7 @@ public class VueApplet extends JApplet {
         //      is.setCharacterStream(reader);
         InputStream is;
 		try {
-			is = new java.io.ByteArrayInputStream(content.getBytes("UTF-8"));
+			is = new java.io.ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
 			final org.w3c.dom.Document doc = factory.newDocumentBuilder().parse((InputStream) is);
 			NodeList nodeLst = doc.getElementsByTagName("note");
 			
@@ -578,7 +579,7 @@ public class VueApplet extends JApplet {
 			e.printStackTrace();
 		}
 		return null;
-			};
+			}
 		});
 		
 	}

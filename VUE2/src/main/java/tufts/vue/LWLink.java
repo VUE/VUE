@@ -203,8 +203,8 @@ public class LWLink extends LWComponent
         }
         
 
-    };
-    
+    }
+
     private final End head = new End();
     private final End tail = new End();
 
@@ -814,7 +814,7 @@ public class LWLink extends LWComponent
 
     @Override
     protected void setScale(double scale) {
-        ; // do nothing: links don't take on a scale of their own
+        // do nothing: links don't take on a scale of their own
     }
 
     
@@ -1700,7 +1700,7 @@ public class LWLink extends LWComponent
             // fast reject on pre-computed bounding box (which already includes stroke width)
             return false;
         } else {
-            return pickDistance(x, y, pc) == 0 ? true : false;
+            return pickDistance(x, y, pc) == 0;
         }
     }
     

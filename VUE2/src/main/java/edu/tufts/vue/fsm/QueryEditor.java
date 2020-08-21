@@ -21,19 +21,19 @@ package edu.tufts.vue.fsm;
 
 public interface QueryEditor
 {
-	public java.io.Serializable getCriteria();
-	public void setCriteria(java.io.Serializable searchCriteria);
+	java.io.Serializable getCriteria();
+	void setCriteria(java.io.Serializable searchCriteria);
 
-	public org.osid.shared.Properties getProperties();
-	public void setProperties(org.osid.shared.Properties searchProperties);
+	org.osid.shared.Properties getProperties();
+	void setProperties(org.osid.shared.Properties searchProperties);
 	
-	public void setSearchType(org.osid.shared.Type searchType);
-	public org.osid.shared.Type getSearchType();		
+	void setSearchType(org.osid.shared.Type searchType);
+	org.osid.shared.Type getSearchType();
 
-	public void addSearchListener(edu.tufts.vue.fsm.event.SearchListener listener);
-	public void removeSearchListener(edu.tufts.vue.fsm.event.SearchListener listener);
+	void addSearchListener(edu.tufts.vue.fsm.event.SearchListener listener);
+	void removeSearchListener(edu.tufts.vue.fsm.event.SearchListener listener);
 	
-	public String getSearchDisplayName();
+	String getSearchDisplayName();
 	
-	public void refresh();
+	void refresh();
 }

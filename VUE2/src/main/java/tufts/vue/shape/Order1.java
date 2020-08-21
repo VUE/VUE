@@ -200,7 +200,7 @@ final class Order1 extends Curve {
 	return new Order1(x0, y0, x1, y1, -direction);
     }
 
-    public int compareTo(Curve other, double yrange[]) {
+    public int compareTo(Curve other, double[] yrange) {
 	if (!(other instanceof Order1)) {
 	    return super.compareTo(other, yrange);
 	}
@@ -283,7 +283,7 @@ final class Order1 extends Curve {
 	return orderof(XforY(y), c1.XforY(y));
     }
 
-    public int getSegment(double coords[]) {
+    public int getSegment(double[] coords) {
 	if (direction == INCREASING) {
 	    coords[0] = x1;
 	    coords[1] = y1;
