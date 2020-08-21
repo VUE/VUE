@@ -890,7 +890,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                     //System.out.println("wvsp: " + e);
                     chooser.setColor(backColor);
                     try {
-                        javax.swing.JColorChooser.createDialog(panel,"Color",true,chooser,okListener,null).setVisible(true);;
+                        javax.swing.JColorChooser.createDialog(panel,"Color",true,chooser,okListener,null).setVisible(true);
                     } catch(Exception ex) {
                         ex.printStackTrace();
                     }

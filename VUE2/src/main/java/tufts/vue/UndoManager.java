@@ -807,7 +807,7 @@ public class UndoManager
     private final TaskMap mLastTasks = new TaskMap("Last"); 
     
     /**
-     * @see addCleanupTask(Object taskKey, Runnable task)
+     * @see  public void addCleanupTask(Object taskKey, Runnable task)
      * This defaults the taskKey to the task object itself.
      **/
     public void addCleanupTask(Runnable task) {

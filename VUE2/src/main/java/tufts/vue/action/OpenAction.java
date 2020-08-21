@@ -416,7 +416,7 @@ public class OpenAction extends VueAction
 //     }
     
     /** test harness for opening a whole bunch of map files just to make sure we can parse and create an LWMap model from them */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         //VUE.parseArgs(args);
         VUE.debugInit(false);

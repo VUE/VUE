@@ -180,7 +180,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         }
         
         linkThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
-        Object link[] = {linkThresholdSlider.getValue()};	
+        Object[] link = {linkThresholdSlider.getValue()};
         linkPercentageDisplay = new JLabel(VueResources.getFormatMessage(link,"dialog.visualizationsettings.linkspercentage"));
         linkPercentageDisplay.setFont(tufts.vue.gui.GUI.LabelFace);
         voteLayout.setConstraints(linkPercentageDisplay,voteConstraints);
@@ -196,7 +196,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         {
            public void stateChanged(ChangeEvent e)
            {
-        	   Object link[] = {linkThresholdSlider.getValue()};
+        	   Object[] link = {linkThresholdSlider.getValue()};
         	   linkPercentageDisplay.setText(VueResources.getFormatMessage(link,"dialog.visualizationsettings.linkspercentage"));
            }
         });

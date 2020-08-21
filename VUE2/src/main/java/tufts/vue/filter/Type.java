@@ -31,18 +31,18 @@ import java.util.List;
 
 public interface Type{
     
-    public static final String STRING_TYPE = "String";
-    public static final String INTEGER_TYPE = "Integer";
-    public static final String BOOLEAN_TYPE = "Boolean";
+    String STRING_TYPE = "String";
+    String INTEGER_TYPE = "Integer";
+    String BOOLEAN_TYPE = "Boolean";
     
     /** Creates a new instance of Class */
-    public void setDisplayName(String displayName);
-    public String getDisplayName();
-    public List getOperators();
-    public Operator getDefaultOperator();
-    public List getSettableOperators();
+    void setDisplayName(String displayName);
+    String getDisplayName();
+    List getOperators();
+    Operator getDefaultOperator();
+    List getSettableOperators();
     /** true if s2 is true given s1 **/
-    public boolean compare(Statement s1,Statement s2);
-    public boolean isValidKey();
-    public boolean isValidValue();
+    boolean compare(Statement s1, Statement s2);
+    boolean isValidKey();
+    boolean isValidValue();
 }

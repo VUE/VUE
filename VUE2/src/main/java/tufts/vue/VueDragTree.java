@@ -116,7 +116,7 @@ public class VueDragTree extends JTree
     protected VueDragTree(FavoritesNode favoritesNode) {
 
         //Util.printStackTrace("NEW: " + getClass() + "; " + favoritesNode + "; " + favoritesNode.getResource());
-        if (DEBUG.Enabled) Log.debug("NEW: " + favoritesNode + "; " + favoritesNode.getResource());;
+        if (DEBUG.Enabled) Log.debug("NEW: " + favoritesNode + "; " + favoritesNode.getResource());
 
         setName(favoritesNode.toString());
         setModel(new DefaultTreeModel(favoritesNode));

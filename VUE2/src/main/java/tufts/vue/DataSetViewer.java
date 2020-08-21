@@ -71,6 +71,7 @@ public class DataSetViewer extends ContentViewer {
 		DSB = null;
 		browserDS = null;
 		dataSourceList = null;
+		super.finalize();
 	}
 
 

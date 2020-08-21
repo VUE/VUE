@@ -525,7 +525,7 @@ public class NodeTool extends VueTool
             return cachedShape;
         }
 
-        static final int nearestEven(double d)
+        static int nearestEven(double d)
         {
             if (Math.floor(d) == d && d % 2 == 1) // if exact odd integer, just increment
                 return (int) d+1;
@@ -534,7 +534,7 @@ public class NodeTool extends VueTool
             else
                 return (int) Math.ceil(d);
         }
-        static final int nearestOdd(double d)
+        static int nearestOdd(double d)
         {
             if (Math.floor(d) == d && d % 2 == 0) // if exact even integer, just increment
                 return (int) d+1;

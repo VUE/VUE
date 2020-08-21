@@ -34,16 +34,16 @@ package tufts.vue.filter;
 public interface Operator {
     
     /** Creates a new instance of Class */
-    public void setDisplayName(String displayName);
-    public String getDisplayName();
-    public void setSymbol(String symbol);
-    public String getSymbol();
+    void setDisplayName(String displayName);
+    String getDisplayName();
+    void setSymbol(String symbol);
+    String getSymbol();
     
     /*
      * compares statement1 and statment 2 and returns true iff statement2 is true given statement 1
      */
     
-    public boolean compare(Statement s1,Statement s2);
+    boolean compare(Statement s1, Statement s2);
     
     /*
      * returns true if operator can be set by  user.  Some operators like contains, matches  
@@ -51,6 +51,6 @@ public interface Operator {
      *
      */
     
-    public boolean isSettable();
+    boolean isSettable();
 }
 

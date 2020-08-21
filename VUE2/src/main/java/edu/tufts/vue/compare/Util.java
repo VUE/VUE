@@ -23,8 +23,8 @@ import tufts.vue.*;
 import  java.util.*;
 public class Util {
 
-    public enum MP { LABEL, TYPE, BOTH, RESOURCE };
-    
+    public enum MP { LABEL, TYPE, BOTH, RESOURCE }
+
     // returns a map for concept map comparison
     public static final String[] CITIES = {"Boston","Miami", "Denver","London","Mumbai","Tokyo"};
     public static final String MAP_NAME= "Cities";

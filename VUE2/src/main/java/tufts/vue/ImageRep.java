@@ -37,7 +37,7 @@ public abstract class ImageRep implements /*ImageRef.Rep,*/ Images.Listener
 
     static final int[] ZERO_SIZE = new int[2];
 
-    private static interface Ref<T> {
+    private interface Ref<T> {
         T get();
         boolean isLoader();
     }

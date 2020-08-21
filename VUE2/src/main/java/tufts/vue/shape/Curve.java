@@ -49,8 +49,8 @@ public abstract class Curve {
     }
 
     public static void insertQuad(Vector curves,
-				  double x0, double y0,
-				  double coords[])
+                                  double x0, double y0,
+                                  double[] coords)
     {
 	double y1 = coords[3];
 	if (y0 > y1) {
@@ -72,8 +72,8 @@ public abstract class Curve {
     }
 
     public static void insertCubic(Vector curves,
-				   double x0, double y0,
-				   double coords[])
+                                   double x0, double y0,
+                                   double[] coords)
     {
 	double y1 = coords[5];
 	if (y0 > y1) {
@@ -117,8 +117,8 @@ public abstract class Curve {
     }
 
     public static int crossingsForQuad(double x, double y,
-				       double x0, double y0,
-				       double coords[])
+                                       double x0, double y0,
+                                       double[] coords)
     {
 	double cx0 = coords[0];
 	double cy0 = coords[1];
@@ -142,8 +142,8 @@ public abstract class Curve {
 		return 0;
 	    }
 	}
-	double eqnx[] = new double[3];
-	double eqny[] = new double[3];
+	double[] eqnx = new double[3];
+	double[] eqny = new double[3];
 	Order2.getEqn(eqnx, x0, coords[0], coords[2]);
 	Order2.getEqn(eqny, y0, coords[1], coords[3]);
 	System.arraycopy(eqny, 0, coords, 0, 3);
@@ -168,8 +168,8 @@ public abstract class Curve {
     }
 
     public static int crossingsForCubic(double x, double y,
-					double x0, double y0,
-					double coords[])
+                                        double x0, double y0,
+                                        double[] coords)
     {
 	double cx0 = coords[0];
 	double cy0 = coords[1];
@@ -195,8 +195,8 @@ public abstract class Curve {
 		return 0;
 	    }
 	}
-	double eqnx[] = new double[4];
-	double eqny[] = new double[4];
+	double[] eqnx = new double[4];
+	double[] eqny = new double[4];
 	Order3.getEqn(eqnx, x0, coords[0], coords[2], coords[4]);
 	Order3.getEqn(eqny, y0, coords[1], coords[3], coords[5]);
 	System.arraycopy(eqny, 0, coords, 0, 4);
@@ -227,7 +227,7 @@ public abstract class Curve {
 	double cury = 0;
 	double newx, newy;
 	int cross = 0;
-	double coords[] = new double[6];
+	double[] coords = new double[6];
 	while (!pi.isDone()) {
 	    switch (pi.currentSegment(coords)) {
 	    case PathIterator.SEG_MOVETO:
@@ -303,7 +303,7 @@ public abstract class Curve {
 	return v;
     }
 
-    public static double firstValidRoot(double roots[], int numroots) {
+    public static double firstValidRoot(double[] roots, int numroots) {
 	for (int i = 0; i < numroots; i++) {
 	    double t = roots[i];
 	    if (t >= 0 && t <= 1) {
@@ -450,7 +450,7 @@ public abstract class Curve {
     public abstract Curve getReversedCurve();
     public abstract Curve getSubCurve(double ystart, double yend, int dir);
 
-    public int compareTo(Curve that, double yrange[]) {
+    public int compareTo(Curve that, double[] yrange) {
 	/*
 	System.out.println(this+".compareTo("+that+")");
 	System.out.println("target range = "+yrange[0]+"=>"+yrange[1]);
@@ -614,12 +614,12 @@ public abstract class Curve {
 
     public static final double TMIN = 1E-3;
 
-    public boolean findIntersect(Curve that, double yrange[], double ymin,
-				 int slevel, int tlevel,
-				 double s0, double xs0, double ys0,
-				 double s1, double xs1, double ys1,
-				 double t0, double xt0, double yt0,
-				 double t1, double xt1, double yt1)
+    public boolean findIntersect(Curve that, double[] yrange, double ymin,
+                                 int slevel, int tlevel,
+                                 double s0, double xs0, double ys0,
+                                 double s1, double xs1, double ys1,
+                                 double t0, double xt0, double yt0,
+                                 double t1, double xt1, double yt1)
     {
 	/*
 	String pad = "        ";
@@ -786,5 +786,5 @@ public abstract class Curve {
 		Math.max(Math.abs(v1), Math.abs(v2)) * 1E-10);
     }
 
-    public abstract int getSegment(double coords[]);
+    public abstract int getSegment(double[] coords);
 }

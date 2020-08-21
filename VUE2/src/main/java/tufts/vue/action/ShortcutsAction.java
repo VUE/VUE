@@ -126,8 +126,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
         //+ " " + NBSP
         //+ " " + NBSP
         ;
-;
-        
+
     private static void add(int bits, Object o, String... attr) {
 
         html.append("<td");
@@ -629,7 +628,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
     
 
     
-    public static void main(String args[])
+    public static void main(String[] args)
     {
         VUE.init(args);
 

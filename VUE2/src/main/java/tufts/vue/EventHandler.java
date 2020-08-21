@@ -67,7 +67,7 @@ public class EventHandler<E>
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(EventHandler.class);
 
     public interface Listener<E> {
-        public void eventRaised(E event);
+        void eventRaised(E event);
     }
     
     private static final Map<Class,EventHandler> AllEventHandlers = new HashMap();

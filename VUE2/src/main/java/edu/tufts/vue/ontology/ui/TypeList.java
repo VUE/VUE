@@ -575,8 +575,8 @@ public class TypeList extends JList implements MouseListener,ActionListener {
           JLabel loadingLabelText = new JLabel(VueResources.getString("addLibrary.loading.label")); 
           JLabel loadingLabelImage = new JLabel(tufts.vue.VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
           JPanel loadingLabel = new JPanel();
-          loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));;
-          loadingLabel.add(loadingLabelImage);
+          loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+             loadingLabel.add(loadingLabelImage);
           loadingLabel.add(loadingLabelText);
           
           //widget.removeAll();

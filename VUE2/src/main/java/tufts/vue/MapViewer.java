@@ -1541,7 +1541,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", newFocal);
         if (activeTool != null && activeTool.handleFocalSwitch(this, mFocal, newFocal)) {
             if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", "activeTool handled: " + activeTool);
-            ; // the active tool has handled the focal loading and any desired auto-fit
+            // the active tool has handled the focal loading and any desired auto-fit
         } else {
             if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", "vanilla load " + newFocal);
             loadFocal(newFocal, true, animate);
@@ -2372,7 +2372,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         if (topOfStackView.isSameAsCurrentView()) {
             if (DEBUG.PRESENT) debug("sameView XX: " + produceView());
-            ; // do nothing -- the view hasn't significantly changed
+            // do nothing -- the view hasn't significantly changed
         } else {
             // This is hack to deal with the non-deterministic nature of our code the decides when
             // the view is finished changing and it's time to record a new view.  The problem is
@@ -4876,7 +4876,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //dc.g.setStroke(STROKE_HALF);
         
         if (selection.size() > 50) {
-            ; // do nothing
+            // do nothing
         } else
         for (LWSelection.ControlListener cl : selection.getControlListeners()) {
             LWSelection.Controller[] points = cl.getControlPoints(getZoomFactor());
@@ -7703,7 +7703,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             
             if (activeTool.handleMouseDragged(mme)) {
-                ;
             }
             else if (!DEBUG_FINDPARENT_OFF
                      //&& (dragComponent instanceof LWNode || VueSelection.allOfType(LWNode.class)) //todo opt: cache type
@@ -7921,7 +7920,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             else if (mouseWasDragged && (indication == null || indication instanceof LWContainer)) {
                 // this allows dropping into a group
                 if (dragComponent == null || !isDropRequest(e)) {
-                    ; // nothing dragged, or shift requst to skip reparenting
+                    // nothing dragged, or shift requst to skip reparenting
                 } else {
                     processViewerLocalMoveAndDrop(e, (LWContainer) indication, getSelection());
                 }
@@ -8296,7 +8295,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         private final int SYSTEM_DRAG_MODIFIER = VueUtil.isMacPlatform() ? InputEvent.META_MASK : (InputEvent.ALT_MASK + InputEvent.CTRL_MASK);
     
-        private final boolean isSystemDragStart(MouseEvent e) {
+        private boolean isSystemDragStart(MouseEvent e) {
             //out("   MODIFIERS ACCORDING TO InputEvent [" + InputEvent.getModifiersExText(e.getModifiers()) + "]");
             //out("   MODIFIERS ACCORDING TO MouseEvent [" + MouseEvent.getMouseModifiersText(e.getModifiers()) + "]");
             //out("EX MODIFIERS ACCORDING TO InputEvent [" + InputEvent.getModifiersExText(e.getModifiersEx()) + "]");
@@ -8312,20 +8311,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
         }
         
-        private final boolean isDoubleClickEvent(MouseEvent e) {
+        private boolean isDoubleClickEvent(MouseEvent e) {
             return !activeToolAteMousePress
                 && (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) // % 2 detects cascading double clicks (reported as a 4 click, 6 click, etc)
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
                 && (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) == 0;
         }
         
-        private final boolean isSingleClickEvent(MouseEvent e) {
+        private boolean isSingleClickEvent(MouseEvent e) {
             return e.getClickCount() == 1
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
                 && (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) == 0;
         }
 
-    private final boolean activeToolIsText() {
+    private boolean activeToolIsText() {
         return activeTool == TextTool || activeTool == RichTextTool;
     }
         

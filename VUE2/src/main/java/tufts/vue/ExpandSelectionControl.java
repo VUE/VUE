@@ -38,7 +38,7 @@ public class ExpandSelectionControl extends JPanel implements ExpandSelectionLis
 									iconRestOn = VueResources.getImageIcon("expandselection.rest.on"),
 									iconRestOver = VueResources.getImageIcon("expandselection.rest.over");
 	protected int					currentDepth = 0;
-	protected JLabel				labels[] = {new JLabel(iconFirstOff),
+	protected JLabel[] labels = {new JLabel(iconFirstOff),
 										new JLabel(iconRestOff),
 										new JLabel(iconRestOff),
 										new JLabel(iconRestOff),

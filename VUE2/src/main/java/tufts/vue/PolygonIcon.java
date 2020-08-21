@@ -35,7 +35,7 @@ public class PolygonIcon implements Icon {
     private final int DEFAULT_HEIGHT = 5;
     private final int DEFAULT_WIDTH = 5;
     private Color color = Color.BLACK;
-    private int height  = DEFAULT_HEIGHT;;
+    private int height  = DEFAULT_HEIGHT;
     private int width = DEFAULT_WIDTH;
     private Shape shape;
     /** Creates a new instance of PolygonIcon */

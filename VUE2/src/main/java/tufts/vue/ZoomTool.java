@@ -488,7 +488,6 @@ public class ZoomTool extends VueTool
     @Override
     public void handlePostDraw(DrawContext dc, MapViewer viewer) {
         if (zoomedTo instanceof LWSlide) {
-            ;
         } else if (zoomedTo != null) {
             zoomedTo.draw(dc); // force zoomed-to on-top
         }
@@ -626,7 +625,7 @@ public class ZoomTool extends VueTool
     {
     	setZoomFitRegion(viewer,mapRegion,borderGap,animate,false);
     }
-    /** @param currently only works if NOT in a scroll pane */    
+    /** currently only works if NOT in a scroll pane */
     public static void setZoomFitRegion
         (final MapViewer viewer,
          final Rectangle2D mapRegion,

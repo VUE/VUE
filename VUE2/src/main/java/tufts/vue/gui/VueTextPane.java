@@ -79,7 +79,7 @@ public class VueTextPane extends JTextPane
     }
 
     private void debug(String s) {
-        Log.debug(String.format("%08X[%s/%s] %s", System.identityHashCode(this), getName(), propertyKey, s));;
+        Log.debug(String.format("%08X[%s/%s] %s", System.identityHashCode(this), getName(), propertyKey, s));
     }
     
     /** We override this to do nothing, so that default focus traversal keys are left in
@@ -306,7 +306,7 @@ public class VueTextPane extends JTextPane
         }
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         VUE.init(args);
         VueUtil.displayComponent(new VueTextField("some text"));
         DockWindow w = GUI.createDockWindow(VueResources.getString("dockWindow.vueTextpanetest.title"));

@@ -48,8 +48,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      *
      * @return String the display name
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public String getDisplayName() throws osid.dr.DigitalRepositoryException {
         return this.displayName;
@@ -60,8 +59,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      *
      * @return String the description
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public String getDescription() throws osid.dr.DigitalRepositoryException {
         return this.description;
@@ -73,8 +71,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      * @return osid.shared.Id A unique Id that is usually set by a create
      *         method's implementation
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public osid.shared.Id getId() throws osid.dr.DigitalRepositoryException {
         return this.id;
@@ -87,8 +84,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      *
      * @return boolean
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public boolean isPopulatedByDR() throws osid.dr.DigitalRepositoryException {
         return this.populatedByDR;
@@ -99,8 +95,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      *
      * @return boolean
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public boolean isMandatory() throws osid.dr.DigitalRepositoryException {
         return this.mandatory;
@@ -111,8 +106,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      *
      * @return boolean
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public boolean isRepeatable() throws osid.dr.DigitalRepositoryException {
         return this.repeatable;
@@ -123,8 +117,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      *
      * @return InfoStructure
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public osid.dr.InfoStructure getInfoStructure()
         throws osid.dr.DigitalRepositoryException {
@@ -140,8 +133,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      * @return InfoPartIterator  The order of the objects returned by the
      *         Iterator is not guaranteed.
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public osid.dr.InfoPartIterator getInfoParts()
         throws osid.dr.DigitalRepositoryException {
@@ -159,8 +151,7 @@ public class ParamaterInfoPart implements osid.dr.InfoPart {
      *
      * @return boolean
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public boolean validateInfoField(osid.dr.InfoField infoField)
         throws osid.dr.DigitalRepositoryException {

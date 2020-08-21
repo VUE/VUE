@@ -172,7 +172,7 @@ public class UserMapType {
 	/**
 	 * findUserPropertyByID
 	 * Finds the UserProperty with the given ID.
-	 * @param String id
+	 * @param pID
 	 * @return the UserProperty with id, or null if not found
 	 **/
 	public UserProperty findUserPropertyByID( String pID) {
@@ -217,7 +217,7 @@ public class UserMapType {
 	/**
 	 * createUserProperty
 	 * Creates a user Property with the given display name
-	 * @param String the display name
+	 * @param pName the display name
 	 **/
 	public UserProperty createUserProperty( String pName) {
 		String id = makeUserPropertyID( pName);

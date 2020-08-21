@@ -23,7 +23,7 @@ package edu.tufts.vue.fsm;
 
 public interface AssetViewer
 {
-	public java.awt.Component viewAsset(org.osid.repository.Asset asset);
+	java.awt.Component viewAsset(org.osid.repository.Asset asset);
 
-	public java.awt.Component viewAssets(org.osid.repository.AssetIterator assetIterator);
+	java.awt.Component viewAssets(org.osid.repository.AssetIterator assetIterator);
 }

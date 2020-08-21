@@ -65,7 +65,7 @@ public class PresentationTool extends VueTool
     private static final boolean RECORD_BACKUP = true;
     private static final boolean BACKING_UP = false;
 
-    static Object obj[] = {Actions.ToggleSlideIcons.getKeyStrokeDescription()};
+    static Object[] obj = {Actions.ToggleSlideIcons.getKeyStrokeDescription()};
     private static final BooleanPreference ChooseNodesOverSlides = BooleanPreference.create
         (edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
          "slideNodeView", 
@@ -504,7 +504,7 @@ public class PresentationTool extends VueTool
                 throw new IndexOutOfBoundsException("index=" + index + " lastIndex=" + lastIndex());
         }
         
-        private final int lastIndex() {
+        private int lastIndex() {
             return size() - 1;
         }
         
@@ -533,7 +533,7 @@ public class PresentationTool extends VueTool
             if (o.equals(next())) {
                 rollForward();
             } else if (o.equals(current())) {
-                ; // do nothing: never repeat items in the queue
+                // do nothing: never repeat items in the queue
             } else {
                 if (!isEmpty() && index < lastIndex()) {
                     // toss out forward stack information whenever we push anything:

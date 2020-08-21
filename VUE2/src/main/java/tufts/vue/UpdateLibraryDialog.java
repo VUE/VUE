@@ -44,7 +44,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
     
     edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
     edu.tufts.vue.dsm.OsidFactory factory;
-    org.osid.provider.Provider checked[];
+    org.osid.provider.Provider[] checked;
     java.util.Vector checkedVector = new java.util.Vector();
     JButton addButton = new JButton(VueResources.getString("button.update.lable"));
     JButton cancelButton = new JButton(VueResources.getString("button.label.done"));
@@ -207,7 +207,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             descriptionTextArea.setText("");
 			// find the ids of all providers in VUE
 			java.util.Vector installedProviderVector = new java.util.Vector();
-			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
+			edu.tufts.vue.dsm.DataSource[] dataSources = dataSourceManager.getDataSources();
 			for (int i=0; i < dataSources.length; i++) {
 				installedProviderVector.addElement(dataSources[i].getProviderId().getIdString());
 			}

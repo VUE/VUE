@@ -2606,7 +2606,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 //         System.err.println(getClass().getName() + "@" + Integer.toHexString(hashCode()) + ": " + s);
 //     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         String rs = args.length > 0 ? args[0] : "/";
 
         VUE.parseArgs(args);

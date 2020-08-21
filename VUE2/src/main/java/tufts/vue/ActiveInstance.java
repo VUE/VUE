@@ -69,7 +69,7 @@ public class ActiveInstance<T>
      * it can implement this interface, and it will be told as it goes active / inactive.
      */
     public interface Markable {
-        public void markActive(boolean active);
+        void markActive(boolean active);
     }
 
     /** Add's a lister for ALL active item events */

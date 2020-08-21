@@ -734,7 +734,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
         }
     }
     
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("usage: ConfigurationUI xmlFilename");
             System.exit(1);

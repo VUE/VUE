@@ -1255,7 +1255,7 @@ public class WidgetStack extends Widget
 		}                
     }
 
-    public static void main(String args[])
+    public static void main(String[] args)
     {
         // todo: appears to be a bug in GridBagLayout where if ALL
         // components are expanders, in can sometimes add a pixel

@@ -25,16 +25,16 @@ package tufts.vue;
 
 public interface TableBag {
 
-    public javax.swing.table.TableModel getTableModel();
+    javax.swing.table.TableModel getTableModel();
 
-    public int size();
+    int size();
     
-    public interface Listener {
+    interface Listener {
         void tableBagChanged(TableBag bag);
     }
 
-    public void addListener(Listener l);
-    public void removeListener(Listener l);
+    void addListener(Listener l);
+    void removeListener(Listener l);
 
     
 }

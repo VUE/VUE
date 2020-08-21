@@ -247,7 +247,7 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
 
         
     public int[] getPublishableModes() {
-        int modes[] = {Publishable.PUBLISH_MAP,Publishable.PUBLISH_CMAP,Publishable.PUBLISH_ZIP};
+        int[] modes = {Publishable.PUBLISH_MAP,Publishable.PUBLISH_CMAP,Publishable.PUBLISH_ZIP};
         return modes;
     }
     
@@ -276,7 +276,7 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
         OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("ConceptMap","vue")));
         
         int fileLength = (int)savedMap.length();
-        byte bytes[] = new  byte[fileLength];
+        byte[] bytes = new  byte[fileLength];
         while (istream.read(bytes,0,fileLength) != -1)
             ostream.write(bytes,0,fileLength);
         istream.close();
@@ -291,7 +291,7 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
             OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("IMSCP","zip")));
             
             int fileLength = (int)savedCMap.length();
-            byte bytes[] = new  byte[fileLength];
+            byte[] bytes = new  byte[fileLength];
             while (istream.read(bytes,0,fileLength) != -1)
                 ostream.write(bytes,0,fileLength);
             istream.close();
@@ -315,7 +315,7 @@ public class LocalFileDataSource extends BrowseDataSource implements Publishable
             InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
             OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("Export to Zip File","zip"))); 
             int fileLength = (int)savedCMap.length();
-            byte bytes[] = new  byte[fileLength];
+            byte[] bytes = new  byte[fileLength];
             while (istream.read(bytes,0,fileLength) != -1)
                 ostream.write(bytes,0,fileLength);
             istream.close();

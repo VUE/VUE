@@ -187,7 +187,7 @@ public class LocalFilingTest {
         System.out.println ("test path is: " + testPath);
         System.out.println ("separator is: " + test.separator);
 
-        String parts[] = lm.explodePath (testPath, test.separatorChar);
+        String[] parts = lm.explodePath (testPath, test.separatorChar);
         for (int i=0; i < parts.length; i++) {
             System.out.println ("\t Part " + i + ": " + parts[i]);
         }

@@ -10,12 +10,12 @@ extends java.io.Serializable
 {
     /**
 	 */
-    public boolean hasNextProvider()
+    boolean hasNextProvider()
 		throws org.osid.registry.RegistryException;
 
     /**
 	 */
-    public org.osid.registry.Provider nextProvider()
+    org.osid.registry.Provider nextProvider()
 		throws org.osid.registry.RegistryException;
 	/**
 		<p>MIT O.K.I&#46; SID Implementation License.

@@ -211,7 +211,7 @@ public class SaveAction extends VueAction
             	 InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
                 OutputStream ostream = new BufferedOutputStream(new FileOutputStream(file));
                 int fileLength = (int)savedCMap.length();
-                byte bytes[] = new  byte[fileLength];
+                byte[] bytes = new  byte[fileLength];
                 try
                 {
                 	while (istream.read(bytes,0,fileLength) != -1)
@@ -438,7 +438,7 @@ public class SaveAction extends VueAction
     
     public static boolean PACKAGE_DEBUG = false;
 
-    public static void main(String args[])
+    public static void main(String[] args)
         throws IOException
     {
         //VUE.parseArgs(args);

@@ -207,7 +207,7 @@ public class ActionUtil
         return picked;
     }
     
-    private final static void adjustExtension()
+    private static void adjustExtension()
     {
     	BasicFileChooserUI ui = (BasicFileChooserUI)saveChooser.getUI();
 		String name =ui.getFileName();
@@ -655,7 +655,7 @@ public class ActionUtil
     }
     
     /**
-     * @param file - if null, map state is untouched, otherwise, map state is updated
+     * @param targetFile - if null, map state is untouched, otherwise, map state is updated
      */
     private static void marshallMapToWriter(final Writer writer,
                                             final LWMap map,
@@ -1017,8 +1017,8 @@ public class ActionUtil
                 throw new java.io.IOException("end of stream in " + url);
             }
             if (DEBUG.CASTOR || DEBUG.IO) Log.debug("Scanning[" + line + "]");
-            if (line.startsWith("<!--") == false) {
-                // we should have juadst hit thie "<?xml ..." line -- done with comments
+            if (!line.startsWith("<!--")) {
+                // we should have just hit this "<?xml ..." line -- done with comments
                 firstNonCommentLine = line;
                 break;
             }
@@ -1031,7 +1031,7 @@ public class ActionUtil
                 // we would mistake this "saved by" for a "saved on", but we're just going to take
                 // this risk -- this is just a workaround backward compat hack because castor
                 // wasn't naming the real encoding in it's XML output (turns out it was always
-                // puting UTF-8), even if it was using the default Windows encoding of
+                // putting UTF-8), even if it was using the default Windows encoding of
                 // Cp1252/windows-1252.
                 
                 //if (DEBUG.IO) System.out.println("scanning for Windows platform...");
@@ -1189,7 +1189,7 @@ public class ActionUtil
                 Log.error("Unexpected end-of-stream in [" + url + "]");
                 throw new java.io.IOException("end of stream in " + url);
             }
-            if (line.startsWith("<!--") == false) {
+            if (!line.startsWith("<!--")) {
                 // we should have just hit thie "<?xml ..." line -- done with comments
                 break;
             }

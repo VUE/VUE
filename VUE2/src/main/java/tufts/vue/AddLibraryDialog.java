@@ -33,6 +33,7 @@ import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.nio.charset.StandardCharsets;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -71,7 +72,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     
     edu.tufts.vue.dsm.DataSourceManager dataSourceManager;
     edu.tufts.vue.dsm.OsidFactory factory;
-    org.osid.provider.Provider checked[];
+    org.osid.provider.Provider[] checked;
     java.util.Vector checkedVector = new java.util.Vector();
     JButton addButton = new JButton(VueResources.getString("addLibrary.ok.label"));
     JButton cancelButton = new JButton(VueResources.getString("addLibrary.cancel.label"));
@@ -290,7 +291,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
 				// only latest
-				if (nextProvider.needsUpdate() == false) {  
+				if (!nextProvider.needsUpdate()) {
 					listModel.addElement(nextProvider);
 					checkedVector.addElement(nextProvider);
 					providerIdStringVector.addElement(nextProvider.getId().getIdString());
@@ -303,7 +304,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
 				// only latest and non-duplicate
-				if ( (nextProvider.needsUpdate() == false) &&
+				if ( (!nextProvider.needsUpdate()) &&
 					 (!providerIdStringVector.contains(nextProvider.getId().getIdString())) ) {
 					listModel.addElement(nextProvider);
 					checkedVector.addElement(nextProvider);
@@ -523,7 +524,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             
             if (xml != null) {
                 edu.tufts.vue.ui.ConfigurationUI cui =
-                        new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes("UTF-8")));
+                        new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
                 
                 cui.setPreferredSize(new Dimension(350,(int)cui.getPreferredSize().getHeight()));
                

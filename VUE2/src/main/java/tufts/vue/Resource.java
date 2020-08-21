@@ -121,7 +121,7 @@ public abstract class Resource implements Cloneable
      * If not being used, see if we can remove it from the codebase...
      *
      */
-    public static interface Factory {
+    public interface Factory {
 
         Resource get(String spec);
         Resource get(java.net.URL url);

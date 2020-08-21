@@ -255,7 +255,7 @@ public class VueToolbarController
      * It will attempt to update teh button group in the Toolbar
      * and notify listners by calling selectionChanged.
      *
-     * @param VeuTool - selected tool
+     * @param pTool - selected tool
      **/
     public void setSelectedTool(VueTool pTool) {
 

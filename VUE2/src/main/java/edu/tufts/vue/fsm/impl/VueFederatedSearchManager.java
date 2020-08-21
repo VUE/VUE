@@ -99,7 +99,7 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 		filenameVector.addElement(userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("extensionsSaveToXmlFilename"));
 		
 		int size = filenameVector.size();
-		String result[] = new String[size];
+		String[] result = new String[size];
 		for (int i=0; i < size; i++) {
 			result[i] = (String)filenameVector.elementAt(i);
 		}
@@ -160,7 +160,7 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 				transformer.transform(domSource,result);
             }
 			
-			String files[] = getXMLFilenames();
+			String[] files = getXMLFilenames();
 			for (int f=0; f < files.length; f++) 
 			{
 				java.io.InputStream istream = new java.io.FileInputStream(files[f]);
@@ -357,7 +357,7 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
 			edu.tufts.vue.dsm.DataSource[] dataSources = sourcesAndTypesManager.getDataSourcesToSearch(); // will be same length
-			edu.tufts.vue.fsm.Query queries[] = new edu.tufts.vue.fsm.Query[repositories.length];
+			edu.tufts.vue.fsm.Query[] queries = new edu.tufts.vue.fsm.Query[repositories.length];
 			for (int i=0; i < repositories.length; i++) {
 				org.osid.repository.Repository repository = repositories[i];
 

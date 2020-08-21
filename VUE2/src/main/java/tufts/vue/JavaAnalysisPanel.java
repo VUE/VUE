@@ -215,7 +215,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 	protected void analyze(int mask) {
 		// Parse each file, then display the results.
-		File		files[] = showFileChooser();
+		File[] files = showFileChooser();
 
 		if (files != null) {
 			analyzeButton.setText(STOP);
@@ -241,7 +241,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 				int		foundCount;
 
 				if (file.isDirectory()) {
-					File	filesInFolder[] = file.listFiles(currentFileFilter);
+					File[] filesInFolder = file.listFiles(currentFileFilter);
 					int		fileInFolderCount = filesInFolder.length,
 							fileInFolderIndex;
 
@@ -811,7 +811,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 
 	protected File[] showFileChooser() {
-		File				files[] = null;
+		File[] files = null;
 		VueFileChooser		chooser = VueFileChooser.getVueFileChooser();
 
 		try {
@@ -948,7 +948,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 
 	private class ConstantPool {
-		public ConstantPoolItem			items[];
+		public ConstantPoolItem[] items;
 
 		ConstantPool(DataInputStream stream) throws java.io.IOException {
 			short	constantPoolCount = (short)(stream.readShort() - 1);
@@ -1044,7 +1044,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		ConstantPoolItemUTF8(DataInputStream stream) throws java.io.IOException {
 			short	length = stream.readShort();
-			byte	bytes[] = new byte[length];
+			byte[] bytes = new byte[length];
 
 			for (int index = 0; index < length; index++) {
 				bytes[index] = stream.readByte();
@@ -1065,7 +1065,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 		ConstantPoolItemUnicode(DataInputStream stream) throws java.io.IOException {
 			short	length = stream.readShort();
-			byte	bytes[] = new byte[length];
+			byte[] bytes = new byte[length];
 
 			for (int index = 0; index < length; index++) {
 				bytes[index] = stream.readByte();
@@ -1176,7 +1176,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 
 		public String toString() {
-			return "classIndex " + Short.toString(classIndex) + ", nameAndTypeIndex " + Short.toString(nameAndTypeIndex);
+			return "classIndex " + classIndex + ", nameAndTypeIndex " + nameAndTypeIndex;
 		}
 	}
 
@@ -1192,7 +1192,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 
 		public String toString() {
-			return "classIndex " + Short.toString(classIndex) + ", nameAndTypeIndex " + Short.toString(nameAndTypeIndex);
+			return "classIndex " + classIndex + ", nameAndTypeIndex " + nameAndTypeIndex;
 		}
 	}
 
@@ -1208,7 +1208,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 
 		public String toString() {
-			return "classIndex " + Short.toString(classIndex) + ", nameAndTypeIndex " + Short.toString(nameAndTypeIndex);
+			return "classIndex " + classIndex + ", nameAndTypeIndex " + nameAndTypeIndex;
 		}
 	}
 
@@ -1224,7 +1224,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 
 
 		public String toString() {
-			return "nameIndex " + Short.toString(nameIndex) + ", descriptorIndex " + Short.toString(descriptorIndex);
+			return "nameIndex " + nameIndex + ", descriptorIndex " + descriptorIndex;
 		}
 	}
 

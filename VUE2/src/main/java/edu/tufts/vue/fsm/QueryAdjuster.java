@@ -23,8 +23,8 @@ package edu.tufts.vue.fsm;
 
 public interface QueryAdjuster
 {
-	public Query adjustQuery(org.osid.repository.Repository repository,
-							 java.io.Serializable searchCriteria,
-							 org.osid.shared.Type searchType,
-							 org.osid.shared.Properties searchProperties);
+	Query adjustQuery(org.osid.repository.Repository repository,
+                      java.io.Serializable searchCriteria,
+                      org.osid.shared.Type searchType,
+                      org.osid.shared.Properties searchProperties);
 }

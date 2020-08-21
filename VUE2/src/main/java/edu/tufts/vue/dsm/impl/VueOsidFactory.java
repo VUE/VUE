@@ -288,7 +288,7 @@ public class VueOsidFactory
 				}
 			}		
 			int size = results.size();
-			org.osid.provider.Provider providers[] = new org.osid.provider.Provider[size];
+			org.osid.provider.Provider[] providers = new org.osid.provider.Provider[size];
 			for (int i=0; i < size; i++) {
 				providers[i] = (org.osid.provider.Provider)results.elementAt(i);
 			}
@@ -321,7 +321,7 @@ public class VueOsidFactory
 				}
 			}		
 			int size = results.size();
-			org.osid.provider.Provider providers[] = new org.osid.provider.Provider[size];
+			org.osid.provider.Provider[] providers = new org.osid.provider.Provider[size];
 			for (int i=0; i < size; i++) {
 				providers[i] = (org.osid.provider.Provider)results.elementAt(i);
 			}

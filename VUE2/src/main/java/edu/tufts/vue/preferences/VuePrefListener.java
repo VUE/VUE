@@ -21,6 +21,6 @@ import javax.swing.event.ChangeListener;
 
 public interface VuePrefListener extends EventListener{
 
-	public void preferenceChanged(VuePrefEvent prefEvent);
+	void preferenceChanged(VuePrefEvent prefEvent);
 
 }

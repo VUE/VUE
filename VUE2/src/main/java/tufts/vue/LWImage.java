@@ -988,7 +988,7 @@ public class LWImage extends LWComponent
 //         return o;
 //     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         // GUI init required for fully loading all image codecs (tiff gets left behind otherwise)
         // Ah: the TIFF reader in Java 1.5 apparently comes from the UI library:

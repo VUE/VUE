@@ -142,7 +142,7 @@ public class MapTabbedPane extends DnDTabbedPane //JTabbedPane//extends DnDTabbe
     @Override
     protected void fireStateChanged() {
         try {
-            if (DEBUG.FOCUS) out("fireStateChanged, selectedIndex=" +getSelectedIndex() + "; viewerAtIndex=" + getViewerAt(getSelectedIndex()));;
+            if (DEBUG.FOCUS) out("fireStateChanged, selectedIndex=" +getSelectedIndex() + "; viewerAtIndex=" + getViewerAt(getSelectedIndex()));
             super.fireStateChanged();
           //  out ("not catching some darn exception");
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -513,7 +513,7 @@ public class MapTabbedPane extends DnDTabbedPane //JTabbedPane//extends DnDTabbe
          * for more info on why the windows exception was added to to the below statement 
          * see https://vue-forums.uit.tufts.edu/posts/list/484.pages
          */
-        boolean forceFocusTransfer = Util.isWindowsPlatform() ? true : false;
+        boolean forceFocusTransfer = Util.isWindowsPlatform();
 
         if (viewer == VUE.getActiveViewer()) {
 

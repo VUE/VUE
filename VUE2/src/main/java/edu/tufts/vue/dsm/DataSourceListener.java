@@ -22,5 +22,5 @@ package edu.tufts.vue.dsm;
 
 public interface DataSourceListener {
     /** @param configured only applies to the CONFIGURED state -- is null otherwise */
-    public void changed(DataSource[] datasources, Object state, DataSource configured);
+    void changed(DataSource[] datasources, Object state, DataSource configured);
 }

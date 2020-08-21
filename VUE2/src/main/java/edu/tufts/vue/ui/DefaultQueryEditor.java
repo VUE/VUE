@@ -348,8 +348,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 			 {
 				 sum +=((String)(advancedFields[i].getText())).replaceAll(" ","").length();
 			 }
-		         searchButton2.setEnabled(sum > 0 ? true:false);
-		         searchButton1.setEnabled(sum > 0 ? true:false);
+		         searchButton2.setEnabled(sum > 0);
+		         searchButton1.setEnabled(sum > 0);
 		 }
 			
 	}

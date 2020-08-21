@@ -36,6 +36,7 @@ import java.lang.ref.SoftReference;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.BreakIterator;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -1245,8 +1246,7 @@ public class Util
         public Iterator<T> iterator() { done = false; return this; }
         public String toString() { return "[" + object + "]"; }
         
-    };
-
+    }
 
 
     public static <T> List<T> asList(T[] array) {
@@ -1489,7 +1489,7 @@ public class Util
             return (T) result;
         }
         
-    };
+    }
 
 //     /** Flatten's a Map who's values are collections: returns a key/value for each value in each collection */
 //     public static final class FlatteningIterator<K,V> extends AbstractItering<Map.Entry<K,V>> {
@@ -1574,8 +1574,8 @@ public class Util
         public T next() { return list.get(--index); }
         public void remove() { throw new UnsupportedOperationException(); }
         public Iterator iterator() { return this; }
-    };
-    
+    }
+
     private static final class ArrayIterator implements java.util.Iterator, Iterable {
         private final Object[] array;
         private int index;
@@ -1587,7 +1587,7 @@ public class Util
         public Object next() { return array[index++]; }
         public void remove() { throw new UnsupportedOperationException(); }
         public Iterator iterator() { return this; }
-    };
+    }
 
     private static final class ReverseArrayIterator implements java.util.Iterator, Iterable {
         private final Object[] array;
@@ -1600,7 +1600,7 @@ public class Util
         public Object next() { return array[--index]; }
         public void remove() { throw new UnsupportedOperationException(); }
         public Iterator iterator() { return this; }
-    };
+    }
 
     /** GroupIterator allows you to construct a new iterator that
      * will aggregate an underlying set of Iterators and/or Collections */
@@ -1879,7 +1879,7 @@ public class Util
     }
 
 
-    public static final float brightness(java.awt.Color c) {
+    public static float brightness(java.awt.Color c) {
             
         if (c == null)
             return 0;
@@ -1897,7 +1897,7 @@ public class Util
     /** @return a new color, which is a mix a given color with alpha, plus another NON alpha color */
     // ... wouldn't take much more to mix multiple alpha's, tho normally some color at bottom should
     // always be non-alpha
-    public static final Color alphaMix(java.awt.Color ac, java.awt.Color c) {
+    public static Color alphaMix(java.awt.Color ac, java.awt.Color c) {
         final float r = ac.getRed();
         final float g = ac.getGreen();
         final float b = ac.getBlue();
@@ -1909,7 +1909,7 @@ public class Util
                          (int) ( (b * alpha + mix * c.getBlue() ) / 255f + 0.5f ));
     }
 
-    public static final Color alphaColor(java.awt.Color c, float alpha) {
+    public static Color alphaColor(java.awt.Color c, float alpha) {
 
         final int a = (int) ((alpha * 255f) + 0.5f); // covert % alpha to 0-255
         
@@ -2007,9 +2007,11 @@ public class Util
 //         }
 //     }
 
-    /** For mac platform: to keep tool windows that are frames on top
+    /**
+     * For mac platform: to keep tool windows that are frames on top
      * of the main app window, you need to go to "native" java/cocoa code.
-     * @param inActionTitle - the title of a window just shown / or currently
+     *
+     * @param mainWindowTitleStart - the title of a window just shown / or currently
      * undergoing a show, to make sure we fix up, even if it doesn't claim
      * to be visible yet.
      */
@@ -2406,41 +2408,25 @@ public class Util
     /** encode the given String in some charset into easily persistable UTF-8 8-bit format */
     public static String encodeUTF(String s) {
         if (s == null) return null;
-        try {
-            String encoded = new String(s.getBytes("UTF-8"));
-            //System.out.println("ENCODED [" + encoded + "]");
-            return encoded;
-        } catch (java.io.UnsupportedEncodingException e) {
-            // should never happen
-            e.printStackTrace();
-            return s;
-        }
+        String encoded = new String(s.getBytes(StandardCharsets.UTF_8));
+        //System.out.println("ENCODED [" + encoded + "]");
+        return encoded;
     }
 
     public static String encodeASCII(String s) {
         if (s == null) return null;
-        try {
-            // unfortunately, this doesn't encode non-ascii chars as % codes, only '?'
-            String encoded = new String(s.getBytes("ASCII"));
-            return encoded;
-        } catch (java.io.UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return s;
-        }
+        // unfortunately, this doesn't encode non-ascii chars as % codes, only '?'
+        String encoded = new String(s.getBytes(StandardCharsets.US_ASCII));
+        return encoded;
     }
     
     /** decode the given String in 8-bit UTF-8 to the default java 16-bit unicode format
         (the platform default, which varies) for display */
     public static String decodeUTF(String s) {
         if (s == null) return null;
-        try {
-            String decoded = new String(s.getBytes(), "UTF-8");
-            //System.out.println("DECODED [" + decoded + "]");
-            return decoded;
-        } catch (java.io.UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return s;
-        }
+        String decoded = new String(s.getBytes(), StandardCharsets.UTF_8);
+        //System.out.println("DECODED [" + decoded + "]");
+        return decoded;
     }
 
     private final static String NO_CLASS_FILTER = "";
@@ -2804,6 +2790,7 @@ public class Util
         return pad(' ', wide, s, false);
     }
 
+    @SuppressWarnings("PointlessBitwiseExpression")
     public static String toBase2(byte b) {
         StringBuilder buf = new StringBuilder(8);
         buf.append((b & (1<<7)) == 0 ? '0' : '1');
@@ -2843,7 +2830,7 @@ public class Util
 
     
 
-    public static void main(String args[])
+    public static void main(String[] args)
         throws Exception
     {
 

@@ -124,10 +124,10 @@ public final class Relation {
      * these basic functions or easily delegate to something that can */
     // todo: consider renaming to DataRow, and renaming the Schema.DataRow impl & making it private
     public interface Scannable {
-        public boolean hasEntry(String key, CharSequence value);
-        public String getString(String key);
-        public Collection<String> getValues(String key);
-        public Schema getSchema();
+        boolean hasEntry(String key, CharSequence value);
+        String getString(String key);
+        Collection<String> getValues(String key);
+        Schema getSchema();
     }
 
     

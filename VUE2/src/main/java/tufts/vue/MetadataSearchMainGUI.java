@@ -358,7 +358,7 @@ public class MetadataSearchMainGUI extends JPanel
                 // was presumably created by GUI.createButtonBox
                 final ButtonModel bm = group.getSelection();
                 Log.debug("getChosen: group.getSelection: " + Util.tags(bm));
-                final Object objs[] = bm.getSelectedObjects();
+                final Object[] objs = bm.getSelectedObjects();
                 Log.debug("getChosen: buttonModel.getSelectedObjects: " + Util.tags(objs));
                 // if (objs != null && objs.length > 0) 
                 //     choice = objs[0];
@@ -484,7 +484,6 @@ public class MetadataSearchMainGUI extends JPanel
             label.setFont(tufts.vue.gui.GUI.LabelFace);
             
             if (DEBUG.TEST) {
-                ;
             }  else {
                 g.gridx = 0;
                 g.insets = labelInsets;
@@ -912,7 +911,7 @@ public class MetadataSearchMainGUI extends JPanel
         public Object getValueAt(int row, int col) {            
             if (row == 0 && searchTerms.size() == 0) {
                 VueMetadataElement vme = new VueMetadataElement();                
-                String statementObject[] = {
+                String[] statementObject = {
                     edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone,
                     //VueResources.local("metadata.vue.url") + "#none",
                     "",
@@ -1103,7 +1102,7 @@ public class MetadataSearchMainGUI extends JPanel
             if (vColIndex == 2 || vColIndex == 3) {    
                 component.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
                 final VueMetadataElement newElement = new VueMetadataElement();
-                final String statementObject[] = {
+                final String[] statementObject = {
                     edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone,
                     "",
                     edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };

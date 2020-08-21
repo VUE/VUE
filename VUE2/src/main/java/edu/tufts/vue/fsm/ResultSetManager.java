@@ -21,21 +21,21 @@ package edu.tufts.vue.fsm;
 
 public interface ResultSetManager
 {
-	public java.awt.Image getPreview(org.osid.shared.Id assetId);
+	java.awt.Image getPreview(org.osid.shared.Id assetId);
 
-	public org.osid.repository.AssetIterator getAssets();
+	org.osid.repository.AssetIterator getAssets();
 	
-	public org.osid.repository.AssetIterator getAssets(String foreignIdString);
+	org.osid.repository.AssetIterator getAssets(String foreignIdString);
 	
-	public org.osid.repository.AssetIterator getAsset(int i);
+	org.osid.repository.AssetIterator getAsset(int i);
 
-	public String getExceptionMessage(int index);
+	String getExceptionMessage(int index);
 	
-	public void addAsset(org.osid.repository.Asset asset);
+	void addAsset(org.osid.repository.Asset asset);
 	
-	public boolean isComplete();
+	boolean isComplete();
 
-	public void removeAsset(org.osid.repository.Asset assetId);
+	void removeAsset(org.osid.repository.Asset assetId);
 	
-	public void clearResults();
+	void clearResults();
 }

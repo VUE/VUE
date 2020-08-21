@@ -32,7 +32,7 @@ public class SakaiCollectionDialog extends SizeRestrictedDialog implements javax
 	private org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
 	private edu.tufts.vue.dsm.DataSourceManager _dsm = null;	   
 	
-	public SakaiCollectionDialog(edu.tufts.vue.dsm.DataSource dataSources[])
+	public SakaiCollectionDialog(edu.tufts.vue.dsm.DataSource[] dataSources)
 	{
 		super(VUE.getDialogParentAsFrame(),TITLE,true);
 		try {

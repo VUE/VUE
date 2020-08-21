@@ -632,7 +632,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     public com.hp.hpl.jena.rdf.model.Property getPropertyFromKey(String key) {
         //if (DEBUG.SEARCH && DEBUG.RDF) Log.debug("createPropertyFromKey " + Util.tags(key));
         final com.hp.hpl.jena.rdf.model.Property p;
-        final String words[] = key.split(ONT_SEPARATOR);
+        final String[] words = key.split(ONT_SEPARATOR);
         if (words.length == 1) {
             p = createProperty(VUE_ONTOLOGY, key);
         } else if (words.length < 1) {

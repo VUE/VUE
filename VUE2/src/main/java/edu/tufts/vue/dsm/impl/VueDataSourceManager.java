@@ -199,7 +199,7 @@ public class VueDataSourceManager
     public synchronized void startRepositoryConfiguration(final java.awt.Component clientUI) {
         Log.info("configuring data sources; n=" + DataSources.size());
         
-        final edu.tufts.vue.dsm.DataSource dataSources[] = getDataSources();
+        final edu.tufts.vue.dsm.DataSource[] dataSources = getDataSources();
 
         final java.util.concurrent.atomic.AtomicInteger RunCount =
             new java.util.concurrent.atomic.AtomicInteger(dataSources.length);
@@ -477,7 +477,7 @@ public class VueDataSourceManager
     public synchronized void notifyDataSourceListeners(Object state, DataSource changed) {
         // synchronized so notifications from different threads are at least atomic
         // to the state of all DataSources for each notification batch
-        final edu.tufts.vue.dsm.DataSource dataSources[] = getDataSources();
+        final edu.tufts.vue.dsm.DataSource[] dataSources = getDataSources();
         for (edu.tufts.vue.dsm.DataSourceListener listener : dataSourceListeners) {
             try {
                 listener.changed(dataSources, state, changed);

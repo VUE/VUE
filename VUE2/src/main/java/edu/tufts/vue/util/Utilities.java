@@ -109,7 +109,7 @@ public class Utilities
 	public static void makeOsidDirectories() {
 		try {
 			String home = System.getProperty("user.home");
-			String directories[] = new String[6];
+			String[] directories = new String[6];
 			directories[0] = home + INSTALL_DIRECTORY_TOP_LEVEL;
 			directories[1] = home + INSTALL_DIRECTORY_ROOT;
 			directories[2] = home + INSTALL_DIRECTORY_UPLOADS;

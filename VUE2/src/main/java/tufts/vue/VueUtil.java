@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.*;
 import java.awt.*;
@@ -670,7 +671,7 @@ public class VueUtil extends tufts.Util
     
     public static void dumpBytes(String s) {
         try {
-            dumpBytes(s.getBytes("UTF-8"));
+            dumpBytes(s.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -688,6 +689,7 @@ public class VueUtil extends tufts.Util
         }
     }
     
+    @SuppressWarnings("PointlessBitwiseExpression")
     public static String toBinary(byte b) {
         StringBuffer buf = new StringBuffer(8);
         buf.append((b & (1<<7)) == 0 ? '0' : '1');

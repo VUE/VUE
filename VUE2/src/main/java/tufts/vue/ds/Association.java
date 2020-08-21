@@ -408,10 +408,7 @@ public final class Association
     public boolean isBetween(Schema s1, Schema s2) {
         if (schema1 == s1 && schema2 == s2)
             return true;
-        else if (schema1 == s2 && schema2 == s1)
-            return true;
-        else
-            return false;
+        else return schema1 == s2 && schema2 == s1;
     }
         
     public boolean isEnabled() {

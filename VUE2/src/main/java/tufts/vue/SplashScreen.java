@@ -102,7 +102,7 @@ public class SplashScreen extends Frame
         add(logoLabel);
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         VUE.init(args);
         new SplashScreen();
     }

@@ -280,7 +280,7 @@ implements org.osid.repository.Repository
 			search.setKey(this.googleKey);
 			search.setQueryString(criteria);
 			GoogleSearchResult searchResult = search.doSearch();
-            GoogleSearchResultElement elements[] = searchResult.getResultElements();
+            GoogleSearchResultElement[] elements = searchResult.getResultElements();
             for(int i=0; i < elements.length; i++) {
 				result.addElement(new Asset(elements[i].getTitle().replaceAll("</*[a-zA-Z]>",""),
 											elements[i].getSnippet(),

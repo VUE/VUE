@@ -180,7 +180,7 @@ public class LWPathway extends LWContainer
         }
         
         
-        private final boolean restoreUnderway() {
+        private boolean restoreUnderway() {
             return pathway == null;
         }
         

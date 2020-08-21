@@ -51,7 +51,7 @@ public class ConnectivityMatrix
 
     protected final LWMap map;
     protected final IndexedCountingSet keys;
-    protected final int cx[][];
+    protected final int[][] cx;
     
     protected int scanCount = 0;
     protected int hitCount = 0;
@@ -140,7 +140,7 @@ public class ConnectivityMatrix
     public int[][] getMatrix() { return cx; }
     
 
-    public static final boolean isValidTarget(LWComponent c) {
+    public static boolean isValidTarget(LWComponent c) {
         if (c != null) {
             if (c.hasFlag(LWComponent.Flag.ICON)) {
                 return false;
@@ -355,7 +355,7 @@ public class ConnectivityMatrix
         return b.toString();
     }
     
-    public static final Object getMergeKey(LWComponent node) {
+    public static Object getMergeKey(LWComponent node) {
         // Log.debug("getMergeKey: " + Util.getMergeKey(node));
         return Util.getMergeProperty(node);
     }

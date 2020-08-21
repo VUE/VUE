@@ -151,7 +151,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     public void setUpParameterChoiceGUI()
     {
         gridBagConstraints.weighty = 0.0;
-        gridBagConstraints.gridwidth = GridBagConstraints.RELATIVE;;
+        gridBagConstraints.gridwidth = GridBagConstraints.RELATIVE;
         weightParameterChoiceLabel = new JLabel(SetParamaterFor);
         weightParameterChoiceLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;

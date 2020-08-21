@@ -678,7 +678,7 @@ public class LWGroup extends LWContainer
             super.draw(dc);
     }
 
-    private final Color getPathwayColor() {
+    private Color getPathwayColor() {
         final LWPathway exclusive = getExclusiveVisiblePathway();
         if (exclusive != null)
             return exclusive.getColor();

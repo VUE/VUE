@@ -20,6 +20,7 @@ import tufts.vue.BrowseDataSource.ConfigField;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static edu.tufts.vue.ui.ConfigurationUI.*;
@@ -50,7 +51,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 
             if (DEBUG.DR) Log.debug("OSID-XML: " + xml);
                 
-            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes("UTF-8")));
+            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
             cui.setProperties(dataSource.getConfiguration());
                 
             updateButton.addActionListener(this);
@@ -82,7 +83,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
             
             if (DEBUG.DR) Log.debug("VUE-XML: " + xml);
             
-            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes("UTF-8")),
+            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)),
                                                        uiParams.extraValuesByKey);
             
             updateButton.addActionListener(this);

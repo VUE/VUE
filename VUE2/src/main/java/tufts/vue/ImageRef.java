@@ -70,8 +70,8 @@ public class ImageRef
     // and could add back in this functionality by allowing a client to implement a simple recording API for desired
     // e.g., set/getDesired -- is only needed to prevent extra repaints when a new image rep arrives.
     
-    public static interface Listener {
-        public void imageRefUpdate(Object cause);
+    public interface Listener {
+        void imageRefUpdate(Object cause);
     }
 
 //     static ImageRef create(java.io.File file) {

@@ -23,13 +23,13 @@ package edu.tufts.vue.fsm;
 
 public interface FederatedSearchManager
 {
-	public QueryEditor getQueryEditorForType(org.osid.shared.Type searchType);
+	QueryEditor getQueryEditorForType(org.osid.shared.Type searchType);
 	
-	public QueryAdjuster getQueryAdjusterForRepository(org.osid.shared.Id repositoryId);
+	QueryAdjuster getQueryAdjusterForRepository(org.osid.shared.Id repositoryId);
 	
-	public AssetViewer getAssetViewerForType(org.osid.shared.Type assetType);
+	AssetViewer getAssetViewerForType(org.osid.shared.Type assetType);
 	
-	public ResultSetManager getResultSetManager(java.io.Serializable searchCriteria,
-												org.osid.shared.Type searchType,
-												org.osid.shared.Properties searchProperties);
+	ResultSetManager getResultSetManager(java.io.Serializable searchCriteria,
+                                         org.osid.shared.Type searchType,
+                                         org.osid.shared.Properties searchProperties);
 }

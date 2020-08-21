@@ -33,7 +33,7 @@ public class MapFilterModel  extends AbstractTableModel{
     
     /** Creates a new instance of MapMetadataModel */
     public interface Listener extends java.util.EventListener {
-        public void mapFilterModelChanged(MapFilterModelEvent e);
+        void mapFilterModelChanged(MapFilterModelEvent e);
     }
     private Vector keyVector;
     boolean editable;

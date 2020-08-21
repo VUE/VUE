@@ -32,7 +32,7 @@ implements osid.dr.AssetIterator
         /**
         Return true if there are additional  Assets ; false otherwise.
         @return boolean
-        @throws An exception with one of the following messages defined in osid.dr.DigitalRepositoryException may be thrown:  OPERATION_FAILED
+        @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED
         */
     public boolean hasNext()
     throws osid.dr.DigitalRepositoryException
@@ -43,7 +43,7 @@ implements osid.dr.AssetIterator
         /**
         Return the next Assets.
         @return osid.dr.Asset
-        @throws An exception with one of the following messages defined in osid.dr.DigitalRepositoryException may be thrown:  OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTS
+        @throws osid.dr.DigitalRepositoryException with one of the following messages: OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTS
         */
     public osid.dr.Asset next()
     throws osid.dr.DigitalRepositoryException

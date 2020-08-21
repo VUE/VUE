@@ -3146,7 +3146,7 @@ public class GUI
         public static boolean addScrollPaneIntercept(final MouseWheelListener intercepting, java.awt.Component overriding)
         {
             if (overriding instanceof JScrollPane) {
-                ; // overriding is already fully discovered
+                // overriding is already fully discovered
             } else {
                 Component nearestScrollPane = SwingUtilities.getAncestorOfClass(JScrollPane.class, overriding);
                 if (nearestScrollPane != null)
@@ -3517,7 +3517,7 @@ public class GUI
     private GUI() {}
 
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         // Can't find any property names on Mac OS X -- are there any?
         // Is it possible to get an update when the screen DisplayMode changes?

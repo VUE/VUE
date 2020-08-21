@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -114,7 +115,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 		org.w3c.dom.Document doc = null;
 
 		try {
-			is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
+			is = new java.io.ByteArrayInputStream(resp_simple.getBytes(StandardCharsets.UTF_8));
 			doc = factory.newDocumentBuilder().parse((InputStream) is);
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
@@ -182,7 +183,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 		org.w3c.dom.Document doc = null;
 
 		try {
-			is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
+			is = new java.io.ByteArrayInputStream(resp_simple.getBytes(StandardCharsets.UTF_8));
 			doc = factory.newDocumentBuilder().parse((InputStream) is);
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block		
@@ -286,7 +287,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 		org.w3c.dom.Document doc = null;
 
 		try {
-			is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
+			is = new java.io.ByteArrayInputStream(resp_simple.getBytes(StandardCharsets.UTF_8));
 			doc = factory.newDocumentBuilder().parse((InputStream) is);
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block

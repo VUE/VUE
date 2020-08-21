@@ -37,7 +37,8 @@ public class MenuProxyIcon implements Icon {
         this.src = src;
     }
 
-    public int getIconWidth() { return src.getIconWidth(); };
+    public int getIconWidth() { return src.getIconWidth(); }
+
     public int getIconHeight() { return src.getIconHeight(); }
     
     public void paintIcon(Component c, Graphics g, int sx, int sy) {

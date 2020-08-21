@@ -27,7 +27,7 @@ package tufts.vue;
 public class PickContext
 {
     public interface Acceptor {
-        public boolean accept(PickContext pc, LWComponent c);
+        boolean accept(PickContext pc, LWComponent c);
     }
         
     

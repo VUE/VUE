@@ -21,8 +21,8 @@ package edu.tufts.vue.dsm;
 
 public interface OsidLocalInstaller
 {
-	public void installPlugin(String filename,
-							  java.io.InputStream outputStream);
+	void installPlugin(String filename,
+                       java.io.InputStream outputStream);
 	
-	public void deinstallPlugin(DataSource dataSource);
+	void deinstallPlugin(DataSource dataSource);
 }

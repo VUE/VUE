@@ -502,7 +502,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         }
     }
     
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         VUE.init(args);
         new Frame("An Active Frame").setVisible(true);
         FavoritesWindow fw = new FavoritesWindow("http://www.tufts.edu","favorites.xml");

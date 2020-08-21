@@ -1526,7 +1526,7 @@ public class DataTree extends javax.swing.JTree
         root.add(mAllRowsNode);
         mRootNode = root;
 
-        final Field sortedFields[] = new Field[schema.getFieldCount()];
+        final Field[] sortedFields = new Field[schema.getFieldCount()];
 
         schema.getFields().toArray(sortedFields);        
 

@@ -30,10 +30,10 @@ Repository OSID Assets may be present in VUE maps or other constructs.  Since th
 
 public interface AssetResolver
 {
-	public AssetReference getAssetReference(org.osid.shared.Id assetId,
-											org.osid.shared.Id repositoryId);
+	AssetReference getAssetReference(org.osid.shared.Id assetId,
+                                     org.osid.shared.Id repositoryId);
 
-	public org.osid.repository.Asset getAsset(String osidLoadKey,
-											  String assetIdString)
+	org.osid.repository.Asset getAsset(String osidLoadKey,
+                                       String assetIdString)
 		throws org.osid.repository.RepositoryException;
 }

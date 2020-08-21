@@ -154,11 +154,11 @@ public class InspectorPane extends WidgetStack
         VUE.addActiveListener(MetaMap.class, this);
         //VUE.getResourceSelection().addListener(this);
         
-        Widget.setHelpAction(mLabelPane,VueResources.getString("dockWindow.Info.summaryPane.helpText"));;
-        Widget.setHelpAction(mPreview,VueResources.getString("dockWindow.Info.previewPane.helpText"));;
-        Widget.setHelpAction(mResourceMetaData,VueResources.getString("dockWindow.Info.resourcePane.helpText"));;
-        Widget.setHelpAction(mNotes,VueResources.getString("dockWindow.Info.notesPane.helpText"));;
-        Widget.setHelpAction(mKeywords,VueResources.getString("dockWindow.Info.userPane.helpText"));;
+        Widget.setHelpAction(mLabelPane,VueResources.getString("dockWindow.Info.summaryPane.helpText"));
+        Widget.setHelpAction(mPreview,VueResources.getString("dockWindow.Info.previewPane.helpText"));
+        Widget.setHelpAction(mResourceMetaData,VueResources.getString("dockWindow.Info.resourcePane.helpText"));
+        Widget.setHelpAction(mNotes,VueResources.getString("dockWindow.Info.notesPane.helpText"));
+        Widget.setHelpAction(mKeywords,VueResources.getString("dockWindow.Info.userPane.helpText"));
         Widget.setHelpAction(ontologicalMetadata,VueResources.getString("dockWindow.Info.ontologicalMetadata.helpText"));
 
 
@@ -1928,7 +1928,7 @@ public class InspectorPane extends WidgetStack
     }
 
     
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
 //         VUE.init(args);
 

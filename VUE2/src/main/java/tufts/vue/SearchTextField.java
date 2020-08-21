@@ -522,7 +522,7 @@ public class SearchTextField extends JTextField implements FocusListener {
     /**
      * This method is for Generating Popup menu
      *
-     * @param isWindow
+     * @param isWindows
      */
     private void createPopupMenu(boolean isWindows) {
         if (this.popup != null)
@@ -625,7 +625,7 @@ public class SearchTextField extends JTextField implements FocusListener {
 
         final VueMetadataElement vme = new VueMetadataElement();
 
-        final String genericSearchStatement[] = {
+        final String[] genericSearchStatement = {
             edu.tufts.vue.rdf.RDFIndex.VueTermOntologyNone,  /* i.e.: http://vue.tufts.edu/vue.rdfs#none */
             getText(),
             edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString() };

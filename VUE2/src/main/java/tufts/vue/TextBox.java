@@ -422,7 +422,6 @@ public class TextBox extends JTextPane
         super.setText(text);
         copyStyle(this.lwc);
         if (WrapText) {
-            ;
         } else {
             setSize(getPreferredSize());
         }
@@ -972,9 +971,11 @@ public class TextBox extends JTextPane
         return new Point2D.Float(mBounds.x, mBounds.y);
     }
 
-    public float getBoxWidth() { return mBounds.width; };
+    public float getBoxWidth() { return mBounds.width; }
+
     public float getBoxHeight() { return mBounds.height; }
-    public float getBoxX() { return mBounds.x; };
+    public float getBoxX() { return mBounds.x; }
+
     public float getBoxY() { return mBounds.y; }
     
     /*
@@ -1202,7 +1203,7 @@ public class TextBox extends JTextPane
     
     
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         VUE.parseArgs(args);
         VUE.initUI();
         TestDebug = true;

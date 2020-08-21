@@ -72,7 +72,7 @@ public class DoubleBipartiteLayout extends AbstractLayout{
                 node2.setLocation(MAP_SIZE/5+300 ,n2Counter*30);
                 n2Counter++;
             } else {
-                node2 = node2Map.get(node2Label);;
+                node2 = node2Map.get(node2Label);
             }
             LWLink link = new LWLink(node1,node2);
             map.add(link);

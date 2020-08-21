@@ -144,7 +144,7 @@ public class LWChangeSupport
                 listeners.add(0, listener);
             }
         } else if (i == 0) {
-            ; // already priority listener
+            // already priority listener
         } else
             throw new IllegalArgumentException(mClient + " " + listener + " not already a listener");
     }

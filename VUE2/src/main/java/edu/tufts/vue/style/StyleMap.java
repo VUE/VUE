@@ -30,37 +30,37 @@ public class StyleMap {
     public static final String CSS_EXTENSION =".css";
     static  Map<String,Style> m = Collections.synchronizedMap(new HashMap());
     
-    public static final Style getStyle(String key) {
+    public static Style getStyle(String key) {
         return m.get(key);
     }
     
-    private  static final void addStyle(String key,Style style) {
+    private  static void addStyle(String key, Style style) {
         m.put(key,style);
     }
     
-    public static final void addStyle(Style style) {
+    public static void addStyle(Style style) {
         m.put(style.getName(),style);
     }
-    public static final void remove(String key) {
+    public static void remove(String key) {
         m.remove(key);
     }
-    public static final void removeAll() {
+    public static void removeAll() {
         m.clear();
     }
-    public static final boolean containsKey(String key) {
+    public static boolean containsKey(String key) {
         return m.containsKey(key);
     }
-    public static final boolean containsStyle(String style) {
+    public static boolean containsStyle(String style) {
         return m.containsValue(style);
     }
-    public static final int size(){
+    public static int size(){
         return m.size();
     }
-    public static final Set keySet() {
+    public static Set keySet() {
         return m.keySet();
     }
 
-    public static final Set<Map.Entry<String,Style>> entrySet() {
+    public static Set<Map.Entry<String,Style>> entrySet() {
         return m.entrySet();
     }
     

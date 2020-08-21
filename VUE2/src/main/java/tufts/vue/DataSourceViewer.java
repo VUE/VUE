@@ -241,7 +241,7 @@ public class DataSourceViewer extends ContentViewer
 
     private void loadOSIDDataSources()
     {
-        edu.tufts.vue.dsm.DataSource dataSources[] = null;
+        edu.tufts.vue.dsm.DataSource[] dataSources = null;
         
         try {
             // load new data sources
@@ -2018,7 +2018,6 @@ public class DataSourceViewer extends ContentViewer
             } else {
                 editInfoStack.addPane(name, NoConfig);
                 if (DEBUG.Enabled) {
-                    ;
                 } else {
                     Widget.setExpanded(NoConfig, false);
                 }

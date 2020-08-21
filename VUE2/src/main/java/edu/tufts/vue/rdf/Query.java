@@ -45,7 +45,7 @@ public class Query  {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Query.class);
 
-    public enum Qualifier { STARTS_WITH, CONTAINS,MATCH, WITHOUT,MATCH_CASE };
+    public enum Qualifier { STARTS_WITH, CONTAINS,MATCH, WITHOUT,MATCH_CASE }
 
     // These appear to have never been used.
     //public enum Operation { AND , OR }

@@ -11,87 +11,87 @@ extends org.osid.OsidManager
 {
 	/**
 	 */
-    public org.osid.OsidContext getOsidContext()
+	org.osid.OsidContext getOsidContext()
 		throws org.osid.registry.RegistryException;
 	
 	/**
 	 */
-    public void assignOsidContext(org.osid.OsidContext context)
+	void assignOsidContext(org.osid.OsidContext context)
 		throws org.osid.repository.RepositoryException;
 	
 	/**
 	 */
-    public void assignConfiguration(java.util.Properties configuration)
+	void assignConfiguration(java.util.Properties configuration)
 		throws org.osid.repository.RepositoryException;
 	
 	/**
 	 */
-	public org.osid.registry.ProviderIterator getProviders()
+	org.osid.registry.ProviderIterator getProviders()
 		throws org.osid.registry.RegistryException;
 	
 	/**
 	 */
-	public org.osid.registry.ProviderIterator getProvidersByType(org.osid.shared.Type providerType)
+	org.osid.registry.ProviderIterator getProvidersByType(org.osid.shared.Type providerType)
 		throws org.osid.registry.RegistryException;
 	
 	/**
 	 */
-	public org.osid.registry.Provider getProvider(org.osid.shared.Id providerId)
+	org.osid.registry.Provider getProvider(org.osid.shared.Id providerId)
 		throws org.osid.registry.RegistryException;
 	
 	/**
 	 */
-	public org.osid.registry.Provider createProvider(org.osid.shared.Id providerId,
-													 String osidService,
-													 int osidMajorVersion,
-													 int osidMinorVersion,
-													 String osidLoadKey,				
-													 String displayName,
-													 String description,
-													 java.util.Vector keywordVector,
-													 java.util.Vector categoryVector,
-													 java.util.Vector categoryTypeVector,
-													 String creator,
-													 String publisher,
-													 String publisherURL,
-													 int majorVersion,
-													 int minorVersion,
-													 String releaseDate,
-													 String contactName,
-													 String contactPhone,
-													 String contactEMail,
-													 String licenseAgreement,
-													 java.util.Vector rightVector,					   
-													 java.util.Vector rightTypeVector,					   
-													 java.util.Vector configurationKeyVector,					   
-													 java.util.Vector configurationValueVector,					   
-													 java.util.Vector configurationMapVector,					   
-													 String readme,
-													 String implementationLangauge,
-													 boolean sourceAvailable,
-													 org.osid.shared.Id repositoryId,
-													 String repositoryImage,
-													 String registrationDate,
-													 java.util.Vector filenameVector,
-													 java.util.Vector fileDisplayName)
+	org.osid.registry.Provider createProvider(org.osid.shared.Id providerId,
+											  String osidService,
+											  int osidMajorVersion,
+											  int osidMinorVersion,
+											  String osidLoadKey,
+											  String displayName,
+											  String description,
+											  java.util.Vector keywordVector,
+											  java.util.Vector categoryVector,
+											  java.util.Vector categoryTypeVector,
+											  String creator,
+											  String publisher,
+											  String publisherURL,
+											  int majorVersion,
+											  int minorVersion,
+											  String releaseDate,
+											  String contactName,
+											  String contactPhone,
+											  String contactEMail,
+											  String licenseAgreement,
+											  java.util.Vector rightVector,
+											  java.util.Vector rightTypeVector,
+											  java.util.Vector configurationKeyVector,
+											  java.util.Vector configurationValueVector,
+											  java.util.Vector configurationMapVector,
+											  String readme,
+											  String implementationLangauge,
+											  boolean sourceAvailable,
+											  org.osid.shared.Id repositoryId,
+											  String repositoryImage,
+											  String registrationDate,
+											  java.util.Vector filenameVector,
+											  java.util.Vector fileDisplayName)
 		throws org.osid.registry.RegistryException;
 	
 	/**
 	 */
-	public void deleteProvider(org.osid.shared.Id providerId)
+	void deleteProvider(org.osid.shared.Id providerId)
 		throws org.osid.registry.RegistryException;
 	
 
-	public java.io.InputStream downloadProviderImplementation(org.osid.shared.Id providerId);
+	java.io.InputStream downloadProviderImplementation(org.osid.shared.Id providerId);
 
-	public void uploadProviderImplementation(org.osid.shared.Id providerId,
-											 String filenames[],
-											 String fileDisplayNames[],
-											 java.io.InputStream istreams[]);
+	void uploadProviderImplementation(org.osid.shared.Id providerId,
+									  String[] filenames,
+									  String[] fileDisplayNames,
+									  java.io.InputStream[] istreams);
 	
 	/**
 	 */
-	public void osidVersion_2_0()
+	void osidVersion_2_0()
 		throws org.osid.registry.RegistryException;
  
 	/**

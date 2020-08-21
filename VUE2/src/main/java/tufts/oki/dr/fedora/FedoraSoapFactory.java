@@ -143,7 +143,7 @@ public class FedoraSoapFactory {
     }
     
     public static  FedoraObjectIterator advancedSearch(DR dr,SearchCriteria lSearchCriteria)  throws osid.dr.DigitalRepositoryException {
-        Condition cond[] = lSearchCriteria.getConditions();
+        Condition[] cond = lSearchCriteria.getConditions();
         String maxResults = lSearchCriteria.getMaxReturns();
         
         Call call;

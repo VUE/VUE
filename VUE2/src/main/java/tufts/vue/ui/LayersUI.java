@@ -537,7 +537,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         b.setFont(tufts.vue.gui.GUI.LabelFace);
         b.setFocusable(false);
         if(b.getAction() == null) {
-            ;
         } else if(b.getAction().equals(LAYER_NEW)){
         	
         	b.setText(VueResources.getString("layersui.newlayer.tooltip"));        	

@@ -55,8 +55,7 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
      *
      * @return String the display name
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public String getDisplayName() throws osid.dr.DigitalRepositoryException {
         return this.displayName;
@@ -67,8 +66,7 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
      *
      * @return String the description
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public String getDescription() throws osid.dr.DigitalRepositoryException {
         return this.description;
@@ -80,8 +78,7 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
      * @return osid.shared.Id A unique Id that is usually set by a create
      *         method's implementation
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public osid.shared.Id getId() throws osid.dr.DigitalRepositoryException {
         return this.id;
@@ -93,8 +90,7 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
      *
      * @return String
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public String getSchema() throws osid.dr.DigitalRepositoryException {
         return this.schema;
@@ -106,8 +102,7 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
      *
      * @return String
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public String getFormat() throws osid.dr.DigitalRepositoryException {
         return this.format;
@@ -122,8 +117,7 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
      * @return InfoPartIterator  The order of the objects returned by the
      *         Iterator is not guaranteed.
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public osid.dr.InfoPartIterator getInfoParts()
     throws osid.dr.DigitalRepositoryException {
@@ -141,8 +135,7 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
      *
      * @return boolean
      *
-     * @throws An exception with one of the following messages defined in
-     *         osid.dr.DigitalRepositoryException may be thrown:
+     * @throws osid.dr.DigitalRepositoryException
      */
     public boolean validateInfoRecord(osid.dr.InfoRecord infoRecord)
     throws osid.dr.DigitalRepositoryException {

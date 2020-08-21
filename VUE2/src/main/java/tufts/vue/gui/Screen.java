@@ -313,7 +313,7 @@ public class Screen
     // todo: add something like getSpaceFit that returns the largest
     // rectangle that does NOT leave anything off screen.
 
-    /** @see getSpaceBounds */
+    /** @see Screen.getSpaceBounds()  */
     public static Rectangle getAllDeviceBounds(GraphicsDevice[] devices)
     {
         Rectangle bounds = null;

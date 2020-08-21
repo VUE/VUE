@@ -1310,9 +1310,11 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         return new Point2D.Float(mBounds.x, mBounds.y);
     }
 
-    public float getBoxWidth() { return mBounds.width; };
+    public float getBoxWidth() { return mBounds.width; }
+
     public float getBoxHeight() { return mBounds.height; }
-    public float getBoxX() { return mBounds.x; };
+    public float getBoxX() { return mBounds.x; }
+
     public float getBoxY() { return mBounds.y; }
     
     /*

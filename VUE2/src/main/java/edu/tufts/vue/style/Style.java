@@ -146,7 +146,7 @@ public abstract class Style {
      * If the color specification is bad, an attempt
      * will be made to fix it up.
      */
-    public  static final Color hexToColor(String value) {
+    public  static Color hexToColor(String value) {
         String digits;
         int n = value.length();
         value = value.replaceAll(" ","");
@@ -282,7 +282,7 @@ public abstract class Style {
         }
         return 0;
     }
-    public static final Style getStyle(String reference, Map<String,Style> map) {
+    public static Style getStyle(String reference, Map<String,Style> map) {
         Set keys = map.keySet();
         Iterator<String> i = keys.iterator();
         while(i.hasNext()) {
@@ -294,7 +294,7 @@ public abstract class Style {
         return getDefaultStyle();
     }
     
-    public static final Style getDefaultStyle() {
+    public static Style getDefaultStyle() {
         return NodeStyle.DEFAULT_NODE_STYLE;
     }
     public String toString() {

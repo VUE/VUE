@@ -29,19 +29,19 @@ package tufts.vue;
 public interface DublinCoreConstants {
     
     /** Creates a new instance of Class */
-    public static int DC_TITLE = 0;
-    public static int DC_CREATOR = 1;
-    public static int DC_SUBJECT = 2;
-    public static int DC_DATE = 3;
-    public static int DC_TYPE= 4;
-    public static int DC_FORMAT= 5;
-    public static int DC_IDENTIFIER = 6;
-    public static int DC_COLLECTION = 7;
-    public static int DC_COVERAGE = 8;
+    int DC_TITLE = 0;
+    int DC_CREATOR = 1;
+    int DC_SUBJECT = 2;
+    int DC_DATE = 3;
+    int DC_TYPE= 4;
+    int DC_FORMAT= 5;
+    int DC_IDENTIFIER = 6;
+    int DC_COLLECTION = 7;
+    int DC_COVERAGE = 8;
     
-    public static int SUPPORTED_NUMBER = 9;
+    int SUPPORTED_NUMBER = 9;
    
-    public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
-    public static final String DC_NAMESPACE = "dc:";
+    String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
+    String DC_NAMESPACE = "dc:";
     
 }

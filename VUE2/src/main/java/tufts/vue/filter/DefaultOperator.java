@@ -31,7 +31,8 @@ public class DefaultOperator implements Operator {
     
     String displayName = "equals";
     String symbol = "=";
-    boolean settable = true;;
+    boolean settable = true;
+
     public DefaultOperator() {
     }
     
