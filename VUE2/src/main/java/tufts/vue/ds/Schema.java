@@ -1065,8 +1065,8 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
 
    // private String[] matrixEntities = {"FromName","ToName","FlowAmount"};
-    private HashMap<String,Integer> matrixColNums = new HashMap<String,Integer>();
-    private HashMap<String,Integer> matrixMetadataCols = new HashMap<String, Integer>();
+    private HashMap<String,Integer> matrixColNums = new HashMap<>();
+    private HashMap<String,Integer> matrixMetadataCols = new HashMap<>();
     private Field matrixNameField = new Field(MATRIX_NAME_FIELD,this);
     
     public synchronized void ensureFields(String[] names) {
@@ -1274,7 +1274,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     }
 
     protected HashMap<String,Integer> existingRows = null;
-    List<MatrixRelationship> matrixRelations = new ArrayList<MatrixRelationship>();
+    List<MatrixRelationship> matrixRelations = new ArrayList<>();
     public boolean isMatrixDataSet = false;
     protected void addMatrixRow(XmlDataSource ds, String[] values) {
 
@@ -1466,7 +1466,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
   //  	tempTable=null;
     }
     
-    TreeMap<String,DataRow> tempTable = new TreeMap<String,DataRow>();
+    TreeMap<String,DataRow> tempTable = new TreeMap<>();
 
     private DataRow getRowFromHash(String key)
     {

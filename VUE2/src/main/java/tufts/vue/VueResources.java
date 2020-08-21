@@ -107,7 +107,7 @@ public class VueResources
     		 * list of bundle base names to search for key/value pairs
     		 */
     		public VueResourceBundle(ResourceBundle baseNameList, ResourceBundle childNameList) {
-    			bundles = new ArrayList<ResourceBundle>(2);
+    			bundles = new ArrayList<>(2);
     			bundles.add(baseNameList);
     			bundles.add(childNameList);
     		}

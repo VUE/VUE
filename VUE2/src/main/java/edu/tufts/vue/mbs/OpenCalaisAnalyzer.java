@@ -58,7 +58,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 
 	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger
 			.getLogger(AnalyzerAction.class);
-	private ArrayList<CalaisEntity> m_entities = new ArrayList<CalaisEntity>();
+	private ArrayList<CalaisEntity> m_entities = new ArrayList<>();
 
 	public List analyze(LWComponent c) {
 		return analyze(c, true);
@@ -89,7 +89,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 	}
 
 	public Multimap analyzeResource(LWComponent c) throws IOException {
-		m_entities = new ArrayList<CalaisEntity>();
+		m_entities = new ArrayList<>();
 		Multimap<String, AnalyzerResult> results = Multimaps
 				.newArrayListMultimap();
 		String resp_simple = null;
@@ -148,7 +148,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 	
 	public Multimap analyzeString(String tweet)
 	{
-		m_entities = new ArrayList<CalaisEntity>();
+		m_entities = new ArrayList<>();
 		Multimap<String, AnalyzerResult> results = Multimaps
 				.newArrayListMultimap();
 
@@ -198,8 +198,8 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 	
 	}
 	public List analyze(LWComponent c, boolean fallback) {
-		m_entities = new ArrayList<CalaisEntity>();
-		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
+		m_entities = new ArrayList<>();
+		List<AnalyzerResult> results = new ArrayList<>();
 		CalaisJavaIf calais = prepCalais();
 
 		String context = null;

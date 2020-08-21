@@ -58,9 +58,9 @@ public class ClusterLayout extends Layout {
 
 	public LWMap createMap(Dataset ds, String mapName) throws Exception {
 
-		Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
-		Map<String, Integer> repeatMap = new HashMap<String, Integer>();
-		ArrayList<String> clusterColumnList = new ArrayList<String>();
+		Map<String, LWNode> nodeMap = new HashMap<>();
+		Map<String, Integer> repeatMap = new HashMap<>();
+		ArrayList<String> clusterColumnList = new ArrayList<>();
 		LWMap map = new LWMap(mapName);
 		int count = 0;
 		// set map size of the map
@@ -141,8 +141,8 @@ public class ClusterLayout extends Layout {
 
 	public void layout(LWSelection selection) {
 		System.out.println("Applying the cluster layout");
-		HashMap<LWComponent, ArrayList<LWComponent>> clusterMap = new HashMap<LWComponent, ArrayList<LWComponent>>();
-		HashMap<LWComponent,Double> componentRadiusMap = new HashMap<LWComponent,Double>();
+		HashMap<LWComponent, ArrayList<LWComponent>> clusterMap = new HashMap<>();
+		HashMap<LWComponent,Double> componentRadiusMap = new HashMap<>();
 		double minX = Double.POSITIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
 		double maxNodeWidth = X_COL_SIZE;
@@ -162,13 +162,13 @@ public class ClusterLayout extends Layout {
                 LWComponent tail = link.getTail();
                 if (selection.contains(head)) {
                     if (!clusterMap.containsKey(head)) {
-                        clusterMap.put(head, new ArrayList<LWComponent>());
+                        clusterMap.put(head, new ArrayList<>());
                     }
                     clusterMap.get(head).add(tail);
                 }
                 if (selection.contains(tail)) {
                     if (!clusterMap.containsKey(tail)) {
-                        clusterMap.put(tail, new ArrayList<LWComponent>());
+                        clusterMap.put(tail, new ArrayList<>());
                     }
                     clusterMap.get(tail).add(head);
                 }

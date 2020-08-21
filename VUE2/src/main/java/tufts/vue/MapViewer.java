@@ -6200,7 +6200,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                             {
 	                            // -- This type of navigation works only along the links
 	                            // -- find the linked nodes
-	                    		HashSet<LWComponent> userSelection = new HashSet<LWComponent>();	
+	                    		HashSet<LWComponent> userSelection = new HashSet<>();
 	                    		HashSet<LWComponent> deepSelection;
 	                    		int depth = 1;
 	                    		int maxDepth = 2;
@@ -6210,13 +6210,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 	                    		
 	                    		while (depth <= maxDepth && !done)
 	                    		{
-	                    			deepSelection = new HashSet<LWComponent>();
+	                    			deepSelection = new HashSet<>();
 		                            Toolbox.findChildrenToDepth(userSelection, deepSelection, 
-		    								userSelection, depth, true, true, new Hashtable<LWComponent, Integer>());
+		    								userSelection, depth, true, true, new Hashtable<>());
 		
 		                            // -- now we have a set with nodes and links
 		
-		                            TreeMap<Double, LWComponent> angles = new TreeMap<Double, LWComponent>();
+		                            TreeMap<Double, LWComponent> angles = new TreeMap<>();
 		                            double angle = 0;
 		                            for (LWComponent comp : deepSelection)
 		                            {

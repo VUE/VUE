@@ -108,9 +108,9 @@ public class TextOpenAction  extends VueAction {
     
     // todo: have only one root loadMap that hanldes files & urls -- actually, make it ALL url's
     public static LWMap loadMap(String fileName) throws Exception{
-        Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
-         Map<String,Integer> repeatMap = new HashMap<String,Integer>();
-        Map<String,LWLink> linkMap = new HashMap<String, LWLink>();
+        Map<String,LWNode> nodeMap = new HashMap<>();
+         Map<String,Integer> repeatMap = new HashMap<>();
+        Map<String,LWLink> linkMap = new HashMap<>();
         String mapName = fileName.substring(fileName.lastIndexOf("/")+1,fileName.length());
         if(mapName.lastIndexOf(".")>0)
             mapName = mapName.substring(0,mapName.lastIndexOf("."));
@@ -132,7 +132,7 @@ public class TextOpenAction  extends VueAction {
         float x = 0;
         int toggle = 0;
         
-        List<String[]> linksList = new ArrayList<String[]>(); // also for Zotero Prototype
+        List<String[]> linksList = new ArrayList<>(); // also for Zotero Prototype
         
         while((line=reader.readLine()) != null && count <MAX_SIZE) {
            

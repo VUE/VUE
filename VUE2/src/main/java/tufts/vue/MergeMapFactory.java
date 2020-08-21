@@ -361,8 +361,8 @@ public class MergeMapFactory {
          final ConnectivityMatrixList cms,
          final WeightAggregate weightAggregate)
     {
-        final List<Style> nodeStyles = new ArrayList<Style>();
-        final List<Style> linkStyles = new ArrayList<Style>();
+        final List<Style> nodeStyles = new ArrayList<>();
+        final List<Style> linkStyles = new ArrayList<>();
         for(int si=0;si<5;si++) 
             nodeStyles.add(StyleMap.getStyle("node.w" + (si +1)));
         for(int lsi=0;lsi<5;lsi++)

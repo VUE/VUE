@@ -89,7 +89,7 @@ public class VueDataSourceManager
     private final Vector<DataSource> marshallingVector = new Vector();
     
     private final List<edu.tufts.vue.dsm.DataSourceListener> dataSourceListeners
-        = new java.util.concurrent.CopyOnWriteArrayList<edu.tufts.vue.dsm.DataSourceListener>();
+        = new java.util.concurrent.CopyOnWriteArrayList<>();
     
     private volatile boolean isMarshalling;
     

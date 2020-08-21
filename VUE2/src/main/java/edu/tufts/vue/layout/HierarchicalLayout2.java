@@ -27,7 +27,7 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 
 
 	public void layout(LWSelection selection) throws Exception {
-		HashMap<String, LWNode>	processedNodes = new HashMap<String, LWNode>();
+		HashMap<String, LWNode>	processedNodes = new HashMap<>();
 
         // Layout the children and parents of each selected node.  The selected nodes
 		// themselves are not moved.  If more than one node in a connected graph is selected,
@@ -41,7 +41,7 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
                     Log.info("Laying out node " + node.getLabel() + ".");
                 }
 
-                Vector<LWNode> nodes = new Vector<LWNode>();
+                Vector<LWNode> nodes = new Vector<>();
                 HierarchyLayer nodeLayer = new HierarchyLayer(node);
 
                 nodes.add(node);
@@ -66,8 +66,8 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 		for (LWNode node : nodes) {
 			List<LWLink>		links = node.getLinks();
 			Iterator<LWLink>	linkIter = links.iterator();
-			Vector<LWNode>		children = new Vector<LWNode>(),
-								parents = new Vector<LWNode>();
+			Vector<LWNode>		children = new Vector<>(),
+								parents = new Vector<>();
 
 			processedNodes.put(node.getID(), node);
 
@@ -204,7 +204,7 @@ public class HierarchicalLayout2 extends HierarchicalLayout {
 			float	nodeHeight = node.getHeight();
 
 			if (mNodes == null) {
-				mNodes = new Vector<LWNode>();
+				mNodes = new Vector<>();
 			}
 
 			mNodes.add(node);

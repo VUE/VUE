@@ -43,8 +43,8 @@ public class DoubleBipartiteLayout extends AbstractLayout{
     
     
     public LWMap createMap(Dataset ds,String mapName) throws Exception{
-        Map<String,LWNode> node1Map = new HashMap<String,LWNode>();
-        Map<String,LWNode> node2Map = new HashMap<String,LWNode>();
+        Map<String,LWNode> node1Map = new HashMap<>();
+        Map<String,LWNode> node2Map = new HashMap<>();
         
         LWMap map = new LWMap(mapName);
         int count = 0;

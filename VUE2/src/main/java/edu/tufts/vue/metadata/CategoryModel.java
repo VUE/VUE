@@ -48,7 +48,7 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     private String[] defaultOntologyUrls;
     
     int ontTypesCount = 0; // is never updated on remove, tho access API method appears to have never been used
-    private static final Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>(); // is never cleared
+    private static final Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<>(); // is never cleared
     
     private edu.tufts.vue.ontology.Ontology customOntology;
     public CategoryModel() {

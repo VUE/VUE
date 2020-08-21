@@ -3374,7 +3374,7 @@ public class GUI
     public static java.util.List<AbstractButton> createSegmentButtonsWithStyle(int numButtons, ButtonGroup buttonGrp, String style)
     {
         // Allocate a list of JButtons
-        java.util.List<AbstractButton> buttons = new ArrayList<AbstractButton>();
+        java.util.List<AbstractButton> buttons = new ArrayList<>();
         if (numButtons == 1) {
             // If 1 button is requested, then it gets the "only" segment position
             buttons.add(createSegmentButton(style, "only", buttonGrp, ""));

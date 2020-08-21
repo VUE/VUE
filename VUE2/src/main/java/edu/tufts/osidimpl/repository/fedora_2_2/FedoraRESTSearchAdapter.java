@@ -119,7 +119,7 @@ public class FedoraRESTSearchAdapter {
         }
     }
     private static org.osid.repository.AssetIterator getAssetIterator(Repository repository, NodeList fieldNode) throws org.osid.repository.RepositoryException  {
-        List<Asset> resultList = new ArrayList<Asset>();
+        List<Asset> resultList = new ArrayList<>();
         try {
             if(fieldNode.getLength() == 0) {
                 System.out.println("search return no results");
@@ -155,7 +155,7 @@ public class FedoraRESTSearchAdapter {
     
     
     public static List<String> getDataStreams(String dSUrl) throws org.osid.repository.RepositoryException {
-        List<String> dataStreams = new ArrayList<String>();
+        List<String> dataStreams = new ArrayList<>();
         try {
             URL url = new  URL(dSUrl);
             XPathFactory  factory=XPathFactory.newInstance();

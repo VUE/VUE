@@ -207,7 +207,7 @@ public class ImageMap extends VueAction {
 		 * actual group -MK 2/16/09
 		 */
 	
-		java.util.List<String> arrayList = new ArrayList<String>();
+		java.util.List<String> arrayList = new ArrayList<>();
 		//java.util.ArrayList<LWComponent> comps = new ArrayList<LWComponent>();
 		
 		//get the current map.

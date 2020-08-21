@@ -80,7 +80,7 @@ public class ImageSizePreference extends GenericSliderPreference {
 		JSlider slider = getSlider();
 		setDefaultValueMappedToSlider();		
         //Create the label table
-        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
         labelTable.put( new Integer( HASHMARK_0 ), new JLabel(VueResources.getString("jlabel.off")) );
         labelTable.put( new Integer( HASHMARK_1 ), new JLabel("16x16") );
         labelTable.put( new Integer( HASHMARK_2 ), new JLabel("32x32") );

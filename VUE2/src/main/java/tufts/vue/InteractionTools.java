@@ -112,7 +112,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									label40 = new JLabel(FOURTY_PERCENT),
 									label20 = new JLabel(TWENTY_PERCENT),
 									label0 = new JLabel(ZERO_PERCENT);
-		Hashtable<Integer, JLabel>	fadeTable = new Hashtable<Integer, JLabel>();
+		Hashtable<Integer, JLabel>	fadeTable = new Hashtable<>();
 
 		label100.setFont(tufts.vue.gui.GUI.LabelFace);
 		label80.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -150,7 +150,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 									label3 = new JLabel(THREE),
 									label4 = new JLabel(FOUR),
 									label5 = new JLabel(FIVE);
-		Hashtable<Integer, JLabel>	depthTable = new Hashtable<Integer, JLabel>();
+		Hashtable<Integer, JLabel>	depthTable = new Hashtable<>();
 		DepthSelectionListener		depthListener = new DepthSelectionListener();
 
 		labelOff.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -528,8 +528,8 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 
 	
 	protected class DepthSelectionListener implements ChangeListener, ItemListener, LWSelection.Listener {
-		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
-								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
+		HashSet<LWComponent>	userSelection = new HashSet<>(),	// LWComponents selected by the user
+								deepSelection = new HashSet<>();	// LWComponents selected by this class
 		int						previousDepth = 0;
 		boolean					ignoreSelectionEvents = false;
 
@@ -609,7 +609,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 					} else {
 						// Find deepSelection and add it to the GUI's selection.
 						Toolbox.findChildrenToDepth(userSelection, deepSelection, 
-								userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected(), new Hashtable<LWComponent, Integer>());
+								userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected(), new Hashtable<>());
 						guiSelection.add(deepSelection.iterator());
 					}
 
@@ -648,7 +648,7 @@ public class InteractionTools extends JPanel implements ActionListener, ItemList
 						// Find deepSelection.
 						deepSelection.clear();
 						Toolbox.findChildrenToDepth(userSelection, deepSelection, 
-								userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected(), new Hashtable<LWComponent, Integer>());
+								userSelection, depth, incomingLinksCheckBox.isSelected(), outgoingLinksCheckBox.isSelected(), new Hashtable<>());
 
 						// Set the GUI's selection to userSelection (it may have gotten smaller) and add deepSelection.
 						guiSelection.setTo(userSelection);

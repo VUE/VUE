@@ -547,10 +547,10 @@ public class LWComponent
         /* True this property is a sub-part of some other property */
         //public final boolean isSubProperty;
 
-        public static final java.util.List<Key> AllKeys = new java.util.ArrayList<Key>();
+        public static final java.util.List<Key> AllKeys = new java.util.ArrayList<>();
 
         private static int InstanceCount; // increment for each key instance, to establish the appropriate bit
-        private static final java.util.Map<Class,Long> ClassProperties = new java.util.HashMap<Class,Long>();
+        private static final java.util.Map<Class,Long> ClassProperties = new java.util.HashMap<>();
 
         /** Get the supported property bit mask for the given class in the LWComponent inheritance tree
          * This will only return accurate results after all Key's in the codebase have been initialized. */
@@ -3913,7 +3913,7 @@ public class LWComponent
     	// Note: it's inefficient to call getIncomingLinks() AND getOutgoingLinks() because bi-directional
     	// links will be returned by both and you'll double-process them.  If you want both incoming and
     	// outgoing links just call getLinks() and there won't be duplicates.
-        List<LWLink> incomingLinks = new ArrayList<LWLink>();
+        List<LWLink> incomingLinks = new ArrayList<>();
 
         for (LWLink link : getLinks()) {
             int     arrowState = link.getArrowState();
@@ -3939,7 +3939,7 @@ public class LWComponent
     	// Note: it's inefficient to call getIncomingLinks() AND getOutgoingLinks() because bi-directional
     	// links will be returned by both and you'll double-process them.  If you want both incoming and
     	// outgoing links just call getLinks() and there won't be duplicates.
-        List<LWLink> outgoingLinks = new ArrayList<LWLink>();
+        List<LWLink> outgoingLinks = new ArrayList<>();
 
         for (LWLink link : getLinks()) {
             int     arrowState = link.getArrowState();

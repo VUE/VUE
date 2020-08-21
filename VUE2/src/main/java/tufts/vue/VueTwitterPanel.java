@@ -79,7 +79,7 @@ public class VueTwitterPanel extends JPanel implements ItemListener, ActionListe
     private TwitterThread twitterThread = null;
     private final ButtonGroup group = new ButtonGroup();
 
-    final private HashMap<String,LWMap.Layer> layerList = new HashMap<String,LWMap.Layer>();
+    final private HashMap<String,LWMap.Layer> layerList = new HashMap<>();
     
 	private boolean layersInit = false;
 	
@@ -236,10 +236,10 @@ public class VueTwitterPanel extends JPanel implements ItemListener, ActionListe
 	{
 
 		private static final long UPDATE_INTERVAL = 5000;
-		private HashMap<String,LWNode> fromUserClusterPoints = new HashMap<String,LWNode>();
+		private HashMap<String,LWNode> fromUserClusterPoints = new HashMap<>();
 		//private HashMap<String,LWNode> geoClusterPoints = new HashMap<String,LWNode>();
-		private HashMap<String,LWNode> toUserClusterPoints = new HashMap<String,LWNode>();		
-		private HashMap<String,LWNode> analysisClusterPoints = new HashMap<String,LWNode>();		
+		private HashMap<String,LWNode> toUserClusterPoints = new HashMap<>();
+		private HashMap<String,LWNode> analysisClusterPoints = new HashMap<>();
 
 		private Twitter twitter;
 		private ListRandomLayout randomLayout = new ListRandomLayout();
@@ -563,7 +563,7 @@ public class VueTwitterPanel extends JPanel implements ItemListener, ActionListe
 			   			select.clear();
 			   			
 			   			
-			   			final List<LWComponent> l = new ArrayList<LWComponent>();
+			   			final List<LWComponent> l = new ArrayList<>();
 			   			Iterable<LWNode> nodeIterator = fromLayer.getChildrenOfType(LWNode.class);
 			   			for (LWNode c : nodeIterator)
 			   			{
@@ -625,7 +625,7 @@ public class VueTwitterPanel extends JPanel implements ItemListener, ActionListe
 			   			select.clear();
 			   			
 			   			
-			   			final List<LWComponent> l = new ArrayList<LWComponent>();
+			   			final List<LWComponent> l = new ArrayList<>();
 			   			Iterable<LWNode> nodeIterator = analysisLayer.getChildrenOfType(LWNode.class);
 			   			for (LWNode c : nodeIterator)
 			   			{

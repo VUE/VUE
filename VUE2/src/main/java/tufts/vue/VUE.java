@@ -1843,7 +1843,7 @@ public class VUE
     private static void positionDockWindows(final tufts.vue.gui.Screen screen)
     {
         // by default, order the windows left to right across the top
-        final List<DockWindow> acrossTopList = new ArrayList<DockWindow>();
+        final List<DockWindow> acrossTopList = new ArrayList<>();
         
         if (!MapInspector.getWindowProperties().isEnabled() || !MapInspector.getWindowProperties().isWindowVisible())
             acrossTopList.add(MapInspector);        

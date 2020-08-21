@@ -42,8 +42,8 @@ public class FolderDataset  extends Dataset {
     
     
     public LWMap createMap() throws Exception{
-    	Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
-    	  ArrayList<String> heading = new ArrayList<String>();
+    	Map<String, LWNode> nodeMap = new HashMap<>();
+    	  ArrayList<String> heading = new ArrayList<>();
           heading.add("label");
           heading.add("resource");
           setHeading(heading);
@@ -51,7 +51,7 @@ public class FolderDataset  extends Dataset {
           File file = new File(fileName);
           if(!file.isDirectory()) throw new Exception("FolderDataset.loadDataset: The file " + fileName +" is not a folder");
           File[] children = file.listFiles();
-          List<LWComponent> nodeList = new ArrayList<LWComponent>();
+          List<LWComponent> nodeList = new ArrayList<>();
         for (File child : children) {
             String nodeLabel = child.getName();
 

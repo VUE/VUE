@@ -43,7 +43,7 @@ public class OntManager
     public static final int RDFS = 0;
     public static final int OWL = 1;
     /** Creates a new instance of OntManager */
-    List<Ontology> ontList = Collections.synchronizedList(new ArrayList<Ontology>());
+    List<Ontology> ontList = Collections.synchronizedList(new ArrayList<>());
     static OntManager ontManager;
     public OntManager() {
     }

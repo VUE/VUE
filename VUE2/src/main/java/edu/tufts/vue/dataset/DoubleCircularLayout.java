@@ -49,8 +49,8 @@ public class DoubleCircularLayout extends AbstractLayout{
         double Q_SIZE = (double)MAP_SIZE/COLUMNS;
         
         
-        Map<String,LWNode> node1Map = new HashMap<String,LWNode>();
-        Map<String,LWNode> node2Map = new HashMap<String,LWNode>();
+        Map<String,LWNode> node1Map = new HashMap<>();
+        Map<String,LWNode> node2Map = new HashMap<>();
         
         LWMap map = new LWMap(mapName);
         int count = 0;

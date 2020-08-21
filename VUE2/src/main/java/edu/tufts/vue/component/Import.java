@@ -79,7 +79,7 @@ public class Import {
      * @throws java.lang.Exception
      */
     public void createMap(String inputFile,String outputFile,String layout) throws Exception {
-    	HashMap<String,Integer> optionsMap = new HashMap<String,Integer>();
+    	HashMap<String,Integer> optionsMap = new HashMap<>();
 		optionsMap.put("random",1);
 		optionsMap.put("circle",2);
 		optionsMap.put("filled",3);

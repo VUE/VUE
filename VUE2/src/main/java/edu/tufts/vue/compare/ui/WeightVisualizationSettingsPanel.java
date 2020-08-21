@@ -75,8 +75,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     
     private LWMap map = null;
     
-    private ArrayList<Style> nodeStyles = new ArrayList<Style>();
-    private ArrayList<Style> linkStyles = new ArrayList<Style>();
+    private ArrayList<Style> nodeStyles = new ArrayList<>();
+    private ArrayList<Style> linkStyles = new ArrayList<>();
     
     private JLabel parameterChoiceMessage;
     
@@ -320,7 +320,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //todo: add some instancof checks and some constants to make
         // this less breakable with model changes use merge map
         // setIntervalBoundaries as defaults
-        ArrayList<Double> boundaries = new ArrayList<Double>();
+        ArrayList<Double> boundaries = new ArrayList<>();
         
         boundaries.add(new Double((double)0.0 + (double)0.5));
         for(int i=0;i<nodeModel.getRowCount();i++)
@@ -343,7 +343,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //todo: add some instancof checks and some constants to make
         // this less breakable with model changes use merge map
         // setIntervalBoundaries as defaults
-        ArrayList<Double> boundaries = new ArrayList<Double>();
+        ArrayList<Double> boundaries = new ArrayList<>();
         
         boundaries.add(new Double((double)0.0 + (double).5));
         for(int i=0;i<linkModel.getRowCount();i++)
@@ -928,8 +928,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     
     class IntervalListModel extends javax.swing.table.DefaultTableModel {//implements TableModel {
         
-        private List<PercentageInterval> piList = new ArrayList<PercentageInterval>();
-        private List<IntervalStylePreview> ispList = new ArrayList<IntervalStylePreview>();
+        private List<PercentageInterval> piList = new ArrayList<>();
+        private List<IntervalStylePreview> ispList = new ArrayList<>();
         
         public void addRow(int startPercentage,int endPercentage,Color backColor,Color foreColor) {
             piList.add(new PercentageInterval(startPercentage,endPercentage));

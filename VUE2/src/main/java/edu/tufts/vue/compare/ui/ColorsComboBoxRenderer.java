@@ -40,7 +40,7 @@ public class ColorsComboBoxRenderer extends javax.swing.DefaultListCellRenderer 
     public Component getListCellRendererComponent(javax.swing.JList list,Object value,int index,boolean isSelected,boolean hasFocus)
     {
       JPanel panel = new JPanel();  
-      List<Color> colors = new ArrayList<Color>();
+      List<Color> colors = new ArrayList<>();
       
       //layout horizontally in equally sized units
       BoxLayout layout = new BoxLayout(panel,BoxLayout.X_AXIS);

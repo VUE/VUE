@@ -21,7 +21,7 @@ public class HierarchicalLayout extends Layout {
 	}
 
 	public void layout(LWSelection selection) throws Exception {
-		HashMap<String, LWNode> processedNodes = new HashMap<String, LWNode>();
+		HashMap<String, LWNode> processedNodes = new HashMap<>();
         for (LWComponent c : selection) {
             if (c.isManagedLocation())
                 continue;
@@ -129,7 +129,7 @@ public class HierarchicalLayout extends Layout {
 	private List<LWNode> getRelated(LWNode node, HashMap<String, LWNode> processedNodes) {
 		processedNodes.put(node.getID(), node);
 
-		List<LWNode>		relatedNodes = new ArrayList<LWNode>();
+		List<LWNode>		relatedNodes = new ArrayList<>();
 
         for (LWLink link : node.getLinks()) {
             LWComponent head = link.getHead();
