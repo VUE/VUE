@@ -113,7 +113,7 @@ implements org.osid.repository.RepositoryManager
 		if ( (url != null) && (url instanceof String) && (site != null) && (site instanceof String)  && (client != null) && (client instanceof String) ) {
 			
 			if((url != null) ) {
-				if((url.indexOf("http://") >=0 && url.length() > 7))
+				if((url.contains("http://") && url.length() > 7))
 					url = url.substring(7);
 			} else {
 				url ="";

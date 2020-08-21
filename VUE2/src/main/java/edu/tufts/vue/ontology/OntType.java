@@ -98,12 +98,12 @@ public class OntType implements java.io.Serializable {
         this.base = base;
         // NOTE: this has never done anything for vra_core_3.rdf, so the base ends up being the full filename to
         // the jar in the application install -- is that okay?
-        if (base.indexOf("/edu/tufts/vue/metadata/dces_1_1.rdf") != -1)
+        if (base.contains("/edu/tufts/vue/metadata/dces_1_1.rdf"))
             baseURL = VueResources.local("metadata.dublincore.url");
      // else if (base.indexOf(edu.tufts.vue.metadata.CategoryModel.CUSTOM_METADATA_FILE) != -1)
-        else if (base.indexOf("edu/tufts/vue/metadata/categories.rdf") != -1)
+        else if (base.contains("edu/tufts/vue/metadata/categories.rdf"))
             baseURL = VueResources.local("metadata.vue.url");
-        else if (base.indexOf("custom.rdfs") != -1)
+        else if (base.contains("custom.rdfs"))
             // return "file:///Users/dhelle01/.vue_2/custom.rdfs";
             baseURL = "http://vue.tufts.edu/custom.rdfs";
         else

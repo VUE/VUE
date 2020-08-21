@@ -386,9 +386,9 @@ public class VueTwitterPanel extends JPanel implements ItemListener, ActionListe
 		            	if (tweet.getGeoLocation() !=null)
 		            		mlist.add("geolocation", tweet.getGeoLocation().toString());
 
-		            	if (msg.indexOf("?") > -1)
+		            	if (msg.contains("?"))
 		            		mlist.add("Type of Sentence", "question");
-		            	else if (msg.indexOf("!") > -1)
+		            	else if (msg.contains("!"))
 		            		mlist.add("Type of Sentence", "exclamation");
 		            	else
 		            		mlist.add("Type of Sentence", "statement");

@@ -382,7 +382,7 @@ implements org.osid.repository.Repository
 			org.osid.repository.AssetIterator ai = getAssets();
 			while (ai.hasNextAsset()) {
 				org.osid.repository.Asset a = ai.nextAsset();
-				if (a.getDisplayName().toLowerCase().indexOf(criteria) != -1) {
+				if (a.getDisplayName().toLowerCase().contains(criteria)) {
 					result.addElement(a);
 				}
 			}

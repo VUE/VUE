@@ -1004,7 +1004,7 @@ public class InspectorPane extends WidgetStack
         if (title == null && desc == null)
             return null;
 
-        if (desc == null || desc.indexOf("<style") < 0) {
+        if (desc == null || !desc.contains("<style")) {
             // only add a title if no style sheet present ("complex content" e.g., jackrabbit jira)
 
             // final String thumb = findProperty(r, data, "@Thumb", "thumbnailURL");

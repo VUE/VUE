@@ -1228,7 +1228,7 @@ public class ActionUtil
                 //if (allowOldFormat && me.getMessage().indexOf("Unable to instantiate tufts.vue.Resource") >= 0) {
                 // 2007-10-01 SMF: rev forward the special exception to check for once again in new castor version: castor-1.1.2.1-xml.jar
                 // TODO: 2009-03-25: upgraded to Castor release 1.3: the below message check may no longer work...
-                if (allowOldFormat && me.getMessage() != null && me.getMessage().indexOf("tufts.vue.Resource can no longer be constructed") >= 0) {
+                if (allowOldFormat && me.getMessage() != null && me.getMessage().contains("tufts.vue.Resource can no longer be constructed")) {
                     Log.warn("ActionUtil.unmarshallMap: " + me);
                     Log.warn("Attempting specialized MapResource mapping for old format.");
                     // NOTE: delicate recursion here: won't loop as long as we pass in a non-null mapping.

@@ -511,7 +511,7 @@ public class LWCFilter {
             String filter = mValue.toLowerCase();
             
             switch (getCondition()) {
-                case CONTAINS:  return search.indexOf(filter) != -1;
+                case CONTAINS:  return search.contains(filter);
                 case IS:        return search.equals(filter);
                 case STARTS:    return search.startsWith(filter);
                 case ENDS:      return search.endsWith(filter);

@@ -92,7 +92,7 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 							JarEntry	jarEntry = jarEntries.nextElement();
 							String		name = jarEntry.getName();
 
-							if (name.indexOf("VueResources_") != -1 && name.indexOf("__") == -1) {
+							if (name.contains("VueResources_") && !name.contains("__")) {
 								int		languageIndex = name.indexOf("_") + 1;
 								String	langCountry = name.substring(languageIndex);
 								String	language = langCountry.substring(0, 2);
