@@ -1,3 +1,3 @@
 include ':VUE2'
 
-rootProject.name = 'VUE'
+// rootProject.name = 'VUE'
