@@ -69,7 +69,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 		InputStream is = null;
 		DataInputStream dis;
 		String s;
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 
 		try {
 			u = new URL(theURL);

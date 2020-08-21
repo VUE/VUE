@@ -44,7 +44,7 @@ public abstract class StringUtils {
         Vector list = new Vector(100);
         
         //  Parse out sub-strings based on delim.
-        StringBuffer temp = new StringBuffer();
+        StringBuilder temp = new StringBuilder();
         for (int i=0; i<str.length; i++) {
             
             //  Check for the end of a sub-string.
@@ -106,7 +106,7 @@ public abstract class StringUtils {
      *  @author Mark Norton
      */
     public static String implode(Vector strings, char delim) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         
         for (int i=0; i<strings.size(); i++) {
             buf.append ((String)strings.elementAt(i));

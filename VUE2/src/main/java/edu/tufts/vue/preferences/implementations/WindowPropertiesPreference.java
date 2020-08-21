@@ -302,7 +302,7 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 		table.put(Y_POS_KEY, Integer.valueOf(y).toString());
 		table.put(ROLLEDUP_KEY, Boolean.valueOf(rolled).toString());
 
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		String enabled = p2.get("enabledWinPos", defaultEnabledVal);
 
 		sb.append(enabled);

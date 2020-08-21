@@ -675,7 +675,7 @@ public class Util
      */
     public static String makeQueryURL(String urlStart, String ... nameValuePairs) {
 
-        StringBuffer url = new StringBuffer(urlStart);
+        StringBuilder url = new StringBuilder(urlStart);
 
         boolean isKey = true;
         boolean isFirstKey = true;
@@ -1143,7 +1143,7 @@ public class Util
         if (i < 0)
             return s;
         final int len = s.length();
-        final StringBuffer buf = new StringBuffer(len);
+        final StringBuilder buf = new StringBuilder(len);
         // copy in everything we've skipped in the original string up to now
         buf.append(s.substring(0, i));
         //System.out.println("DECODE START " + buf);

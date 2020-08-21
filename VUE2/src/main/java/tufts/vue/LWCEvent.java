@@ -205,7 +205,7 @@ public class LWCEvent
     
     public String paramString() 
     {
-        final StringBuffer buf = new StringBuffer(//TERM_PURPLE +
+        final StringBuilder buf = new StringBuilder(//TERM_PURPLE +
                                                   String.format("%-20s ", key)
                                                   + source);
         //+ TERM_CLEAR + " " + source);

@@ -48,7 +48,7 @@ public class GUID implements Serializable
     /** get int as 8-char string */
     private static String hexFormat(int data)
     {
-        StringBuffer stringBuffer=new StringBuffer();
+        StringBuilder stringBuffer=new StringBuilder();
         stringBuffer.append("00000000");
         stringBuffer.append(Integer.toHexString(data));
         return stringBuffer.substring(stringBuffer.length()-8);
@@ -57,7 +57,7 @@ public class GUID implements Serializable
     /** get byte as 2 char string */
     private static String hexFormat(byte data)
     {
-        StringBuffer stringBuffer=new StringBuffer();
+        StringBuilder stringBuffer=new StringBuilder();
         stringBuffer.append("00");
         stringBuffer.append(Integer.toHexString(data));
         return stringBuffer.substring(stringBuffer.length()-2);
@@ -66,7 +66,7 @@ public class GUID implements Serializable
     /** generate guid from time,addr,hash and rand */
     public static String generate()
     {
-        StringBuffer stringBuffer=new StringBuffer();
+        StringBuilder stringBuffer=new StringBuilder();
         int time=(int)System.currentTimeMillis();
         int rand=s_secureRandom.nextInt();
         stringBuffer.append(hexFormat(time));

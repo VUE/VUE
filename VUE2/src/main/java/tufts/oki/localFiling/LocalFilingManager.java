@@ -707,7 +707,7 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
     public String[] explodePath (String path, char separator) {
         ArrayList parts = new ArrayList(100);
         //char[] node = new char[256];
-        StringBuffer node = new StringBuffer(256);
+        StringBuilder node = new StringBuilder(256);
         
         //  Parse the pathname according to separator provided.
         for (int i = 0; i < path.length(); i++) {
@@ -739,7 +739,7 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
      *  Assemble a path string from the parts and separator given.
      */
     public String implodePath (String[] parts, String separator) {
-        StringBuffer path = new StringBuffer(1024);
+        StringBuilder path = new StringBuilder(1024);
         
         if (parts.length > 0) {
             path.append(parts[0]);

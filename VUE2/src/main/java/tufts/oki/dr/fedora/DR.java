@@ -523,7 +523,7 @@ public class DR implements osid.dr.DigitalRepository {
         fileName = url+fileName;
         // this part does the creation of METSFile
         int BUFFER_SIZE = 10240;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         String s = new String();
         BufferedInputStream fis = new BufferedInputStream(new FileInputStream(new File(getResource(templateFileName).getFile().replaceAll("%20"," "))));
         //FileInputStream fis = new FileInputStream(new File(templateFileName));

@@ -1600,7 +1600,7 @@ return super.viewToModel(new Point(alloc));
     
     private String stripHTMLTags( String message ) 
     {
-        StringBuffer returnMessage = new StringBuffer(message);
+        StringBuilder returnMessage = new StringBuilder(message);
         int startPosition = message.indexOf("<"); // encountered the first opening brace
         int endPosition = message.indexOf(">"); // encountered the first closing braces
         while( startPosition != -1 ) {

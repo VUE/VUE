@@ -121,7 +121,7 @@ public class RecentlyUsedColorsManager
 			list.removeLast();
 		
 		//build a new pref String;
-		StringBuffer sbuffer = new StringBuffer();
+		StringBuilder sbuffer = new StringBuilder();
 		
 		i = list.iterator();
 		

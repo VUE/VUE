@@ -283,7 +283,7 @@ public class SakaiPublisher {
 	throws IOException {
 		
 	    String s;
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 	    BufferedReader in = new BufferedReader( new FileReader(file));
 	      
 	    while( (s = in.readLine()) != null ) {
