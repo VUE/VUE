@@ -710,8 +710,8 @@ public class CSSParser {
     
     private static String charToString(char[] crs) {
         String s = new String();
-        for(int i=0;i<crs.length;i++) {
-            s += crs[i];
+        for (char cr : crs) {
+            s += cr;
         }
         return s;
     }
@@ -719,12 +719,12 @@ public class CSSParser {
     private static Map<String,String> bufferToMap(StringBuffer buffer) {
         Map<String,String> map = new HashMap();
         String[] keyValues = buffer.toString().split(";");
-        for(int i=0;i<keyValues.length;i++) {
-            String[] tokens = keyValues[i].split(":");
-            if(tokens.length ==  2) {
-                map.put(tokens[0].trim(),tokens[1].trim());
+        for (String keyValue : keyValues) {
+            String[] tokens = keyValue.split(":");
+            if (tokens.length == 2) {
+                map.put(tokens[0].trim(), tokens[1].trim());
             }
-            
+
         }
         return map;
         

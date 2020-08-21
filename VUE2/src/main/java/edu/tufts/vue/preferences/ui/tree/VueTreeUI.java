@@ -91,10 +91,9 @@ public class VueTreeUI extends MetalTreeUI{
 	        }
 	     p.setBackground(bg);
 	     Component[] c = p.getComponents();
-	     for (int i = 0 ; i < c.length; i++)	    	
-	     {
-	    	 c[i].setBackground(bg);
-	     }
+        for (Component value : c) {
+            value.setBackground(bg);
+        }
 		//For Debugging.
 		//component.setBackground(row %2 == 0 ? Color.red: Color.blue);	     
 	    p.setSize(Short.MAX_VALUE,bounds.height); 

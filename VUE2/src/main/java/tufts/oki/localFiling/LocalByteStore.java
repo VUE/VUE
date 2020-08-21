@@ -323,8 +323,8 @@ public class LocalByteStore extends LocalCabinetEntry implements osid.filing.Byt
         
         //  Copy the buffer to the file stream.
         try {
-            for (int i = 0; i < b.length; i++) {
-                stream.write((int)b[i]);
+            for (byte value : b) {
+                stream.write((int) value);
             }
             stream.close();
         }

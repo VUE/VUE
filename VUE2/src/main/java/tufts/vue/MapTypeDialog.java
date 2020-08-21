@@ -137,9 +137,9 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 			}
 		mListModel = new DefaultListModel();
 		if( types != null) {
-			for(int i=0; i< types.length; i++)  {
-				mListModel.addElement( types[i] );
-				}
+            for (UserMapType type : types) {
+                mListModel.addElement(type);
+            }
 			}
 		// mListModel.addElement( "Default");
 		mTypeList = new JList( mListModel);

@@ -90,12 +90,12 @@ public class AssetResource extends URLResource {
                 if(dcUrl !=null) {
                     InputStream dublinCoreInputStream = dcUrl.openStream();
                     Document document = factory.newDocumentBuilder().parse(dublinCoreInputStream);
-                    for(int i=0;i<dcFields.length;i++) {
-                        NodeList list = document.getElementsByTagName(DC_NAMESPACE+dcFields[i]);
-                        if(list != null && list.getLength() != 0) {
+                    for (String dcField : dcFields) {
+                        NodeList list = document.getElementsByTagName(DC_NAMESPACE + dcField);
+                        if (list != null && list.getLength() != 0) {
                             // only picks the first element
-                            if(list.item(0).getFirstChild() != null)
-                                setProperty(dcFields[i], list.item(0).getFirstChild().getNodeValue());
+                            if (list.item(0).getFirstChild() != null)
+                                setProperty(dcField, list.item(0).getFirstChild().getNodeValue());
                         }
                     }
                 }

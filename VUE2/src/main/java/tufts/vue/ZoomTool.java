@@ -544,9 +544,9 @@ public class ZoomTool extends VueTool
     public static boolean setZoomBigger(Point2D focus)
     {
         final double curZoom = VUE.getActiveViewer().getZoomFactor();
-        for (int i = 0; i < ZoomDefaults.length; i++) {
-            if (ZoomDefaults[i] > curZoom) {
-                setZoom(ZoomDefaults[i], focus);
+        for (double zoomDefault : ZoomDefaults) {
+            if (zoomDefault > curZoom) {
+                setZoom(zoomDefault, focus);
                 return true;
             }
         }

@@ -144,9 +144,9 @@ public class DatasetLoader {
         
         box.setLayout(new BoxLayout(box, BoxLayout.PAGE_AXIS));
         box.add(label);
-        
-        for (int i = 0; i < numChoices; i++) {
-            box.add(radioButtons[i]);
+
+        for (JRadioButton radioButton : radioButtons) {
+            box.add(radioButton);
         }
         
         JPanel pane = new JPanel(new BorderLayout());

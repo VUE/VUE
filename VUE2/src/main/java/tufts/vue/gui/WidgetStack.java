@@ -972,9 +972,9 @@ public class WidgetStack extends Widget
 
         private void clearMenuActions() {
             MouseListener[] ml = getMouseListeners();
-            for (int i = 0; i < ml.length; i++) {
-                if (ml[i] instanceof GUI.PopupMenuHandler)
-                    removeMouseListener(ml[i]);
+            for (MouseListener mouseListener : ml) {
+                if (mouseListener instanceof GUI.PopupMenuHandler)
+                    removeMouseListener(mouseListener);
             }
         } 
         protected void paintComponent(Graphics g) {
@@ -1123,8 +1123,8 @@ public class WidgetStack extends Widget
 
         private void clearAction() {
             MouseListener[] ml = getMouseListeners();
-            for (int i = 0; i < ml.length; i++) {                
-                    removeMouseListener(ml[i]);
+            for (MouseListener mouseListener : ml) {
+                removeMouseListener(mouseListener);
             }
         }
 
@@ -1195,8 +1195,8 @@ public class WidgetStack extends Widget
 
         private void clearAction() {
             MouseListener[] ml = getMouseListeners();
-            for (int i = 0; i < ml.length; i++) {                
-                    removeMouseListener(ml[i]);
+            for (MouseListener mouseListener : ml) {
+                removeMouseListener(mouseListener);
             }
         }
 
@@ -1276,8 +1276,8 @@ public class WidgetStack extends Widget
                                         "Four",
         };
 
-        for (int i = 0; i < names.length; i++) {
-            s.addPane(names[i], new JLabel(names[i], SwingConstants.CENTER), 1f);
+        for (String name : names) {
+            s.addPane(name, new JLabel(name, SwingConstants.CENTER), 1f);
         }
         //s.addPane("Fixed", new JLabel("fixed"), 0f);
         

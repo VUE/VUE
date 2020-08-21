@@ -123,8 +123,7 @@ public class Screen
         // window most overlaps:
         
         int maxArea = 0;
-        for (int i = 0; i < devices.length; i++) {
-            GraphicsDevice device = devices[i];
+        for (GraphicsDevice device : devices) {
             try {
                 GraphicsConfiguration config = device.getDefaultConfiguration();
                 Rectangle overlap = config.getBounds().intersection(region);
@@ -153,9 +152,8 @@ public class Screen
             return getDefaultDevice();
 
         // scan all screen devices, and find the one that this point is on:
-        
-        for (int i = 0; i < devices.length; i++) {
-            GraphicsDevice device = devices[i];
+
+        for (GraphicsDevice device : devices) {
             try {
                 GraphicsConfiguration config = device.getDefaultConfiguration();
                 if (config.getBounds().contains(point))
@@ -317,9 +315,8 @@ public class Screen
     public static Rectangle getAllDeviceBounds(GraphicsDevice[] devices)
     {
         Rectangle bounds = null;
-        
-        for (int i = 0; i < devices.length; i++) {
-            final GraphicsDevice device = devices[i];
+
+        for (final GraphicsDevice device : devices) {
             final GraphicsConfiguration config = device.getDefaultConfiguration();
             final Rectangle newBounds = config.getBounds();
             if (bounds == null) {

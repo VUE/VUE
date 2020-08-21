@@ -147,16 +147,16 @@ implements org.osid.repository.Repository
 			// we can't set the label (title) for it that way. -- SMF
 			String[] dirs = { "Desktop", "My Documents", "Documents", "Pictures", "My Pictures", "Photos", "My Photos"};
 			int added = 0;
-			for (int i = 0; i < dirs.length; i++) {
-				File dir = new File(home, dirs[i]);
-				if (dir.exists() && dir.canRead()) {
-					//					CabinetResource r = new CabinetResource(new LocalCabinet(dir.getPath(), agent, null));
-					//					r.setTitle(dirs[i]);
-					//					cabVector.add(r);
-					cabVector.add(new LocalCabinet(dir.getPath(),agent,null));
-					added++;
-				}
-			}
+            for (String s : dirs) {
+                File dir = new File(home, s);
+                if (dir.exists() && dir.canRead()) {
+                    //					CabinetResource r = new CabinetResource(new LocalCabinet(dir.getPath(), agent, null));
+                    //					r.setTitle(dirs[i]);
+                    //					cabVector.add(r);
+                    cabVector.add(new LocalCabinet(dir.getPath(), agent, null));
+                    added++;
+                }
+            }
 			if (added == 0 || tufts.Util.isWindowsPlatform() == false) {
                             Resource r = Resource.getFactory().get(new LocalCabinet(home.getPath(), agent, null));
                             String title = "Home";
@@ -177,22 +177,21 @@ implements org.osid.repository.Repository
 		}
 		if (volumes != null && volumes.exists() && volumes.canRead()) {
 			File[] vols = volumes.listFiles();
-			for (int i = 0; i < vols.length; i++) {
-				File v = vols[i];
-				if (!v.canRead() || v.getName().startsWith("."))
-					continue;
-				Resource r = Resource.getFactory().get(new LocalCabinet(v.getPath(), agent, null));
-				r.setTitle(v.getName());
-				try {
-					//r.setTitle(v.getName() + " (" + v.getCanonicalPath() + ")");
-					if (v.getCanonicalPath().equals("/"))
-						gotSlash = true;
-				} catch (Exception e) {
-					System.err.println(e);
-				}
-				//				cabVector.add(r);
-				cabVector.add(new LocalCabinet(v.getPath(), agent, null));
-			}
+            for (File v : vols) {
+                if (!v.canRead() || v.getName().startsWith("."))
+                    continue;
+                Resource r = Resource.getFactory().get(new LocalCabinet(v.getPath(), agent, null));
+                r.setTitle(v.getName());
+                try {
+                    //r.setTitle(v.getName() + " (" + v.getCanonicalPath() + ")");
+                    if (v.getCanonicalPath().equals("/"))
+                        gotSlash = true;
+                } catch (Exception e) {
+                    System.err.println(e);
+                }
+                //				cabVector.add(r);
+                cabVector.add(new LocalCabinet(v.getPath(), agent, null));
+            }
 		}
 		
 		try {

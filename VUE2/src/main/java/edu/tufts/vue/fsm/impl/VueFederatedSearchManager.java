@@ -77,17 +77,17 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
 			java.io.File root = new java.io.File(installDirectory);
 			java.io.File[] files = root.listFiles();
 			if (files != null) {
-				for (int i=0; i < files.length; i++) {
-					if (files[i].isDirectory()) {
-						java.io.File[] subfiles = files[i].listFiles();
-						for (int j=0; j < subfiles.length; j++) {
-							if (subfiles[j].getName().equals(targetFilename)) {
-								filenameVector.addElement(subfiles[j].getAbsolutePath());
-								//System.out.println("added " + filenameVector.lastElement());
-							}
-						}
-					}
-				}			
+                for (java.io.File file : files) {
+                    if (file.isDirectory()) {
+                        java.io.File[] subfiles = file.listFiles();
+                        for (java.io.File subfile : subfiles) {
+                            if (subfile.getName().equals(targetFilename)) {
+                                filenameVector.addElement(subfile.getAbsolutePath());
+                                //System.out.println("added " + filenameVector.lastElement());
+                            }
+                        }
+                    }
+                }
 			}
 		} catch (Exception ex) {
                     Log.warn(ex);
@@ -161,104 +161,103 @@ implements edu.tufts.vue.fsm.FederatedSearchManager
             }
 			
 			String[] files = getXMLFilenames();
-			for (int f=0; f < files.length; f++) 
-			{
-				java.io.InputStream istream = new java.io.FileInputStream(files[f]);
-				document = db.parse(istream);
-				
-				org.w3c.dom.NodeList queryEditors = document.getElementsByTagName(QUERY_EDITORS_TAG);
-				int numQueryEditors = queryEditors.getLength();
-				for (int i=0; i < numQueryEditors; i++) {
-					org.w3c.dom.Element queryEditor = (org.w3c.dom.Element)queryEditors.item(i);
-					
-					org.w3c.dom.NodeList typeNodeList = queryEditor.getElementsByTagName(SEARCH_TYPE_TAG);
-					int numTypes = typeNodeList.getLength();
-					
-					org.w3c.dom.NodeList classNameNodeList = queryEditor.getElementsByTagName(CLASS_NAME_TAG);
-					int numClassNames = classNameNodeList.getLength();
-					
-					for (int j=0; j < numTypes; j++) {
-						org.w3c.dom.Element typeElement = (org.w3c.dom.Element)typeNodeList.item(j);
-						if (typeElement.hasChildNodes()) {
-							queryEditorTypeVector.addElement(typeElement.getFirstChild().getNodeValue());
-							
-							// ensure there is some entry in the vector
-							if (numClassNames >= j) {
-								org.w3c.dom.Element classNameElement = (org.w3c.dom.Element)classNameNodeList.item(j);
-								if (classNameElement.hasChildNodes()) {
-									queryEditorClassNameVector.addElement(classNameElement.getFirstChild().getNodeValue());
-								} else {
-									queryEditorClassNameVector.addElement(null);
-								}
-							} else {
-								queryEditorClassNameVector.addElement(null);
-							}
-						}
-					}
-				}
-				
-				org.w3c.dom.NodeList queryAdjusters = document.getElementsByTagName(QUERY_ADJUSTERS_TAG);
-				int numQueryAdjusters = queryAdjusters.getLength();
-				for (int i=0; i < numQueryAdjusters; i++) {
-					org.w3c.dom.Element queryAdjuster = (org.w3c.dom.Element)queryAdjusters.item(i);
-					
-					org.w3c.dom.NodeList repositoryIdNodeList = queryAdjuster.getElementsByTagName(REPOSITORY_ID_TAG);
-					int numRepositoryIds = repositoryIdNodeList.getLength();
-					
-					org.w3c.dom.NodeList classNameNodeList = queryAdjuster.getElementsByTagName(CLASS_NAME_TAG);
-					int numClassNames = classNameNodeList.getLength();
-					
-					for (int j=0; j < numRepositoryIds; j++) {
-						org.w3c.dom.Element repositoryIdElement = (org.w3c.dom.Element)repositoryIdNodeList.item(j);
-						if (repositoryIdElement.hasChildNodes()) {
-							queryAdjusterRepositoryIdStringVector.addElement(repositoryIdElement.getFirstChild().getNodeValue());
-							
-							// ensure there is some entry in the vector
-							if (numClassNames >= j) {
-								org.w3c.dom.Element classNameElement = (org.w3c.dom.Element)classNameNodeList.item(j);
-								if (classNameElement.hasChildNodes()) {
-									queryAdjusterClassNameVector.addElement(classNameElement.getFirstChild().getNodeValue());
-								} else {
-									queryAdjusterClassNameVector.addElement(null);
-								}
-							} else {
-								queryAdjusterClassNameVector.addElement(null);
-							}
-						}
-					}
-				}
-				
-				org.w3c.dom.NodeList assetViewers = document.getElementsByTagName(ASSET_VIEWERS_TAG);
-				int numAssetViewers = assetViewers.getLength();
-				for (int i=0; i < numAssetViewers; i++) {
-					org.w3c.dom.Element assetViewer = (org.w3c.dom.Element)assetViewers.item(i);
-					
-					org.w3c.dom.NodeList typeNodeList = assetViewer.getElementsByTagName(ASSET_TYPE_TAG);
-					int numTypes = typeNodeList.getLength();
-					
-					org.w3c.dom.NodeList classNameNodeList = assetViewer.getElementsByTagName(CLASS_NAME_TAG);
-					int numClassNames = classNameNodeList.getLength();
-					
-					for (int j=0; j < numTypes; j++) {
-						org.w3c.dom.Element typeElement = (org.w3c.dom.Element)typeNodeList.item(j);
-						if (typeElement.hasChildNodes()) {
-							assetViewerTypeVector.addElement(typeElement.getFirstChild().getNodeValue());
-							
-							// ensure there is some entry in the vector
-							if (numClassNames >= j) {
-								org.w3c.dom.Element classNameElement = (org.w3c.dom.Element)classNameNodeList.item(j);
-								if (classNameElement.hasChildNodes()) {
-									assetViewerClassNameVector.addElement(classNameElement.getFirstChild().getNodeValue());
-								} else {
-									assetViewerClassNameVector.addElement(null);
-								}
-							} else {
-								assetViewerClassNameVector.addElement(null);
-							}
-						}
-					}
-				}
-			}
+            for (String s : files) {
+                java.io.InputStream istream = new java.io.FileInputStream(s);
+                document = db.parse(istream);
+
+                org.w3c.dom.NodeList queryEditors = document.getElementsByTagName(QUERY_EDITORS_TAG);
+                int numQueryEditors = queryEditors.getLength();
+                for (int i = 0; i < numQueryEditors; i++) {
+                    org.w3c.dom.Element queryEditor = (org.w3c.dom.Element) queryEditors.item(i);
+
+                    org.w3c.dom.NodeList typeNodeList = queryEditor.getElementsByTagName(SEARCH_TYPE_TAG);
+                    int numTypes = typeNodeList.getLength();
+
+                    org.w3c.dom.NodeList classNameNodeList = queryEditor.getElementsByTagName(CLASS_NAME_TAG);
+                    int numClassNames = classNameNodeList.getLength();
+
+                    for (int j = 0; j < numTypes; j++) {
+                        org.w3c.dom.Element typeElement = (org.w3c.dom.Element) typeNodeList.item(j);
+                        if (typeElement.hasChildNodes()) {
+                            queryEditorTypeVector.addElement(typeElement.getFirstChild().getNodeValue());
+
+                            // ensure there is some entry in the vector
+                            if (numClassNames >= j) {
+                                org.w3c.dom.Element classNameElement = (org.w3c.dom.Element) classNameNodeList.item(j);
+                                if (classNameElement.hasChildNodes()) {
+                                    queryEditorClassNameVector.addElement(classNameElement.getFirstChild().getNodeValue());
+                                } else {
+                                    queryEditorClassNameVector.addElement(null);
+                                }
+                            } else {
+                                queryEditorClassNameVector.addElement(null);
+                            }
+                        }
+                    }
+                }
+
+                org.w3c.dom.NodeList queryAdjusters = document.getElementsByTagName(QUERY_ADJUSTERS_TAG);
+                int numQueryAdjusters = queryAdjusters.getLength();
+                for (int i = 0; i < numQueryAdjusters; i++) {
+                    org.w3c.dom.Element queryAdjuster = (org.w3c.dom.Element) queryAdjusters.item(i);
+
+                    org.w3c.dom.NodeList repositoryIdNodeList = queryAdjuster.getElementsByTagName(REPOSITORY_ID_TAG);
+                    int numRepositoryIds = repositoryIdNodeList.getLength();
+
+                    org.w3c.dom.NodeList classNameNodeList = queryAdjuster.getElementsByTagName(CLASS_NAME_TAG);
+                    int numClassNames = classNameNodeList.getLength();
+
+                    for (int j = 0; j < numRepositoryIds; j++) {
+                        org.w3c.dom.Element repositoryIdElement = (org.w3c.dom.Element) repositoryIdNodeList.item(j);
+                        if (repositoryIdElement.hasChildNodes()) {
+                            queryAdjusterRepositoryIdStringVector.addElement(repositoryIdElement.getFirstChild().getNodeValue());
+
+                            // ensure there is some entry in the vector
+                            if (numClassNames >= j) {
+                                org.w3c.dom.Element classNameElement = (org.w3c.dom.Element) classNameNodeList.item(j);
+                                if (classNameElement.hasChildNodes()) {
+                                    queryAdjusterClassNameVector.addElement(classNameElement.getFirstChild().getNodeValue());
+                                } else {
+                                    queryAdjusterClassNameVector.addElement(null);
+                                }
+                            } else {
+                                queryAdjusterClassNameVector.addElement(null);
+                            }
+                        }
+                    }
+                }
+
+                org.w3c.dom.NodeList assetViewers = document.getElementsByTagName(ASSET_VIEWERS_TAG);
+                int numAssetViewers = assetViewers.getLength();
+                for (int i = 0; i < numAssetViewers; i++) {
+                    org.w3c.dom.Element assetViewer = (org.w3c.dom.Element) assetViewers.item(i);
+
+                    org.w3c.dom.NodeList typeNodeList = assetViewer.getElementsByTagName(ASSET_TYPE_TAG);
+                    int numTypes = typeNodeList.getLength();
+
+                    org.w3c.dom.NodeList classNameNodeList = assetViewer.getElementsByTagName(CLASS_NAME_TAG);
+                    int numClassNames = classNameNodeList.getLength();
+
+                    for (int j = 0; j < numTypes; j++) {
+                        org.w3c.dom.Element typeElement = (org.w3c.dom.Element) typeNodeList.item(j);
+                        if (typeElement.hasChildNodes()) {
+                            assetViewerTypeVector.addElement(typeElement.getFirstChild().getNodeValue());
+
+                            // ensure there is some entry in the vector
+                            if (numClassNames >= j) {
+                                org.w3c.dom.Element classNameElement = (org.w3c.dom.Element) classNameNodeList.item(j);
+                                if (classNameElement.hasChildNodes()) {
+                                    assetViewerClassNameVector.addElement(classNameElement.getFirstChild().getNodeValue());
+                                } else {
+                                    assetViewerClassNameVector.addElement(null);
+                                }
+                            } else {
+                                assetViewerClassNameVector.addElement(null);
+                            }
+                        }
+                    }
+                }
+            }
 		} catch (Throwable t) {
 			edu.tufts.vue.util.Logger.log(t,"parsing " + this.xmlFilename);
 		}

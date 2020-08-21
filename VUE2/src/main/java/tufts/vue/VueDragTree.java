@@ -800,9 +800,8 @@ class FileNode extends ResourceNode {
         if(!isExplored()) {
             File file = getFile();
             File[] contents = file.listFiles();
-            
-            for(int i=0; i < contents.length; ++i)
-                add(new FileNode(contents[i]));
+
+            for (File content : contents) add(new FileNode(content));
             
             explored = true;
         }

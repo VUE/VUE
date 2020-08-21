@@ -2496,10 +2496,10 @@ public class Util
 
             StackTraceElement[] trace = t.getStackTrace();
             int skipped = 0;
-            for (int i = 0; i < trace.length; i++) {
-                if (includeInTrace(trace[i], prefix)) {
-                    pst.print("\n\tat " + trace[i] + " ");
-                    log.print("\n\tat " + trace[i] + " ");
+            for (StackTraceElement stackTraceElement : trace) {
+                if (includeInTrace(stackTraceElement, prefix)) {
+                    pst.print("\n\tat " + stackTraceElement + " ");
+                    log.print("\n\tat " + stackTraceElement + " ");
                 } else {
                     pst.print(".");
                     log.print(".");

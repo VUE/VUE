@@ -76,11 +76,9 @@ public class AlignmentDropDown extends JPanel {
     public void quietlySelectIndex(int p)
     {
     	ActionListener[] l = alignList.getActionListeners();
-    	for (int i=0;i<l.length;i++)
-    		alignList.removeActionListener(l[i]);
+        for (ActionListener listener : l) alignList.removeActionListener(listener);
     	alignList.setSelectedItem(new Integer(p));
-    	for (int i=0;i<l.length;i++)
-    		alignList.addActionListener(l[i]);
+        for (ActionListener actionListener : l) alignList.addActionListener(actionListener);
     	
     }
     public JComboBox getComboBox()

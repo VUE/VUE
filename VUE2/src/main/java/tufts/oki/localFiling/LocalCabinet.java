@@ -318,9 +318,9 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
         String path = rootBase + getFullName();
 
         //System.out.println ("openDirectory - path name: " + path);
-        for (int i = 0; i < files.length; i++) {
+        for (String file : files) {
             //File temp = new File (cwd.getPath(), files[i]);
-            File temp = new File (rootBase+getFullName(), files[i]);
+            File temp = new File(rootBase + getFullName(), file);
 
             //System.out.println ("openDirectory - new file: " + rootBase + getFullName() + files[i]);
 
@@ -334,12 +334,11 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
 
                 //System.out.println ("\tDir " + i + ": " + temp.getName() + "\t" + absolute);
                 //cwd.createCabinet (temp.getName());
-                createCabinet (absolute);
-            }
-            else if (temp.isFile()) {
+                createCabinet(absolute);
+            } else if (temp.isFile()) {
                 //System.out.println ("\tFile " + i + ": " + temp.getName() + "\t" + absolute);
                 //cwd.createByteStore (temp.getName());
-                createByteStore (absolute);
+                createByteStore(absolute);
             }
 
             //  Unknown cases are ignored.

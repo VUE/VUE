@@ -197,9 +197,9 @@ public class VueUtil extends tufts.Util
         File userFolder = getDefaultUserFolder();
         File[] files = userFolder.listFiles();
         System.out.println("file count = "+files.length);
-        for(int i = 0; i<files.length;i++) {
-            if(files[i].isFile() && !files[i].delete()) 
-                throw new RuntimeException(files[i].getAbsolutePath()+":cannot be created");
+        for (File file : files) {
+            if (file.isFile() && !file.delete())
+                throw new RuntimeException(file.getAbsolutePath() + ":cannot be created");
         }
         if(!userFolder.delete()) 
              throw new RuntimeException(userFolder.getAbsolutePath()+":cannot be deleted");
@@ -721,13 +721,12 @@ public class VueUtil extends tufts.Util
     public static Map getQueryData(String query) {
         String[] pairs = query.split("&");
         Map map = new HashMap();
-        for (int i = 0; i < pairs.length; i++) {
-            String pair = pairs[i];
+        for (String pair : pairs) {
             if (DEBUG.DATA || DEBUG.IMAGE) System.out.println("query pair " + pair);
             int eqIdx = pair.indexOf('=');
             if (eqIdx > 0) {
                 String key = pair.substring(0, eqIdx);
-                String value = pair.substring(eqIdx+1, pair.length());
+                String value = pair.substring(eqIdx + 1, pair.length());
                 map.put(key.toLowerCase(), value);
             }
         }
@@ -1021,8 +1020,8 @@ public class VueUtil extends tufts.Util
         String[] words1 = content1.split("\\s+");
         String[] words2 = content2.split("\\s+");
         int matches = 0;
-        for(int i = 0;i<words1.length;i++) {
-            if(n2.getLabel().contains(words1[i])){
+        for (String s : words1) {
+            if (n2.getLabel().contains(s)) {
                 matches++;
             }
         }

@@ -344,9 +344,8 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 		 {
 			 int len = advancedFields.length;
 			 int sum = 0;
-			 for (int i=0;i < len; i++)
-			 {
-				 sum +=((String)(advancedFields[i].getText())).replaceAll(" ","").length();
+			 for (javax.swing.JTextField advancedField : advancedFields) {
+				 sum += ((String) (advancedField.getText())).replaceAll(" ", "").length();
 			 }
 		         searchButton2.setEnabled(sum > 0);
 		         searchButton1.setEnabled(sum > 0);
@@ -607,23 +606,23 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 		
 		try {
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
-			for (int i=0; i < repositories.length; i++) {
-                            	// not all these methods may be implemented -- in which case we are out of luck
+			for (org.osid.repository.Repository repository : repositories) {
+				// not all these methods may be implemented -- in which case we are out of luck
 				try {
-					org.osid.shared.TypeIterator typeIterator = repositories[i].getAssetTypes();
+					org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
 					while (typeIterator.hasNextType()) {
 						org.osid.shared.Type nextAssetType = typeIterator.nextType();
-										   
-						org.osid.repository.RecordStructureIterator recordStructureIterator = repositories[i].getMandatoryRecordStructures(nextAssetType);
+
+						org.osid.repository.RecordStructureIterator recordStructureIterator = repository.getMandatoryRecordStructures(nextAssetType);
 						while (recordStructureIterator.hasNextRecordStructure()) {
 							org.osid.repository.PartStructureIterator partStructureIterator = recordStructureIterator.nextRecordStructure().getPartStructures();
 							while (partStructureIterator.hasNextPartStructure()) {
 								org.osid.shared.Type nextType = partStructureIterator.nextPartStructure().getType();
 								String nextTypeString = edu.tufts.vue.util.Utilities.typeToString(nextType);
-								
+
 								int index = advancedSearchUniverseOfTypeStringsVector.indexOf(nextTypeString);
 								if (index != -1) {
-									String prompt = (String)advancedSearchPromptsVector.elementAt(index);
+									String prompt = (String) advancedSearchPromptsVector.elementAt(index);
 									if (!union.contains(prompt)) {
 										union.addElement(prompt);
 									}
@@ -653,21 +652,21 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 		
 		try {
 			org.osid.repository.Repository[] repositories = sourcesAndTypesManager.getRepositoriesToSearch();
-			for (int i=0; i < repositories.length; i++) {
+			for (org.osid.repository.Repository repository : repositories) {
 //				 System.out.println("QueryEditor: Respository:"+repositories[i].getDisplayName());
-						
-				java.util.Vector intersection = new java.util.Vector();		
+
+				java.util.Vector intersection = new java.util.Vector();
 				// not all these methods may be implemented -- in which case we are out of luck
 				try {
 					// must support the multi-field search type
 					boolean supportsMultiField = false;
-					org.osid.shared.TypeIterator typeIterator = repositories[i].getSearchTypes();
-                                       
-					while ( (!supportsMultiField) && typeIterator.hasNextType() ) {
+					org.osid.shared.TypeIterator typeIterator = repository.getSearchTypes();
+
+					while ((!supportsMultiField) && typeIterator.hasNextType()) {
 						org.osid.shared.Type nextSearchType = typeIterator.nextType();
 //                                                  System.out.println("QueryEditor: Respository:"+repositories[i].getDisplayName()+" search type:"+nextSearchType.getKeyword()+" check:"+nextSearchType.isEqual(this.multiFieldSearchType));
-				
-                                               if (nextSearchType.isEqual(this.multiFieldSearchType)) {
+
+						if (nextSearchType.isEqual(this.multiFieldSearchType)) {
 							supportsMultiField = true;
 						}
 					}
@@ -675,23 +674,23 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 						// some repository did not have the multi-field search, so stop
 						return new java.util.Vector();
 					}
-					
-					typeIterator = repositories[i].getAssetTypes();
+
+					typeIterator = repository.getAssetTypes();
 					while (typeIterator.hasNextType()) {
 						org.osid.shared.Type nextAssetType = typeIterator.nextType();
 //						 System.out.println("QueryEditor(AssetTypes): Respository:"+repositories[i].getDisplayName()+" asset type:"+nextAssetType.getKeyword());
-				
-						org.osid.repository.RecordStructureIterator recordStructureIterator = repositories[i].getMandatoryRecordStructures(nextAssetType);
+
+						org.osid.repository.RecordStructureIterator recordStructureIterator = repository.getMandatoryRecordStructures(nextAssetType);
 						while (recordStructureIterator.hasNextRecordStructure()) {
 							org.osid.repository.PartStructureIterator partStructureIterator = recordStructureIterator.nextRecordStructure().getPartStructures();
 							while (partStructureIterator.hasNextPartStructure()) {
 								org.osid.shared.Type nextType = partStructureIterator.nextPartStructure().getType();
 								String nextTypeString = edu.tufts.vue.util.Utilities.typeToString(nextType);
-                                                                
+
 								int index = advancedSearchUniverseOfTypeStringsVector.indexOf(nextTypeString);
 //								System.out.println("QueryEditor(PartType): Respository:"+repositories[i].getDisplayName()+" part type:"+nextTypeString+" index: "+index);
-                                                                if (index != -1) {
-									String prompt = (String)advancedSearchPromptsVector.elementAt(index);
+								if (index != -1) {
+									String prompt = (String) advancedSearchPromptsVector.elementAt(index);
 									if (!intersection.contains(prompt)) {
 										intersection.addElement(prompt);
 									}
@@ -702,7 +701,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 					intersections.addElement(intersection);
 				} catch (Throwable t) {
 					edu.tufts.vue.util.Logger.log(t);
-                                        t.printStackTrace();
+					t.printStackTrace();
 				}
 			}
 			// now find what is common accross intersections

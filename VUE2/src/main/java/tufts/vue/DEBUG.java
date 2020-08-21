@@ -133,11 +133,11 @@ public class DEBUG
         else
             return;
 
-        for (int i = 0; i < args.length; i++) {
+        for (String s : args) {
 
-            String symbol = args[i];
+            String symbol = s;
             boolean handled = false;
-            
+
             if (symbol.charAt(0) == '+') {
                 symbol = symbol.substring(1);
                 Log.info("attempting debug for class " + symbol);
@@ -154,7 +154,7 @@ public class DEBUG
                     } catch (Exception e) {
                         Log.info(e);
                     }
-                    if (false)  {
+                    if (false) {
                         // currently meaningless as we already set to Level.DEBUG for all classes
                         // tufts.vue.* and edu.tufts.*, where we use the "Log" convention, and
                         // it's also normally private, not public.  Could try changing this
@@ -164,7 +164,7 @@ public class DEBUG
                         logField.setAccessible(true);
                         //org.apache.log4j.Logger log = logField.get(null);
                         ((org.apache.log4j.Logger) logField.get(null))
-                            .setLevel(org.apache.log4j.Level.DEBUG);
+                                .setLevel(org.apache.log4j.Level.DEBUG);
                     }
                 } catch (Exception e) {
                     Log.info(e);
@@ -179,7 +179,7 @@ public class DEBUG
                 }
             }
             if (!handled)
-                Log.info(String.format("couldn't handle debug flag \"%s\"", args[i]));
+                Log.info(String.format("couldn't handle debug flag \"%s\"", s));
         }
     }
 

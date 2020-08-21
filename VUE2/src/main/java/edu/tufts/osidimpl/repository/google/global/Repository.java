@@ -281,11 +281,11 @@ implements org.osid.repository.Repository
 			search.setQueryString(criteria);
 			GoogleSearchResult searchResult = search.doSearch();
             GoogleSearchResultElement[] elements = searchResult.getResultElements();
-            for(int i=0; i < elements.length; i++) {
-				result.addElement(new Asset(elements[i].getTitle().replaceAll("</*[a-zA-Z]>",""),
-											elements[i].getSnippet(),
-											elements[i].getURL(),
-											this.repositoryId));
+            for (GoogleSearchResultElement element : elements) {
+                result.addElement(new Asset(element.getTitle().replaceAll("</*[a-zA-Z]>", ""),
+                        element.getSnippet(),
+                        element.getURL(),
+                        this.repositoryId));
             }				 
 			return new AssetIterator(result);
         }

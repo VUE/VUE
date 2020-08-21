@@ -124,9 +124,9 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
             return true;
         String lname = f.getName().toLowerCase();
         if(extensions != null)
-        for (int i = 0; i < extensions.length; i++)
-            if (lname.endsWith(extensions[i]))
-                return true;
+            for (String extension : extensions)
+                if (lname.endsWith(extension))
+                    return true;
         return false;
     }
     

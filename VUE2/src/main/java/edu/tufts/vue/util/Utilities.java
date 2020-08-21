@@ -116,15 +116,15 @@ public class Utilities
 			directories[3] = home + INSTALL_DIRECTORY_DOWNLOADS;
 			directories[4] = home + INSTALL_DIRECTORY_COMMON;
 			directories[5] = home + INSTALL_DIRECTORY_RESOURCES;
-			
-			for (int i=0; i < directories.length; i++) {
-				java.io.File file = new java.io.File(directories[i]);
-				//System.out.println(directories[i]);
-				if ( !(file.exists()) ) {
-					//System.out.println("making directory");
-					file.mkdir();
-				}
-			}
+
+            for (String directory : directories) {
+                java.io.File file = new java.io.File(directory);
+                //System.out.println(directories[i]);
+                if (!(file.exists())) {
+                    //System.out.println("making directory");
+                    file.mkdir();
+                }
+            }
 		} catch (Throwable t) {
 			edu.tufts.vue.util.Logger.log(t,"Trying to create Osid directories");
 		}

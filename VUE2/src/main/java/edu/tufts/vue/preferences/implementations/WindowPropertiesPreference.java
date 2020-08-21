@@ -182,11 +182,10 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 	public void actionPerformed(ActionEvent e) {
 		try {
 			String[] keys = p2.keys();
-			for (int i = 0 ; i < keys.length; i++)
-			{
-				if (keys[i].startsWith("windows."))
-					p2.remove(keys[i]);
-			}
+            for (String key : keys) {
+                if (key.startsWith("windows."))
+                    p2.remove(key);
+            }
 
 			String s = p2.get("enabledWinPos", "true");
 

@@ -314,10 +314,10 @@ implements org.osid.repository.RepositoryManager
             
             threads[i] = searchThread;
         }
-        
-        for (int i = 0; i < threads.length; i++) {
-            threads[i].start();
-		}
+
+        for (Thread thread : threads) {
+            thread.start();
+        }
     }
 	
 	

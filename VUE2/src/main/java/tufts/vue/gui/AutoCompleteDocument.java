@@ -56,10 +56,9 @@ public class AutoCompleteDocument extends PlainDocument {
     }
  
     public String autoComplete( String text ) {
-        for( Iterator i = dictionary.iterator(); i.hasNext(); ) {
-            String word = (String) i.next();
-            if( word.startsWith( text ) ) {
-                return word.substring( text.length() );
+        for (String word : dictionary) {
+            if (word.startsWith(text)) {
+                return word.substring(text.length());
             }
         }
         return null;

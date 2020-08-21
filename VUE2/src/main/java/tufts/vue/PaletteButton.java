@@ -202,13 +202,12 @@ public class PaletteButton extends JRadioButton
             int slot = 0;
             if( len > 1) 
                 newItems = new PaletteButtonItem [len-1];
-	 		
-            for( int i=0; i< len; i++) {
-                if( mItems[i].equals( pItem) ) {
+
+            for (PaletteButtonItem mItem : mItems) {
+                if (mItem.equals(pItem)) {
                     found = true;
-                }
-                else {
-                    newItems[slot] = mItems[i];
+                } else {
+                    newItems[slot] = mItem;
                     slot++;
                 }
             }
@@ -296,9 +295,9 @@ public class PaletteButton extends JRadioButton
         
         new PalettePopupMenuHandler(this, mPopup); // installs mouse & popup listeners
 
-        for (int i = 0; i < numItems; i++) {
-            mPopup.add(mItems[i]);
-            mItems[i].setPaletteButton(this);
+        for (PaletteButtonItem mItem : mItems) {
+            mPopup.add(mItem);
+            mItem.setPaletteButton(this);
             //mItems[i].addActionListener(this);
         }
         

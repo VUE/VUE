@@ -215,12 +215,11 @@ public class RepositoryManager
         }
         try {
             java.util.Vector results = new java.util.Vector();
-            for (int j=0; j < repositories.length; j++) {
-                org.osid.repository.Repository nextRepository = repositories[j];
+            for (org.osid.repository.Repository nextRepository : repositories) {
                 //optionally add a separate thread here
                 try {
                     org.osid.repository.AssetIterator assetIterator =
-                            nextRepository.getAssetsBySearch(searchCriteria,searchType,searchProperties);
+                            nextRepository.getAssetsBySearch(searchCriteria, searchType, searchProperties);
                     while (assetIterator.hasNextAsset()) {
                         results.addElement(assetIterator.nextAsset());
                     }

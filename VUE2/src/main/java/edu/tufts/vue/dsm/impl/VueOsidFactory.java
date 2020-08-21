@@ -272,9 +272,9 @@ public class VueOsidFactory
 		java.util.Vector results = new java.util.Vector();
 		try {
 			java.util.Vector idVector = new java.util.Vector();
-			for (int i=0; i < dataSources.length; i++) {
-				idVector.addElement(dataSources[i].getProviderId().getIdString());
-			}
+            for (edu.tufts.vue.dsm.DataSource dataSource : dataSources) {
+                idVector.addElement(dataSource.getProviderId().getIdString());
+            }
 
 			ProviderIterator providerIterator = providerLookupManager.getProviders();
 			while (providerIterator.hasNextProvider()) {
@@ -305,9 +305,9 @@ public class VueOsidFactory
 		java.util.Vector results = new java.util.Vector();
 		try {
 			java.util.Vector idVector = new java.util.Vector();
-			for (int i=0; i < dataSources.length; i++) {
-				idVector.addElement(dataSources[i].getProviderId().getIdString());
-			}
+            for (edu.tufts.vue.dsm.DataSource dataSource : dataSources) {
+                idVector.addElement(dataSource.getProviderId().getIdString());
+            }
 			
 			ProviderIterator providerIterator = providerInstallationManager.getInstalledProvidersNeedingUpdate();
 			while (providerIterator.hasNextProvider()) {

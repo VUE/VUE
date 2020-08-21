@@ -830,29 +830,29 @@ public class VUE
     
     public static void parseArgs(String[] args) {
         String allArgs = "";
-        for (int i = 0; i < args.length; i++) {
-            allArgs += "[" + args[i] + "]";
-            if (args[i].equals("-nosplash")) {
+        for (String arg : args) {
+            allArgs += "[" + arg + "]";
+            if (arg.equals("-nosplash")) {
                 SKIP_SPLASH = true;
-            } else if (args[i].equals("-nodr")) {
+            } else if (arg.equals("-nodr")) {
                 SKIP_DR = true;
                 SKIP_SPLASH = true;
-            } else if (args[i].equals("-noem")) {
+            } else if (arg.equals("-noem")) {
                 SKIP_EDITOR_MANAGER = true;
-            } else if (args[i].equals("-noidx")) {
+            } else if (arg.equals("-noidx")) {
                 SKIP_RDF_INDEX = true;
-            } else if (args[i].equals("-nocat")) {
+            } else if (arg.equals("-nocat")) {
                 SKIP_CAT = true;
-            } else if (args[i].equals("-skip")) {
+            } else if (arg.equals("-skip")) {
                 SKIP_DR = true;
                 SKIP_CAT = true;
                 SKIP_SPLASH = true;
-            } else if (args[i].equals("-exit_after_init")) // for startup time trials
+            } else if (arg.equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
             else
-                DEBUG.parseArg(args[i]);
+                DEBUG.parseArg(arg);
 
-            if (args[i].startsWith("-debug")) DEBUG.Enabled = true;
+            if (arg.startsWith("-debug")) DEBUG.Enabled = true;
 
         }
 
@@ -1029,12 +1029,12 @@ public class VUE
                 Log.error("unable to install handler for Finder double-click to open .vue files; /System/Library/Java may be missing or not in the CLASSPATH", t);
             }
         }
-            
-        for (int i = 0; i < args.length; i++) {
-            if (args[i] == null || args[i].length() < 1 || args[i].charAt(0) == '-')
+
+        for (String arg : args) {
+            if (arg == null || arg.length() < 1 || arg.charAt(0) == '-')
                 continue;
-            if (DEBUG.INIT) out("command-line file to open " + args[i]);
-            VUE.FilesToOpen.add(args[i]);
+            if (DEBUG.INIT) out("command-line file to open " + arg);
+            VUE.FilesToOpen.add(arg);
         }
         
         try {
@@ -2685,15 +2685,14 @@ public class VUE
         if (DEBUG.INIT || DEBUG.DOCK) Util.printStackTrace("\n\n***ROLLING UP OFFSCREEN");
 
         // get the peer's created so we can turn off their shadow if need be
-        
-        for (int i = 0; i < preShown.length; i++) {
-            DockWindow dw = preShown[i];
+
+        for (DockWindow dw : preShown) {
             if (dw == null)
                 continue;
             GUI.setOffScreen(dw.window());
 
             dw.setDockTemporary(DockWindow.getTopDock());
-            
+
             dw.showRolledUp();
         }
 

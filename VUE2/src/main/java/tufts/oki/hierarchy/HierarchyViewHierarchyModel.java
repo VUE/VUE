@@ -132,35 +132,31 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
             int totalDistance = ((ShortestPathData)hierarchyHash.get(currentNodeCopy)).getDistance();
 
             //iterates through nodes that are connected to the given node
-            for (Iterator i = currentNode.getLinks().iterator(); i.hasNext();)
-            {   
-                LWLink connectedLink = (LWLink)i.next();
+            for (LWLink connectedLink : currentNode.getLinks()) {
                 LWNode nextNode = null;
-                
+
                 //calculates the distance to adjacent nodes from the root node passing through the given node
                 //could lose the precision..
                 // todo: how to handle curved links?
-                int length = (int)connectedLink.getPoint1().distance(connectedLink.getPoint2());
+                int length = (int) connectedLink.getPoint1().distance(connectedLink.getPoint2());
                 totalDistance += length;
-             
+
                 //gets the component associated with the given link
-                if ((nextNode = (LWNode)connectedLink.getComponent1()) == currentNode)
-                    nextNode = (LWNode)connectedLink.getComponent2();
-                
+                if ((nextNode = (LWNode) connectedLink.getComponent1()) == currentNode)
+                    nextNode = (LWNode) connectedLink.getComponent2();
+
                 //keep track of nodes that are connected 
-                if(!originalNodes.contains(nextNode))
-                {
-                  originalNodes.add(nextNode);
-                  duplicateNode(nextNode, hierarchyMap);
+                if (!originalNodes.contains(nextNode)) {
+                    originalNodes.add(nextNode);
+                    duplicateNode(nextNode, hierarchyMap);
                 }
-                
-                LWNode nextNodeCopy = (LWNode)nodeHash.get(nextNode);
-                
+
+                LWNode nextNodeCopy = (LWNode) nodeHash.get(nextNode);
+
                 //if it is the first time traversing through this node or if the calculated distance is shorter
                 //than the shortest distance associated with the adjacent node
-                if (!hierarchyHash.containsKey(nextNodeCopy) || 
-                   totalDistance < ((ShortestPathData)hierarchyHash.get(nextNodeCopy)).getDistance())
-                {  
+                if (!hierarchyHash.containsKey(nextNodeCopy) ||
+                        totalDistance < ((ShortestPathData) hierarchyHash.get(nextNodeCopy)).getDistance()) {
                     //updates the distance and parent hashtables and adds to the vector
                     nodesVector.add(nextNode);
                     hierarchyHash.put(nextNodeCopy, new ShortestPathData(currentNodeCopy, totalDistance));
@@ -190,17 +186,15 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
     public void createLinks()
     {
         //verify a path between nodes and create a link between the nodes
-        for (Iterator i = nodeHash.values().iterator(); i.hasNext();)
-        {
-            LWNode child = (LWNode)i.next();
-            LWNode parent = ((ShortestPathData)hierarchyHash.get(child)).getParent();
-            
+        for (Object o : nodeHash.values()) {
+            LWNode child = (LWNode) o;
+            LWNode parent = ((ShortestPathData) hierarchyHash.get(child)).getParent();
+
             //if the node has a parent, then create a link
-            if (parent != null)
-            { 
-              LWLink link = new LWLink(parent, child);
-              
-              //how about the link label?
+            if (parent != null) {
+                LWLink link = new LWLink(parent, child);
+
+                //how about the link label?
             }
         }
     }
@@ -237,19 +231,16 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
         LWNode node = null;
         
         //must come up with another algorithm if left to right has some meaning
-        for (Iterator i = currentNode.getLinks().iterator(); i.hasNext();)
-        {
+        for (LWLink link : currentNode.getLinks()) {
             //links to nodes
-            LWLink link = (LWLink)i.next();
             LWNode nextNode = null;
-            
-            if ((nextNode = (LWNode)link.getComponent1()) == currentNode)
-              nextNode = (LWNode)link.getComponent2();
-        
-            if(!nextNode.equals(parentNode))
-            {
-              layout(nextNode, node);
-              node = nextNode;
+
+            if ((nextNode = (LWNode) link.getComponent1()) == currentNode)
+                nextNode = (LWNode) link.getComponent2();
+
+            if (!nextNode.equals(parentNode)) {
+                layout(nextNode, node);
+                node = nextNode;
             }
         }
         
@@ -286,18 +277,16 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
               hierarchyNode = createHierarchyNode(parentNode, node);
             
             //do it recursively
-            for (Iterator i = node.getLinks().iterator(); i.hasNext();)
-            {
-                LWLink link = (LWLink)i.next();
+            for (LWLink link : node.getLinks()) {
                 LWComponent nextNode = null;
-                
+
                 if (link.getComponent1() != node)
-                  nextNode = link.getComponent1();
-                else if (link.getComponent2() != node) 
-                  nextNode = link.getComponent2();
-                
-                if(nextNode != null && nextNode instanceof LWNode && !originalNodes.contains(nextNode))
-                  setUpHierarchyNodes((LWNode)nextNode, hierarchyNode);
+                    nextNode = link.getComponent1();
+                else if (link.getComponent2() != node)
+                    nextNode = link.getComponent2();
+
+                if (nextNode != null && nextNode instanceof LWNode && !originalNodes.contains(nextNode))
+                    setUpHierarchyNodes((LWNode) nextNode, hierarchyNode);
             }
         }
         

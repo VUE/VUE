@@ -96,22 +96,20 @@ public class OutlineViewTree extends JTree
                     
                         return;
                     }
-                    
-                    for(int i = 0; i < paths.length; i++)
-                    {   
-                        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)paths[i].getLastPathComponent();
+
+                    for (TreePath path : paths) {
+                        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) path.getLastPathComponent();
                         Object o = treeNode.getUserObject();
                         if (DEBUG.FOCUS) System.out.println(this
-                                                            + " valueChanged in treeNode["
-                                                            + treeNode
-                                                            + "] userObject=" + o.getClass() + "[" + o + "]");
+                                + " valueChanged in treeNode["
+                                + treeNode
+                                + "] userObject=" + o.getClass() + "[" + o + "]");
                         tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode) o;
-                        
+
                         LWComponent component = hierarchyNode.getLWComponent();
-                        
+
                         //if it is not LWMap, add to the selected components list
-                        if (!(component instanceof LWMap))
-                        {
+                        if (!(component instanceof LWMap)) {
                             selectedComponents.add(component);
                         }
                     }
@@ -196,11 +194,9 @@ public class OutlineViewTree extends JTree
         int counter = 0;
             
         TreePath path;
-            
-        for(Iterator i = list.iterator(); i.hasNext();)
-        {  
-            if ((path = hierarchyModel.getTreePath((LWComponent)i.next())) != null)
-            {
+
+        for (Object o : list) {
+            if ((path = hierarchyModel.getTreePath((LWComponent) o)) != null) {
                 paths[counter] = path;
                 counter++;
             }

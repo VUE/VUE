@@ -61,9 +61,8 @@ public class OpenAction extends VueAction
             
             if (file == null)
             	return;
-            
-            for (int i=0;i<file.length;i++)
-            	displayMap(file[i]);            
+
+            for (File value : file) displayMap(value);
             Log.info(e.getActionCommand() + ": completed.");
         } finally {
             openUnderway = false;

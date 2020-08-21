@@ -122,8 +122,7 @@ public class RemoteFilingTest {
         System.out.println ("Get bytes to display.");
         byte[] buf = bs.getBytes();
         System.out.println ("Contents of file - size is: " + buf.length);
-        for (int i=0; i<buf.length; i++)
-            System.out.print ((char)buf[i]);
+        for (byte b : buf) System.out.print((char) b);
         
         System.out.println ("Done!");
     }

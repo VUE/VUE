@@ -317,10 +317,10 @@ public abstract class LWIcon extends Rectangle2D.Float
             mIcons[4] = new LWIcon.Hierarchy(lwc, c);
             mIcons[5] = new LWIcon.MergeSourceMetaData(lwc,c);
             mIcons[6] = new LWIcon.OntologicalMetaData(lwc,c);
-            
-            for (int i = 0; i < mIcons.length; i++) {
-                mIcons[i].setSize(iconWidth, iconHeight);
-                mIcons[i].setMinimumSize(iconWidth, iconHeight);
+
+            for (LWIcon mIcon : mIcons) {
+                mIcon.setSize(iconWidth, iconHeight);
+                mIcon.setMinimumSize(iconWidth, iconHeight);
             }
 
             this.mLWC = lwc;
@@ -532,8 +532,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         	boolean handled = false;
             final Point2D.Float localPoint = e.getLocalPoint(mLWC);
 
-            for (int i = 0; i < mIcons.length; i++) {
-                LWIcon icon = mIcons[i];
+            for (LWIcon icon : mIcons) {
                 if (icon.isShowing() && icon.contains(localPoint.x, localPoint.y)) {
                     icon.doSingleClickAction();
                     handled = true;
@@ -548,8 +547,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             boolean handled = false;
             final Point2D.Float localPoint = e.getLocalPoint(mLWC);
 
-            for (int i = 0; i < mIcons.length; i++) {
-                LWIcon icon = mIcons[i];
+            for (LWIcon icon : mIcons) {
                 if (icon.isShowing() && icon.contains(localPoint.x, localPoint.y)) {
                     icon.doDoubleClickAction();
                     handled = true;

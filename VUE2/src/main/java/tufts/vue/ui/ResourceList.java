@@ -616,11 +616,11 @@ public class ResourceList extends JList
 		String[] words1 = content1.split("\\s+");
 		String[] words2 = content2.split("\\s+");
 		int matches = 0;
-		for(int i = 0;i<words1.length;i++) {
-			if(n2.getLabel().contains(words1[i])){
-				matches++;
-			}
-		}
+        for (String s : words1) {
+            if (n2.getLabel().contains(s)) {
+                matches++;
+            }
+        }
 		double p1 = (double) matches / words1.length;
 		double p2 = (double) matches/words2.length;
 		if(p1== 0 && p2 == 0 ){

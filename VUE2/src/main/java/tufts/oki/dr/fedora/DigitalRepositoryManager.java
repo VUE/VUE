@@ -161,12 +161,10 @@ implements osid.dr.DigitalRepositoryManager
         java.util.Vector result = new java.util.Vector();    
         try
         {
-            for (int i=0, length = repositories.length; i < length; i++)
-            {
-                osid.dr.AssetIterator assetIterator = 
-                    repositories[i].getAssetsBySearch(searchCriteria,searchType);
-                while (assetIterator.hasNext())
-                {
+            for (osid.dr.DigitalRepository repository : repositories) {
+                osid.dr.AssetIterator assetIterator =
+                        repository.getAssetsBySearch(searchCriteria, searchType);
+                while (assetIterator.hasNext()) {
                     result.addElement(assetIterator.next());
                 }
             }
