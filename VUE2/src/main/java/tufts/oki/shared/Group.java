@@ -83,7 +83,9 @@ public class Group extends Agent implements osid.shared.Group {
         else if (searchSubgroups) {
             for (int i = 0; i < subgroups.size(); i++) {
                 osid.shared.Group sg = (osid.shared.Group) subgroups.elementAt(i);
-                return sg.contains (memberOrGroup, searchSubgroups);
+                if (sg.contains (memberOrGroup, searchSubgroups)) {
+                    return true;
+                }
             }
         }
         else
