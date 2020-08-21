@@ -41,5 +41,5 @@ jobs:
     - name: Upload Windows executable
       uses: actions/upload-artifact@v1
       with:
-        name: bundles
+        name: windows
         path: VUE2/build/launch4j
