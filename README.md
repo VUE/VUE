@@ -4,6 +4,11 @@ Visual Understanding Environment (VUE) is a powerful mind-mapping, teaching, and
 
 Note: **See "Changes" section for details about the rpavlik fork**
 
+![Java CI with Gradle](https://github.com/rpavlik/VUE/workflows/Java%20CI%20with%20Gradle/badge.svg)
+
+Continuous ("snapshot") builds are available by clicking the "actions" tab, choosing the latest build, and
+picking one of the "Artifacts"
+
 ## Code Organization
 
 The code is organized in following folders under `VUE2`,
@@ -25,7 +30,7 @@ The following useful tasks might be interesting:
 | Task name | Action |
 | --------- | ------ |
 | `run`     | runs VUE |
-| `launch4j`| creates a Windows executable launcher |
+| `buildExe`| creates a Windows executable launcher |
 | `clean`   | deletes all classes compiled earlier |
 | `build`   | compiles the code and makes a jar as well as distributions |
 | `tasks`   | list all available tasks |
