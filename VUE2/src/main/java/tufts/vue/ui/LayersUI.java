@@ -325,7 +325,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
 //                     final Layer merged = new LWMap.Layer("Merged");
 
-//                     final ArrayList<LWComponent> mergedChildren = new ArrayList();
+//                     final ArrayList<LWComponent> mergedChildren = new ArrayList<>();
 
 //                     for (LWComponent c : reverse(selection())) {
 //                         merged.takeAllChildren(c);
@@ -1000,7 +1000,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private void grabFromSelection(Layer layer) {
         final LWSelection selection = VUE.getSelection();
         
-        final java.util.List grabbing = new ArrayList();
+        final java.util.List<LWComponent> grabbing = new ArrayList<>();
         
         for (LWComponent c : selection) {
             if (layerCanGrab(layer, c))

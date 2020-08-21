@@ -48,7 +48,7 @@ public class WidgetStack extends Widget
     private final Insets ExpandedTitleBarInsets = GUI.EmptyInsets;
     private final Insets CollapsedTitleBarInsets = new Insets(0,0,1,0);
     private final JComponent mDefaultExpander;
-    private final Collection mWidgets = new ArrayList();
+    private final Collection mWidgets = new ArrayList<>();
     private final GridBagLayout mLayout;
 
     private WidgetTitle mLockedWidget = null;

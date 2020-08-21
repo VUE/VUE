@@ -429,7 +429,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
     //public Iterator<Map.Entry<String,Object>> iterateEntries() // could try castor iterate/add patttern
     public Collection<Map.Entry<String,Object>> getPersistEntries() {
         if (mPersistEntries == null)
-            mPersistEntries = new ArrayList();
+            mPersistEntries = new ArrayList<>();
         
         if (mData.size() > 0) {
             mPersistEntries.clear();
@@ -707,7 +707,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
         // loading (e.g., additional image data has arrived) We may even want to leave
         // the table model in case we ever want to show this in a table,
 
-        private final ArrayList<Map.Entry> mEntries = new ArrayList();
+        private final ArrayList<Map.Entry> mEntries = new ArrayList<>();
         
         MapModel() {
             if (DEBUG.RESOURCE) out("new " + getClass());

@@ -689,8 +689,8 @@ public class Archive
         //-----------------------------------------------------------------------------
         
         final Collection<Resource> uniqueResources = map.getAllUniqueResources();
-        final Collection<PropertyEntry> manifest = new ArrayList();
-        final List<Item> items = new ArrayList();
+        final Collection<PropertyEntry> manifest = new ArrayList<>();
+        final List<Item> items = new ArrayList<>();
         final Set<String> uniqueEntryNames = new HashSet();
 
         Archive.UniqueNameFailsafeCount = 1;  // note: static variable -- not threadsafe

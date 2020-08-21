@@ -7970,7 +7970,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     List<LWComponent> list = computeSelection(screenToMapRect(draggedSelectorBox));
 
                     if (e.isControlDown()) {
-                        List<LWComponent> childList = new ArrayList();
+                        List<LWComponent> childList = new ArrayList<>();
 
                         for (LWComponent selectedItem : list) {
                             if (selectedItem.hasChildren()) {

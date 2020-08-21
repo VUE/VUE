@@ -92,7 +92,7 @@ class DataDropHandler extends MapDropTarget.DropHandler
     /** DropHandler */
     @Override public boolean handleDrop(final DropContext drop)
     {
-        final List<LWComponent> clusteringTargets = new ArrayList(); // nodes already on the map
+        final List<LWComponent> clusteringTargets = new ArrayList<>(); // nodes already on the map
             
         final List<LWComponent> newNodes; // nodes created
 
@@ -267,7 +267,7 @@ class DataDropHandler extends MapDropTarget.DropHandler
         } else {
 
             Log.debug("PRODUCING ALL VALUE NODES FOR FIELD: " + field);
-            nodes = new ArrayList();
+            nodes = new ArrayList<>();
 
             // handle all the enumerated values for a column
                 
@@ -289,7 +289,7 @@ class DataDropHandler extends MapDropTarget.DropHandler
          final DropContext drop,
          final List<LWComponent> clusteringTargets)
     {
-        final List<LWComponent> dropTargets = new ArrayList();
+        final List<LWComponent> dropTargets = new ArrayList<>();
         final Field dragField = treeNode.getField();
                 
         Schema dragSchema = null;
@@ -319,7 +319,7 @@ class DataDropHandler extends MapDropTarget.DropHandler
         //-----------------------------------------------------------------------------
                 
                 
-        final List <LWComponent> newNodes = new ArrayList();
+        final List <LWComponent> newNodes = new ArrayList<>();
         for (LWComponent dropTarget : dropTargets) {
             final MetaMap dropTargetData;
                     

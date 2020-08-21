@@ -42,7 +42,7 @@ public final class Association
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Association.class);
     
     private static final Multimap<Field,Association> AllByField = Multimaps.newHashMultimap();
-    private static final List<Association> AllPairsList = new ArrayList();
+    private static final List<Association> AllPairsList = new ArrayList<>();
         
     final Field field1;
     final Field field2;
@@ -273,7 +273,7 @@ public final class Association
 
     /** @return All enabled associations between the two given schemas */
     public static List<Association> getBetweens(Schema s1, Schema s2) {
-        final List<Association> betweens = new ArrayList();
+        final List<Association> betweens = new ArrayList<>();
             
         for (Association a : getAll()) {
             if (a.isEnabled() && a.isBetween(s1, s2))
@@ -289,7 +289,7 @@ public final class Association
      * A JOIN is an any association that does NOT involve the given Field.
      */
     public static List<Association> getJoins(Schema s1, Field field) {
-        final List<Association> betweens = new ArrayList();
+        final List<Association> betweens = new ArrayList<>();
         final Schema s2 = field.getSchema();
 
         if (s1 == null)

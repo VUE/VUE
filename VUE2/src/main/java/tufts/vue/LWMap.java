@@ -111,14 +111,14 @@ public class LWMap extends LWContainer
     //private transient boolean isLayered;
     private transient Layer mActiveLayer;
     /** for use during restores only */
-    private transient java.util.List<Layer> mLayers = new ArrayList();
+    private transient java.util.List<Layer> mLayers = new ArrayList<>();
     //private transient Layer mInternalLayer;
 
     private transient int mSaveFileModelVersion = -1;
     private transient int mModelVersion = getCurrentModelVersion();
 
     /** only used during restore */
-    private final Collection<Schema> mRestoredSchemas = new ArrayList();
+    private final Collection<Schema> mRestoredSchemas = new ArrayList<>();
 
     private static final String InitLabel = "<map-during-XML-restoration>";
     
@@ -728,7 +728,7 @@ public class LWMap extends LWContainer
     public Collection getArchiveManifest() {
         if (mXMLRestoreUnderway) {
             if (mArchiveManifest == null)
-                mArchiveManifest = new ArrayList();
+                mArchiveManifest = new ArrayList<>();
         }
         return mArchiveManifest;
     }
@@ -1008,7 +1008,7 @@ public class LWMap extends LWContainer
 
         private void add(LWComponent c) {
             if (mChildren == NO_CHILDREN)
-                mChildren = new ArrayList();
+                mChildren = new ArrayList<>();
             mChildren.add(c);
         }
 
@@ -1156,7 +1156,7 @@ public class LWMap extends LWContainer
         } else {
             // Layer handling
             if (hasChildren()) {
-                List childrenInAllLayers = new ArrayList();
+                List<LWComponent> childrenInAllLayers = new ArrayList<>();
                 //childrenInAllLayers.addAll(mChildren);
                 for (LWComponent c : getChildren()) {
                     if (c instanceof Layer) {
@@ -1207,7 +1207,7 @@ public class LWMap extends LWContainer
             }
 
             // We should never have orphans, but just in case / for debug while testing this:
-            List orphans = new ArrayList();
+            List<LWComponent> orphans = new ArrayList<>();
             for (LWComponent c : mChildren) {
                 if (c.getParent() instanceof Layer) {
                     // what we want
@@ -1273,7 +1273,7 @@ public class LWMap extends LWContainer
             for (LWComponent c : this.mChildren)
                 c.setParent(layer0);
         
-            this.mChildren = new ArrayList();
+            this.mChildren = new ArrayList<>();
             this.mChildren.add(layer0);
 
             activeLayer = layer0;
@@ -1298,7 +1298,7 @@ public class LWMap extends LWContainer
             layer2.setParent(this);
             //layer2.setVisible(false);
         
-            LWMap.this.mChildren = new ArrayList();
+            LWMap.this.mChildren = new ArrayList<>();
             //mChildren.add(mInternalLayer);
             mChildren.add(layer0);
             mChildren.add(layer1);
@@ -1422,7 +1422,7 @@ public class LWMap extends LWContainer
             // the child list to a real list before we do anything else.  Note
             // that the only case we should have to check is NO_CHILDREN, but we
             // check for other problems just in case.  This fixes VUE-1463.
-            mChildren = new ArrayList();
+            mChildren = new ArrayList<>();
         }
 
         //-----------------------------------------------------------------------------

@@ -68,7 +68,7 @@ public class LWPathway extends LWContainer
     /** for backward compat with old style saved pathways -- the ordered list of member node ID's */
     private transient java.util.List<String> mOldStyleMemberIDList = new java.util.ArrayList();
     /** for backward compat with old style saved pathways (pre Feb/March 2006) */
-    private ArrayList<LWPathwayElementProperty> mOldStyleProperties = new ArrayList();
+    private ArrayList<LWPathwayElementProperty> mOldStyleProperties = new ArrayList<>();
 
     // todo: encapsulating the preference with the code that needs it is nice, but it's
     // actually a very bad idea, as this means the order of the preferences in the

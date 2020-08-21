@@ -85,7 +85,7 @@ public class OutlineViewTree extends JTree
             {
                 public void valueChanged(TreeSelectionEvent e) 
                 {        
-                    ArrayList selectedComponents = new ArrayList();
+                    ArrayList<LWComponent> selectedComponents = new ArrayList<>();
                     TreePath[] paths = getSelectionPaths();
                     
                     //if there is no selected nodes

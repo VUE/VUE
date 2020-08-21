@@ -373,7 +373,7 @@ public class VueDataSourceManager
      */
     public org.osid.repository.Repository[] getIncludedRepositories() {
 
-        final List<Repository> included = new ArrayList();
+        final List<Repository> included = new ArrayList<>();
 
         synchronized (this) {
             for (DataSource ds : DataSources)
@@ -420,7 +420,7 @@ public class VueDataSourceManager
     
     public edu.tufts.vue.dsm.DataSource[] getIncludedDataSources() {
 
-        final List<DataSource> included = new ArrayList();
+        final List<DataSource> included = new ArrayList<>();
 
         synchronized (this) {
             for (DataSource ds : DataSources)

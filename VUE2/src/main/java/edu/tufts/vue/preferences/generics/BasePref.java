@@ -24,7 +24,7 @@ import edu.tufts.vue.preferences.implementations.AutoZoomPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 public abstract class BasePref<T> implements VuePreference<T> {
-    protected final List<VuePrefListener> _listeners = new ArrayList();	  	  	  	  	  
+    protected final List<VuePrefListener> _listeners = new ArrayList<>();
 		 	
     public static Class getPrefRoot()
     {

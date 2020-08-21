@@ -105,7 +105,7 @@ public class UndoManager
         private List<Thread> attachedThreads;
 
         UndoAction() {
-            undoSequence = new ArrayList();
+            undoSequence = new ArrayList<>();
         }
         /*
         UndoAction(String name, List undoSequence) {
@@ -116,7 +116,7 @@ public class UndoManager
 
         synchronized void addAttachedThread(Thread t) {
             if (attachedThreads == null)
-                attachedThreads = new ArrayList();
+                attachedThreads = new ArrayList<>();
             attachedThreads.add(t);
         }
 
@@ -1073,7 +1073,7 @@ public class UndoManager
     }
 
     public synchronized void resetMark() {
-        //mUndoSequence = new ArrayList();
+        //mUndoSequence = new ArrayList<>();
         mCurrentUndo = new UndoAction();
         mComponentChanges.clear();
         mLastEvent = null;

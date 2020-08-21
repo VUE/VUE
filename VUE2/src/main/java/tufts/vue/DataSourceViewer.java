@@ -741,7 +741,7 @@ public class DataSourceViewer extends ContentViewer
             return true;
     }
 
-    private static final Collection<tufts.vue.DataSource> oldStyleDataSources = new ArrayList();
+    private static final Collection<tufts.vue.DataSource> oldStyleDataSources = new ArrayList<>();
 
 
     private void loadOldStyleDataSources() {

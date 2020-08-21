@@ -940,7 +940,7 @@ public class VueUtil extends tufts.Util
                 relatingNodes.add(n);
         }
 
-        final List<LWComponent> untouched = new ArrayList();
+        final List<LWComponent> untouched = new ArrayList<>();
         
         for (LWComponent c : layoutNodes) {
             try {
