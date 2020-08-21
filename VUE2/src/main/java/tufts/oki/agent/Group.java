@@ -88,7 +88,9 @@ public class Group extends Agent implements org.osid.agent.Group {
         else if (searchSubgroups) {
             for (int i = 0; i < subgroups.size(); i++) {
                 org.osid.agent.Group sg = (org.osid.agent.Group) subgroups.elementAt(i);
-                return sg.contains (memberOrGroup, searchSubgroups);
+                if (sg.contains (memberOrGroup, searchSubgroups)) {
+                    return true;
+                }
             }
         }
         else
