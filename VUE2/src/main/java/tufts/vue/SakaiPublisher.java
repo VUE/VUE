@@ -345,12 +345,10 @@ public class SakaiPublisher {
 			outBuf.flush();
 			outBuf.close();
 			
-		} catch( FileNotFoundException e ) {
-			e.printStackTrace();
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}
-		return outBuf.toByteArray();
+        return outBuf.toByteArray();
 	}
 
    
@@ -376,14 +374,10 @@ public class SakaiPublisher {
 			sessionId = (String) call
 					.invoke(new Object[] { username, password });
 
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (ServiceException e) {
+		} catch (MalformedURLException | ServiceException | RemoteException e) {
 			e.printStackTrace();
 		}
-		return sessionId;
+        return sessionId;
 	}
 
 	/**
@@ -409,15 +403,11 @@ public class SakaiPublisher {
 			serverId = (String) call
 					.invoke(new Object[] { sessionId });
 			
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (ServiceException e) {
+		} catch (MalformedURLException | ServiceException | RemoteException e) {
 			e.printStackTrace();
 		}
-		
-		return serverId;
+
+        return serverId;
 	}
 	
 	/**

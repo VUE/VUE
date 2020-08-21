@@ -23,6 +23,8 @@
 
 package tufts.oki.remoteFiling;
 import org.apache.commons.net.ftp.*;
+
+import osid.OsidException;
 import tufts.oki.shared.*;
 import tufts.oki.OsidManager;
 import java.io.*;
@@ -73,11 +75,7 @@ public class RemoteFilingManager extends tufts.oki.OsidManager implements osid.f
             this.root = new RemoteCabinet("/", agent, null,rc);
             this.cwd = this.root;           //  Set the root as current working directory.
             cwd.entries();
-        }
-        catch (osid.shared.SharedException ex2) {
-            throw new osid.filing.FilingException (osid.filing.FilingException.OPERATION_FAILED);
-        }
-        catch (osid.OsidException ex3) {
+        } catch (OsidException ex2) {
             throw new osid.filing.FilingException (osid.filing.FilingException.OPERATION_FAILED);
         }
     }

@@ -94,15 +94,11 @@ public class HTMLConversion extends AbstractAction
     
             transformer.transform( xmlSource, out );
         }
-        catch ( IOException ex )
+        catch ( IOException | TransformerException ex )
         {
             System.out.println(ex.getMessage());
         }
-        catch ( TransformerException ex )
-        {
-            System.out.println( ex.getMessage() );
-        }
-        
+
         System.out.println("finished converting xml to html.");
     }
 }

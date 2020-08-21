@@ -110,12 +110,10 @@ public class RSSDataSource extends BrowseDataSource
             XmlReader charsetEncodingReader = new XmlReader(conn);
             _feed = feedBuilder.build(charsetEncodingReader);
 
-        } catch (java.io.IOException io) {
+        } catch (IOException | FeedException io) {
             throw new DataSourceException(null, io);
-        } catch (FeedException fe) {
-            throw new DataSourceException(null, fe);
         }
-        
+
         final SyndFeed feed = _feed;
 
         if (TEST_DEBUG) {

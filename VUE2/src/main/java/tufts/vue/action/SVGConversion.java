@@ -122,13 +122,9 @@ public class SVGConversion extends AbstractAction {
             out.close();
         }
         
-        catch (IOException e)
+        catch (IOException | OutOfMemoryError e)
         {
             System.err.println("Couldn't convert to SVG:" + e);
-        }
-        catch (java.lang.OutOfMemoryError error)
-        {
-        	System.err.println("Couldn't convert to SVG:" + error);
         }
         /*
          * There's no explanation to why this is being done, I'm not really sure

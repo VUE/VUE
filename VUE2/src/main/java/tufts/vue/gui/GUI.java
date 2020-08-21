@@ -812,13 +812,7 @@ public class GUI
 	                // we can put the real image into the cache:
 	                put(key, image);            
 
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
+				} catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -1004,10 +998,9 @@ public class GUI
  	   {
 			try {
 			    iconMethod = cShellFolder.getDeclaredMethod("getIcon", new Class[]{Boolean.TYPE});
-			} catch (SecurityException e) {
+			} catch (SecurityException | NoSuchMethodException e) {
 				Log.info(e.toString() + "while trying to invoke ShellFolder, possibly non-sun JVM");
-			} catch (NoSuchMethodException e) {
-				Log.info(e.toString() + "while trying to invoke ShellFolder, possibly non-sun JVM");				} catch (IllegalArgumentException e) {
+			} catch (IllegalArgumentException e) {
 			}
  	   }
        return iconMethod;	  
@@ -1019,10 +1012,9 @@ public class GUI
  	   { 		  
 			try {
 				getShellFolder = cShellFolder.getDeclaredMethod("getShellFolder", new Class[]{File.class});			
-			} catch (SecurityException e) {
+			} catch (SecurityException | NoSuchMethodException e) {
 				Log.info(e.toString() + "while trying to invoke ShellFolder, possibly non-sun JVM");
-			} catch (NoSuchMethodException e) {
-				Log.info(e.toString() + "while trying to invoke ShellFolder, possibly non-sun JVM");				} catch (IllegalArgumentException e) {
+			} catch (IllegalArgumentException e) {
 			}
  	   }
        return getShellFolder;
@@ -1048,11 +1040,7 @@ public class GUI
         	   try {
     			   sf = getShellFolderMethod().invoke(null, new Object[]{file});
         		   i = (Image) getIconMethod().invoke(sf, new Object[]{Boolean.FALSE});
-        	   } catch (IllegalArgumentException e) {
-        		   Log.info(e.toString() + "while trying to load ShellFolder, possibly non-sun JVM");
-        	   } catch (IllegalAccessException e) {
-        		   Log.info(e.toString() + "while trying to load ShellFolder, possibly non-sun JVM");
-        	   } catch (InvocationTargetException e) {
+        	   } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
         		   Log.info(e.toString() + "while trying to load ShellFolder, possibly non-sun JVM");
         	   }
                return i;

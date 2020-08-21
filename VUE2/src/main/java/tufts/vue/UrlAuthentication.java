@@ -405,13 +405,7 @@ public class UrlAuthentication implements edu.tufts.vue.dsm.DataSourceListener
 //                 System.out.println("URLAuthentication: cached auth keys for [" + hostPortKey + "]; "
 //                                    + httpRequestProperties);
         }
-        catch( MalformedURLException e ) {
-			
-        }
-        catch( RemoteException e ) {
-			
-        }
-        catch( ServiceException e ) {
+        catch( MalformedURLException | ServiceException | RemoteException e ) {
 			
         }
     }

@@ -246,30 +246,21 @@ public class PreferencesDialog extends JDialog {
     	try {
 			m = a.getMethod("getInstance");
 			//m = a.getMethod("getInstance", null);
-		} catch (SecurityException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (NoSuchMethodException e1) {
+		} catch (SecurityException | NoSuchMethodException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		 
-		
-		try {
+
+
+        try {
                     vp = (VuePreference)m.invoke(null);
                     //vp = (VuePreference)m.invoke(null, null);
-		} catch (IllegalArgumentException e1) {
+		} catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		} catch (InvocationTargetException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		
-		return vp;			
+
+        return vp;
     }
     
 	private void addPrefsToCats(DefaultMutableTreeNode node) {

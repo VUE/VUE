@@ -135,13 +135,7 @@ public class YahooAnalyzer implements LWComponentAnalyzer {
 	        }
 
         
-		} catch (HttpException e) {
-			Log.error(e.getMessage());
-		} catch (IOException e) {
-			Log.error(e.getMessage());
-		} catch (SAXException e) {
-			Log.error(e.getMessage());
-		} catch (ParserConfigurationException e) {
+		} catch (ParserConfigurationException | SAXException | IOException e) {
 			Log.error(e.getMessage());
 		} finally
 		{

@@ -151,13 +151,9 @@ public class PresentationNotes {
             document.newPage();
                                                           
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	   GUI.clearWaitCursor();
         }
@@ -261,13 +257,9 @@ public class PresentationNotes {
             if (DEBUG.Enabled) Log.debug("PROCESSED ALL ENTRIES");
             
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	   GUI.clearWaitCursor();
         }
@@ -400,13 +392,9 @@ public class PresentationNotes {
             }
             VUE.getActivePathway().setIndex(currentIndex);
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	 GUI.clearWaitCursor();
         }
@@ -439,14 +427,11 @@ public class PresentationNotes {
 		 PdfContentByte cb = writer.getDirectContent();
 	     try {
 			cb.setFontAndSize(BaseFont.createFont(BaseFont.HELVETICA, BaseFont.WINANSI, false), 16);
-		} catch (DocumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (DocumentException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	     cb.beginText();
+        cb.beginText();
 	     cb.showTextAligned(Element.ALIGN_CENTER, new Integer(seq).toString()+".", x, y, 0f);
 	     cb.endText();
 	     cb.stroke();
@@ -566,13 +551,9 @@ public class PresentationNotes {
             }
             VUE.getActivePathway().setIndex(currentIndex);
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	GUI.clearWaitCursor();
         }
@@ -704,13 +685,9 @@ public class PresentationNotes {
 
             VUE.getActivePathway().setIndex(currentIndex);
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	GUI.clearWaitCursor();
         }
@@ -844,13 +821,9 @@ public class PresentationNotes {
             }
             VUE.getActivePathway().setIndex(currentIndex);
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	GUI.clearWaitCursor();
         }
@@ -964,13 +937,9 @@ public class PresentationNotes {
             }
             
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	GUI.clearWaitCursor();
         }
@@ -1036,13 +1005,9 @@ public class PresentationNotes {
             }
             VUE.getActivePathway().setIndex(currentIndex);
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	GUI.clearWaitCursor();
         }
@@ -1149,13 +1114,9 @@ public class PresentationNotes {
             
             
         }
-        catch(DocumentException de) {
+        catch(DocumentException | IOException de) {
             System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        finally
+        } finally
         {
         	GUI.clearWaitCursor();
         }

@@ -27,6 +27,7 @@ import java.util.*;
 
 import javax.swing.filechooser.FileSystemView;
 
+import osid.OsidException;
 import tufts.oki.shared.*;
 
 /**
@@ -80,11 +81,7 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
             root = LocalCabinet.instance(path, agent, null);
             rootCabinets.add(root);
             cwd = root;
-        }
-        catch (osid.shared.SharedException ex1) {
-            throw new osid.filing.FilingException (osid.filing.FilingException.OPERATION_FAILED);
-        }
-        catch (osid.OsidException ex3) {
+        } catch (OsidException ex1) {
             throw new osid.filing.FilingException (osid.filing.FilingException.OPERATION_FAILED);
         }
         

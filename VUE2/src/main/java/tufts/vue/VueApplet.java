@@ -463,20 +463,11 @@ public class VueApplet extends JApplet {
 				}
 			}
 			  
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
+		} catch (ParserConfigurationException | IOException | SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
+                return null;
 			}
 		});
 		
@@ -552,20 +543,11 @@ public class VueApplet extends JApplet {
 
 			}
 			  
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
+		} catch (ParserConfigurationException | IOException | SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
+                return null;
 			}
 		});
 		
