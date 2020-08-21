@@ -21,11 +21,10 @@ jobs:
       with:
         java-version: 1.8
     - name: Grant execute permission for gradlew
-      run: chmod +x VUE2/gradlew
+      run: chmod +x gradlew
     - name: Update version for CI snapshot
       run: .github/workflows/make-snapshot-version.sh
     - name: Build with Gradle
-      working-directory: VUE2
       run: ./gradlew build
     - name: Upload jar
       uses: actions/upload-artifact@v1
