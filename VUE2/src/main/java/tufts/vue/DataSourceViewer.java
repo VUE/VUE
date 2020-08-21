@@ -97,8 +97,8 @@ public class DataSourceViewer extends ContentViewer
     private org.osid.OsidContext context = new org.osid.OsidContext();
     //org.osid.registry.Provider checked[];
     
-    private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<>());
-    private final java.util.List<MapBasedSearchThread> mMapBasedSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<>());
+    private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<SearchThread>());
+    private final java.util.List<MapBasedSearchThread> mMapBasedSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<DataSourceViewer.MapBasedSearchThread>());
 
     private static volatile DataSourceViewer singleton;
     

@@ -6227,7 +6227,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 	                    		{
 	                    			deepSelection = new HashSet<>();
 		                            Toolbox.findChildrenToDepth(userSelection, deepSelection, 
-		    								userSelection, depth, true, true, new Hashtable<>());
+		    								userSelection, depth, true, true, new Hashtable<LWComponent,Integer>());
 		
 		                            // -- now we have a set with nodes and links
 		

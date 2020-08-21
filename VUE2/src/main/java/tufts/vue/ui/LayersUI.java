@@ -1032,7 +1032,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 mRows.add(produceRow(layer));
                 if (mShowAll.isSelected()) {
                     //for (LWComponent c : reverse(layer.getChildren()))
-                    for (LWComponent c : reverse(layer.getAllDescendents(ChildKind.PROPER, new ArrayList<>(), Order.DEPTH)))
+                    for (LWComponent c : reverse(layer.getAllDescendents(ChildKind.PROPER, new ArrayList<LWComponent>(), Order.DEPTH)))
                         mRows.add(produceRow(c));
                 }
             }
