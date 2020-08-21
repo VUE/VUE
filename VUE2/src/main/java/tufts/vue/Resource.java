@@ -434,12 +434,12 @@ public abstract class Resource implements Cloneable
     public long getAccessAttempted() { return mAccessAttempted; }
     public void setAccessAttempted(long attempted) { mAccessAttempted = attempted; }
     public Long getPersistAccessAttempted() { return mAccessAttempted == 0 ? null : Long.valueOf(mAccessAttempted); }
-    public void setPersistAccessAttempted(Long l) { setAccessAttempted(l == null ? 0 : l.longValue()); }
+    public void setPersistAccessAttempted(Long l) { setAccessAttempted(l == null ? 0 : l); }
     
     public long getAccessSuccessful() { return mAccessSuccessful; }
     public void setAccessSuccessful(long succeeded) { mAccessSuccessful = succeeded; }
     public Long getPersistAccessSuccessful() { return mAccessSuccessful == 0 ? null : Long.valueOf(mAccessSuccessful); }
-    public void setPersistAccessSuccessful(Long l) { setAccessSuccessful(l == null ? 0 : l.longValue()); }
+    public void setPersistAccessSuccessful(Long l) { setAccessSuccessful(l == null ? 0 : l); }
     
     protected void markAccessAttempt() {
         setAccessAttempted(System.currentTimeMillis());

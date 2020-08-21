@@ -239,7 +239,7 @@ public class TextOpenAction  extends VueAction {
                     map.add(node1);
                 } else {
                     node1 = nodeMap.get(words[0]);
-                    int nc= repeatMap.get(words[0]).intValue();
+                    int nc= repeatMap.get(words[0]);
                     repeatMap.put(words[0],new Integer(nc+1));
                 }
                 if(!nodeMap.containsKey(words[2])) {
@@ -252,7 +252,7 @@ public class TextOpenAction  extends VueAction {
                     
                 } else {
                     node2 = nodeMap.get(words[2]);
-                      int nc= repeatMap.get(words[2]).intValue();
+                      int nc= repeatMap.get(words[2]);
                     repeatMap.put(words[2],new Integer(nc+1));
                 }
                 
@@ -268,7 +268,7 @@ public class TextOpenAction  extends VueAction {
                     map.add(node1);
                 } else {
                     node1 = nodeMap.get(words[0]);
-                      int nc= repeatMap.get(words[0]).intValue();
+                      int nc= repeatMap.get(words[0]);
                     repeatMap.put(words[0],new Integer(nc+1));
                 }
                 if(!nodeMap.containsKey(words[1])) {
@@ -278,7 +278,7 @@ public class TextOpenAction  extends VueAction {
                      repeatMap.put(words[1], new Integer(1));
                 } else {
                     node2 = nodeMap.get(words[1]);
-                      int nc= repeatMap.get(words[1]).intValue();
+                      int nc= repeatMap.get(words[1]);
                     repeatMap.put(words[1],new Integer(nc+1));
                 }
                 
@@ -353,12 +353,12 @@ public class TextOpenAction  extends VueAction {
                node2.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
             } else if(layout == GRAVITY_LAYOUT) {
                   double angle = Math.random()*Math.PI*4;
-                  int nc1= repeatMap.get(node1.getLabel()).intValue();
+                  int nc1= repeatMap.get(node1.getLabel());
                  // nc1 = nc1*nc1;
                   double fact1 = Math.sqrt(nc1);
                 node1.setLocation(MAP_SIZE*(1+Math.cos(angle)/fact1),MAP_SIZE*(1+Math.sin(angle)/fact1));
                 angle = Math.random()*Math.PI*4;
-                int nc2= repeatMap.get(node1.getLabel()).intValue();
+                int nc2= repeatMap.get(node1.getLabel());
                 //nc2=nc2*nc2;
                 double fact2 = Math.sqrt(nc2);
                 node2.setLocation(MAP_SIZE*(1+Math.cos(angle)/fact2),MAP_SIZE*(1+Math.sin(angle)/fact2));

@@ -36,7 +36,7 @@ implements org.osid.shared.LongValueIterator
     {
         if (iterator.hasNext())
         {
-            return ((Long)iterator.next()).longValue();
+            return (Long) iterator.next();
         }
         else
         {

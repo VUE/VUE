@@ -90,12 +90,12 @@ public class ForceLayout extends Layout {
                 LWComponent head= link.getHead();
                 LWComponent tail = link.getTail();
                 if(repeatMap.containsKey( head)) {
-                    int nc= repeatMap.get( head).intValue();
+                    int nc= repeatMap.get(head);
                     repeatMap.put(head,new Integer(nc+1));
                     
                 }
                 if(repeatMap.containsKey(tail)) {
-                    int nc= repeatMap.get(tail).intValue();
+                    int nc= repeatMap.get(tail);
                     repeatMap.put(tail,new Integer(nc+1));
                 }
             }
@@ -115,7 +115,7 @@ public class ForceLayout extends Layout {
                 if(c instanceof LWNode) {
                     LWNode node = (LWNode)c;
                     double angle = Math.PI*2 * Math.random();
-                    int nc= repeatMap.get(node).intValue();
+                    int nc= repeatMap.get(node);
                     double r = radius*Math.pow(1.00-(double)nc/total,2.00);
                     node.setLocation(centerX+r*Math.cos(angle),centerY+r*Math.sin(angle));
 //                    System.out.println("Node: "+node.getLabel()+" r:"+r+" angle:"+angle+" nc:"+nc+" total:"+total+" radius:"+radius);

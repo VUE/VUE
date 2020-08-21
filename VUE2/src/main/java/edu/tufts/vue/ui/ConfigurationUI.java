@@ -232,7 +232,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 Integer uiCode = new Integer(0);
                 try {
                     uiCode = new Integer(ui);
-                    int n = uiCode.intValue();
+                    int n = uiCode;
                     if ( (n < 0) || (n > MAX_CONTROL_CODE) ) {
                         this.errorMessage = "Invalid UI control code: " + n;
                         return;
@@ -253,7 +253,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 if (defaultValue == null) {
                     defaultValueVector.addElement(null);
                 } else {
-                    switch (uiCode.intValue()) {
+                    switch (uiCode) {
                         case SINGLE_LINE_CLEAR_TEXT_CONTROL:
                             // no extra validation for default value since it is a string
                             break;
@@ -328,20 +328,20 @@ public class ConfigurationUI extends javax.swing.JPanel {
             
             for (int i = 0, size = this.uiVector.size(); i < size; i++) {
                 final String key = (String) keyVector.elementAt(i);
-                final int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
+                final int uiCode = (Integer) uiVector.elementAt(i);
                 final String defaultValue = (String)defaultValueVector.elementAt(i);
                 
                 // if default value from Provider is null, check that there is not a value already set
                 
                 final String title = (String)titleVector.elementAt(i);
-                final int numChars = ((Integer)maxCharsVector.elementAt(i)).intValue();
+                final int numChars = (Integer) maxCharsVector.elementAt(i);
                 // FYI: JTextField.setColumns doesn't actually limit the size
                 // of the text field: it just sets the preferred size, which
                 // may be ignored depending on the GridBag configuration.
 
                 final boolean limitWidth = numChars > 0;
                 
-                final boolean isMandatory = ((Boolean)mandatoryVector.elementAt(i)).booleanValue();
+                final boolean isMandatory = (Boolean) mandatoryVector.elementAt(i);
                 //String prefix = (isMandatory) ? "*" : "";
                 final javax.swing.JLabel prompt = new javax.swing.JLabel(title + ": ");
 
@@ -426,7 +426,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                     case BOOLEAN_CONTROL:
                         String[] items = new String[2];
                         if (defaultValue != null) {
-                            boolean b = (new Boolean(defaultValue)).booleanValue(); // validated earlier
+                            boolean b = new Boolean(defaultValue); // validated earlier
                             if (b) {
                                 items[0] = "true";
                                 items[1] = "false";
@@ -630,7 +630,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
     public java.util.Properties getProperties() {
         java.util.Properties properties = new java.util.Properties();
         for (int i = 0, size = this.uiVector.size(); i < size; i++) {
-            int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
+            int uiCode = (Integer) uiVector.elementAt(i);
             String key = (String)keyVector.elementAt(i);
             
             switch( uiCode) {
@@ -704,7 +704,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
             String key = (String)keyVector.elementAt(i);
             String value = properties.getProperty(key);
             if (value != null) {
-                int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
+                int uiCode = (Integer) uiVector.elementAt(i);
                 
                 switch( uiCode) {
                     case SINGLE_LINE_CLEAR_TEXT_CONTROL:

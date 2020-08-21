@@ -118,7 +118,7 @@ htmloutput.pixels=Pixels
 		String wText = widthField.getText();
 		Double w = new Double(wText);
 		
-		double ratio = w.doubleValue()/width; 
+		double ratio = w /width;
 		
 		return ratio;
 	}
@@ -151,7 +151,7 @@ htmloutput.pixels=Pixels
 				i = new Integer((int)width);
 			}
 			//System.out.println(i.intValue());
-			int newHeight = (int)(i.intValue() * heightRatio);
+			int newHeight = (int)(i * heightRatio);
 			heightField.setText((new Integer(newHeight)).toString());
 		}
 		else if (e.getSource().equals(heightField))
@@ -168,7 +168,7 @@ htmloutput.pixels=Pixels
 				i = new Integer((int)height);
 			}
 			//System.out.println(i.intValue());
-			int newWidth = (int)(i.intValue() * widthRatio);
+			int newWidth = (int)(i * widthRatio);
 			widthField.setText((new Integer(newWidth)).toString());
 		}
 	}

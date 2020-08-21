@@ -109,7 +109,7 @@ public class Repository implements org.osid.repository.Repository {
 			this.displayName = displayName;
 			this.description = description;
 			setAddress(address);
-			this.port = new Integer(port).intValue();
+			this.port = new Integer(port);
 			this.userName = userName;
 			this.password = password;
 			this.conf = conf;
@@ -131,7 +131,7 @@ public class Repository implements org.osid.repository.Repository {
                 String address = configuration.getProperty("fedora22Address");
                 if(address != null) setAddress(address);
 		String port = configuration.getProperty("fedora22Port");
-                if(port !=null) this.port = new Integer(port).intValue();
+                if(port !=null) this.port = new Integer(port);
                 String userName = configuration.getProperty("fedora22UserName");
                 if(userName != null ) this.userName = userName;
                 String  password = configuration.getProperty("fedora22Password");

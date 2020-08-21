@@ -79,7 +79,7 @@ public abstract class GenericBooleanPreference extends BasePref<Boolean> impleme
     /** interface VuePreference */
     public void setValue(Boolean b) {
         previousValue = Boolean.valueOf(value.isSelected()); // better to use cachedValue?
-        cachedValue = b.booleanValue();
+        cachedValue = b;
         Preferences p = Preferences.userNodeForPackage(getPrefRoot());
         p.putBoolean(getPrefName(), cachedValue);
         _fireVuePrefEvent();
@@ -172,7 +172,7 @@ public abstract class GenericBooleanPreference extends BasePref<Boolean> impleme
         // message.setForeground(Color.black);
         // booleanPanel.add(message);
         getCheckBox().addItemListener(this);
-        getCheckBox().setSelected(((Boolean)getValue()).booleanValue());
+        getCheckBox().setSelected((Boolean) getValue());
         panel.add(booleanPanel, gbConstraints);
 	return panel;
     }

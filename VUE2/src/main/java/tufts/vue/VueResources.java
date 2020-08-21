@@ -734,7 +734,7 @@ public class VueResources
         String s = getString(key);
         if (s != null) {
             Integer i = new Integer(s);
-            value = i.intValue();
+            value = i;
         }
 	return value;
     }

@@ -32,11 +32,11 @@ abstract class Undoable {
 
     void undo()
     {
-             if (old instanceof Boolean)        undo(((Boolean) old).booleanValue());
-        else if (old instanceof Integer)        undo(((Integer) old).intValue());
+             if (old instanceof Boolean)        undo((Boolean) old);
+        else if (old instanceof Integer)        undo((Integer) old);
         else if (old instanceof String)         undo(((String) old));
-        else if (old instanceof Float)          undo(((Float) old).floatValue());
-        else if (old instanceof Double)         undo(((Double) old).doubleValue());
+        else if (old instanceof Float)          undo((Float) old);
+        else if (old instanceof Double)         undo((Double) old);
         else if (old instanceof Object[])       undo((Object[]) old);
         else
             throw new TypeException(this

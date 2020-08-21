@@ -85,7 +85,7 @@ public class PreferencesManager {
 	  {
 		  VuePreference p = (VuePreference)s;
 
-		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getInt(p.getPrefName(), ((Integer)p.getDefaultValue()).intValue());		  
+		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getInt(p.getPrefName(), (Integer) p.getDefaultValue());
 	  }
 	  
 	  public static String mapCategoryKeyToName(String key)
@@ -97,7 +97,7 @@ public class PreferencesManager {
 	  {		
 		  VuePreference p = (VuePreference)s;
 		  
-		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getBoolean(p.getPrefName(), ((Boolean)p.getDefaultValue()).booleanValue());		  
+		  return java.util.prefs.Preferences.userNodeForPackage(PreferencesManager.class).getBoolean(p.getPrefName(), (Boolean) p.getDefaultValue());
 	  }
 
 	  public Object clone()

@@ -135,12 +135,12 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
         if (checklist.size() == 0 || checklist.size() <= index)
         	checklist.add(index,new Boolean(false));
         
-        if (((Boolean)checklist.get(index)).booleanValue() && mRow.getComponent(1) != waitLabel)
+        if ((Boolean) checklist.get(index) && mRow.getComponent(1) != waitLabel)
         {
         	mRow.remove(1);         	
          	mRow.add(checkedLabel,1);
         }
-        if (!((Boolean)checklist.get(index)).booleanValue() && mRow.getComponent(1) != waitLabel)
+        if (!(Boolean) checklist.get(index) && mRow.getComponent(1) != waitLabel)
         {
         	mRow.remove(1);         	
          	mRow.add(blankArea,1);

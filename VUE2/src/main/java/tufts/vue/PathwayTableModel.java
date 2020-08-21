@@ -431,7 +431,7 @@ public class PathwayTableModel extends DefaultTableModel
             LWPathway p = entry.pathway;
             boolean bool = false;
             if (aValue instanceof Boolean)
-                bool = ((Boolean)aValue).booleanValue();
+                bool = (Boolean) aValue;
 
                  if (col == COL_VISIBLE) { p.setVisible(!p.isVisible()); }        // not proper (must use aValue to be proper)
             else if (col == COL_COLOR)   { p.setStrokeColor((Color)aValue); }     // proper

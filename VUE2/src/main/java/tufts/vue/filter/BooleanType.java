@@ -42,8 +42,8 @@ public class BooleanType extends DefaultType {
         Object value2 = s2.getValue();
         if(!(value1 instanceof String) || !(value2 instanceof String))
             return false;
-        boolean v1 = ((Boolean)value1).booleanValue();
-        boolean v2 = ((Boolean)value2).booleanValue();
+        boolean v1 = (Boolean) value1;
+        boolean v2 = (Boolean) value2;
         if(s1.getOperator().getDisplayName().equals(OP_EQUAL)){
             if(s2.getOperator().getDisplayName().equals(OP_EQUAL)) {
                 return v1 && v2;

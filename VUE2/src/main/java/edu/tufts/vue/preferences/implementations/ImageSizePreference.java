@@ -104,7 +104,7 @@ public class ImageSizePreference extends GenericSliderPreference {
 		JSlider slider = getSlider();
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		
-		int i = p.getInt(getPrefName(), ((Integer)getDefaultValue()).intValue());
+		int i = p.getInt(getPrefName(), (Integer) getDefaultValue());
 	//	System.out.println("DEFAULT VALUE : " + i);
 		switch (i)
 		{
@@ -156,7 +156,7 @@ public class ImageSizePreference extends GenericSliderPreference {
 				return 512;
 		}
 		
-		return ((Integer)getDefaultValue()).intValue();
+		return (Integer) getDefaultValue();
 	}
 	
 	 	

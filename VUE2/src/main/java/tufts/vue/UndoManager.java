@@ -375,7 +375,7 @@ public class UndoManager
         }
         private void animatedChange(Float endValue) {
             Float curValue = (Float) component.getPropertyValue(propKey);
-            final float inc = (endValue.floatValue() - curValue.floatValue()) / segments;
+            final float inc = (endValue - curValue) / segments;
             Float value;
             
             for (int i = 1; i < segments+1; i++) {
@@ -386,7 +386,7 @@ public class UndoManager
         }
         private void animatedChange(Double endValue) {
             Double curValue = (Double) component.getPropertyValue(propKey);
-            final double inc = (endValue.doubleValue() - curValue.doubleValue()) / segments;
+            final double inc = (endValue - curValue) / segments;
             Double value;
             
             for (int i = 1; i < segments+1; i++) {
@@ -397,11 +397,11 @@ public class UndoManager
         }
         private void animatedChange(Integer endValue) {
             Integer curValue = (Integer) component.getPropertyValue(propKey);
-            final float inc = (endValue.intValue() - curValue.intValue()) / segments;
+            final float inc = (endValue - curValue) / segments;
             Integer value;
             
             for (int i = 1; i < segments+1; i++) {
-                value = Integer.valueOf((int) (curValue.intValue() + inc * i));
+                value = Integer.valueOf((int) (curValue + inc * i));
                 component.setProperty(propKey, value);
                 repaint();
             }

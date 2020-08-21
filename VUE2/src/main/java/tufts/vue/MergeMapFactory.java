@@ -179,7 +179,7 @@ public class MergeMapFactory {
 
         for (LWMap map : maps) {
             if (statusIter.hasNext()) {
-                if (statusIter.next().booleanValue())
+                if (statusIter.next())
                     actives.add(map);
                 else
                     /* leave this map out */;
@@ -433,7 +433,7 @@ public class MergeMapFactory {
     {
         int count = 0;
         for (Double d : nodeIntervalBoundaries) {
-            if (score < d.doubleValue())
+            if (score < d)
                 return count;
             count++;
         }
@@ -444,7 +444,7 @@ public class MergeMapFactory {
     {
         int count = 0;
         for (Double d : linkIntervalBoundaries) {
-            if (score < d.doubleValue())
+            if (score < d)
                 return count;
             count++;
         }

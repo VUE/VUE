@@ -1295,7 +1295,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
         	if (field.getName().equals(MATRIX_NAME_FIELD))
         		continue;
         	
-        	int valCol = this.matrixMetadataCols.get(field.getName()).intValue();
+        	int valCol = this.matrixMetadataCols.get(field.getName());
         	
             
             fromRow.addValue(field, values[valCol]);
@@ -1358,7 +1358,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     protected void addWideMatrixRow(XmlDataSource ds, String[] values) {
     	String script = scriptTemplate;
     	final Interpreter interpreter = new Interpreter();
-    	int matrixSize = new Integer(ds.getMatrixSizeField()).intValue();
+    	int matrixSize = new Integer(ds.getMatrixSizeField());
     	int rowCount = tempTable.values().size();
     	
     //	System.out.println("Matrix Size :" + matrixSize);

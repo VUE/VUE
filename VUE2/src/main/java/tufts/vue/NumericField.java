@@ -142,7 +142,7 @@ public class NumericField  extends JTextField  {
 		if (val == null || val.length() == 0)  {
 			return 0.0;
 			}
-		return Double.valueOf(val).doubleValue();	
+		return Double.valueOf(val);
 	}
 
 
