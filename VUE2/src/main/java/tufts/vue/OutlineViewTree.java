@@ -367,7 +367,7 @@ public class OutlineViewTree extends JTree
             hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)node.getUserObject();
             LWComponent selectedLWComponent = hierarchyNode.getLWComponent();
             
-            if (selectedLWComponent instanceof LWText)
+            if (selectedLWComponent instanceof LWNode)
               editorElement.setIcon(nodeIcon);
             
             else if (selectedLWComponent instanceof LWText)
