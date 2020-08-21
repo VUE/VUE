@@ -5,6 +5,8 @@ apply plugin: 'java'
 // Apply the application plugin to add support for building an application
 apply plugin: 'application'
 
+// For Windows .exe files
+apply plugin: 'edu.sc.seis.launch4j'
 
 repositories {
     flatDir {
@@ -47,6 +49,16 @@ jar {
                    'Implementation-Version': project.version)
     }
 }
+
+launch4j {
+  mainClassName = 'tufts.vue.VUE'
+
+  xmlFileName = "${projectDir}/Nullsoft-Installer/VUE-launch4j.xml"
+  manifest = "${projectDir}/Nullsoft-Installer/VUE-launcher.manifest"
+  icon = "${projectDir}/Nullsoft-Installer/VUE.ico"
+}
+
+
 dependencies {
     // javax
     implementation 'javax.activation:javax.activation-api:1.2.0' // todo now included but deprecation/rename in newer java
