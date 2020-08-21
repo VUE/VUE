@@ -26,6 +26,8 @@ jobs:
       run: .github/workflows/make-snapshot-version.sh
     - name: Build with Gradle
       run: ./gradlew build
+    - name: Build Windows executable with launch4j
+      run: ./gradlew createExe
     - name: Upload jar
       uses: actions/upload-artifact@v1
       with:
@@ -36,3 +38,8 @@ jobs:
       with:
         name: bundles
         path: VUE2/build/distributions
+    - name: Upload Windows executable
+      uses: actions/upload-artifact@v1
+      with:
+        name: bundles
+        path: VUE2/build/launch4j
