@@ -1184,26 +1184,20 @@ public class DataSourceViewer extends ContentViewer
             	
                 results = new ResourceList(resourceList, title);
             }
-            
-            Iterator<Resource> iterator = listOfLists.iterator();
-        //    System.out.println("AAAAAAA " +listOfLists.size());
-            while (iterator.hasNext())
-            {
-              Resource r = iterator.next();
-              Iterator<Resource> it = resourceList.iterator();
-              synchronized(resourceList)
-              {
-            	  while (it.hasNext())            	  
-            	  {
-	            	  Resource re = it.next();
-	            	//  System.out.println(re.getSpec() + " :::::: " + r.getSpec());
-	            	  if (re.getSpec().equals(r.getSpec()))
-	            	  {
-	            		 // System.out.println("RESULT FILTERED");
-	            		  it.remove();
-	            	  }
-              		}
-              }
+
+            //    System.out.println("AAAAAAA " +listOfLists.size());
+            for (Resource r : listOfLists) {
+                Iterator<Resource> it = resourceList.iterator();
+                synchronized (resourceList) {
+                    while (it.hasNext()) {
+                        Resource re = it.next();
+                        //  System.out.println(re.getSpec() + " :::::: " + r.getSpec());
+                        if (re.getSpec().equals(r.getSpec())) {
+                            // System.out.println("RESULT FILTERED");
+                            it.remove();
+                        }
+                    }
+                }
             }
             listOfLists.addAll(resourceList);
            // System.out.println("AAAAAAA" + listOfLists.size());
@@ -1270,12 +1264,9 @@ public class DataSourceViewer extends ContentViewer
         //-----------------------------------------------------------------------------
 //        synchronized (mSearchThreads) {
          //   for (Thread t : mSearchThreads)
-       Iterator<MapBasedSearchThread> it =  mMapBasedSearchThreads.iterator();
-       while (it.hasNext())
-       {
-    	   Thread t = it.next();
-    	   t.start();
-       }                       
+        for (Thread t : mMapBasedSearchThreads) {
+            t.start();
+        }
     }
     
     public void searchPerformed(edu.tufts.vue.fsm.event.SearchEvent se) {

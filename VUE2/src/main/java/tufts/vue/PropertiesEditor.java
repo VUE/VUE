@@ -252,11 +252,10 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             
             ArrayList keys = new ArrayList(properties.keySet());
             Collections.sort(keys);
-            
-            Iterator i = keys.iterator();
-            while (i.hasNext()) {
+
+            for (Object o : keys) {
                 Condition cond = new Condition();
-                String key = (String) i.next();
+                String key = (String) o;
                 cond.setProperty(key);
                 cond.setOperator(ComparisonOperator.eq);
                 cond.setValue(properties.getProperty(key));

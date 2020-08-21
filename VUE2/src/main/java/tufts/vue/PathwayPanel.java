@@ -1352,11 +1352,10 @@ public class PathwayPanel extends JPanel
                 // enable remove.  Theoretically should only get here if
                 // pathway is closed.
                 boolean enabled = false;
-                Iterator i = selection.iterator();
-                while (i.hasNext()) {
-                    LWComponent c = (LWComponent) i.next();
+                for (LWComponent c : selection) {
                     if (c.inPathway(path)) {
-                        if (DEBUG.PATHWAY) System.out.println(this + " in selection enables remove: " + c + " on " + path);
+                        if (DEBUG.PATHWAY)
+                            System.out.println(this + " in selection enables remove: " + c + " on " + path);
                         enabled = true;
                         break;
                     }

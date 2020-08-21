@@ -1793,18 +1793,14 @@ public class Actions implements VueConstants
         	if (c.hasChildren())
         	{
         		List<LWComponent> children = c.getChildren();
-        		Iterator<LWComponent> childIterator = children.iterator();
-        		
-        		while (childIterator.hasNext())
-        		{
-        			LWComponent comp = childIterator.next();
-        			if (comp instanceof LWImage)
-        			{
-    					LWImage image = ((LWImage)comp);
-        				if (image.getResource().equals(resource))
-        					sel.add(comp);        				         			
-        			}
-        		}
+
+                for (LWComponent comp : children) {
+                    if (comp instanceof LWImage) {
+                        LWImage image = ((LWImage) comp);
+                        if (image.getResource().equals(resource))
+                            sel.add(comp);
+                    }
+                }
         
         		for (LWContainer parent : sel.getParents()) 
         		{

@@ -356,11 +356,10 @@ public class Asset implements org.osid.repository.Asset{
     }
     
     public org.osid.repository.Part getPart(org.osid.shared.Id id) throws org.osid.repository.RepositoryException {
-        Iterator i =recordVector.iterator();
-        while(i.hasNext()) {
-            Record record = (Record)i.next();
+        for (Object o : recordVector) {
+            Record record = (Record) o;
             org.osid.repository.PartIterator partIterator = record.getParts();
-            while(partIterator.hasNextPart()){
+            while (partIterator.hasNextPart()) {
                 org.osid.repository.Part part = partIterator.nextPart();
 //                try {
 //                    if(part.getId().isEqual(id))
@@ -390,14 +389,13 @@ public class Asset implements org.osid.repository.Asset{
     }
     
     public org.osid.repository.Record getRecord(org.osid.shared.Id id) throws org.osid.repository.RepositoryException {
-        Iterator i = recordVector.iterator();
-        while(i.hasNext()) {
-            org.osid.repository.Record record = (Record)i.next();
+        for (Object o : recordVector) {
+            org.osid.repository.Record record = (Record) o;
             try {
-                if(record.getId().getIdString().equals(id.getIdString()))
+                if (record.getId().getIdString().equals(id.getIdString()))
                     return record;
             } catch (org.osid.shared.SharedException ex) {
-                throw new org.osid.repository.RepositoryException(ex.getMessage());
+                throw new RepositoryException(ex.getMessage());
             }
         }
         return null;
@@ -405,14 +403,13 @@ public class Asset implements org.osid.repository.Asset{
     
     public org.osid.repository.RecordIterator getRecordsByInfoStructure(org.osid.shared.Id id) throws org.osid.repository.RepositoryException {
         java.util.Vector result = new java.util.Vector();
-        Iterator i = recordVector.iterator();
-        while(i.hasNext()) {
-            org.osid.repository.Record record = (Record)i.next();
+        for (Object o : recordVector) {
+            org.osid.repository.Record record = (Record) o;
             try {
-                if(record.getRecordStructure().getId().getIdString().equals(id.getIdString()))
+                if (record.getRecordStructure().getId().getIdString().equals(id.getIdString()))
                     result.add(record);
             } catch (org.osid.shared.SharedException ex) {
-                throw new org.osid.repository.RepositoryException(ex.getMessage());
+                throw new RepositoryException(ex.getMessage());
             }
         }
         return new RecordIterator(result);

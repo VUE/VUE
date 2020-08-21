@@ -142,10 +142,9 @@ public class InfoRecord implements osid.dr.InfoRecord {
     }
     
     public osid.dr.InfoField getInfoField(osid.shared.Id infoPartId) throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {
-        java.util.Iterator i = infoFieldVector.iterator();
-        while(i.hasNext()) {
-            InfoField infoField = (InfoField)i.next();
-            if(infoField.getInfoPart().getId().getIdString().equals(infoPartId.getIdString())) {
+        for (Object o : infoFieldVector) {
+            InfoField infoField = (InfoField) o;
+            if (infoField.getInfoPart().getId().getIdString().equals(infoPartId.getIdString())) {
                 return infoField;
             }
         }

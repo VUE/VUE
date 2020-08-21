@@ -180,33 +180,31 @@ public class SaveAction extends VueAction
             }
             else if (name.endsWith(".zip"))
             {   Vector resourceVector = new Vector();
-            	Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-            	while(i.hasNext()) {	
-            		LWComponent component = (LWComponent) i.next();
-            		System.out.println("Component:"+component+" has resource:"+component.hasResource());
-            		if(component.hasResource() && (component.getResource() instanceof URLResource)){
-                    
-            			URLResource resource = (URLResource) component.getResource();                    
-                
-            			//   	if(resource.getType() == Resource.URL) {
-            			try {
-                        // File file = new File(new URL(resource.getSpec()).getFile());
-                        if(resource.isLocalFile()) {
-                        	String spec = resource.getSpec();                        	                        
-                        	System.out.println(resource.getSpec());
-                            Vector row = new Vector();
-                            row.add(new Boolean(true));
-                            row.add(resource);
-                            row.add(new Long(file.length()));
-                            row.add("Ready");
-                            resourceVector.add(row);
+                for (LWComponent component : map.getAllDescendents(LWComponent.ChildKind.PROPER)) {
+                    System.out.println("Component:" + component + " has resource:" + component.hasResource());
+                    if (component.hasResource() && (component.getResource() instanceof URLResource)) {
+
+                        URLResource resource = (URLResource) component.getResource();
+
+                        //   	if(resource.getType() == Resource.URL) {
+                        try {
+                            // File file = new File(new URL(resource.getSpec()).getFile());
+                            if (resource.isLocalFile()) {
+                                String spec = resource.getSpec();
+                                System.out.println(resource.getSpec());
+                                Vector row = new Vector();
+                                row.add(new Boolean(true));
+                                row.add(resource);
+                                row.add(new Long(file.length()));
+                                row.add("Ready");
+                                resourceVector.add(row);
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Publisher.setLocalResourceVector: Resource " + resource.getSpec() + ex);
+                            ex.printStackTrace();
                         }
-            			}catch (Exception ex) {
-            				System.out.println("Publisher.setLocalResourceVector: Resource "+resource.getSpec()+ ex);
-            				ex.printStackTrace();
-            			}                    
-            		}                
-            	}
+                    }
+                }
             	File savedCMap =PublishUtil.createZip(map, resourceVector);
             	 InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
                 OutputStream ostream = new BufferedOutputStream(new FileOutputStream(file));

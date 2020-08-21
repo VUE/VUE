@@ -447,84 +447,78 @@ public class AnalyzerAction extends Actions.LWCAction {
 						
 				while( categoryChildren != null ) {	 
 						HashMap<LWNode,Collection> newCategoryChildren = null;
-						HashMap<String,LWNode> newTypeHash = null; 
-					    Iterator nodeIterator = categoryChildren.keySet().iterator();
-					    while (nodeIterator.hasNext())
-					    {
+						HashMap<String,LWNode> newTypeHash = null;
+                    for (LWNode lwNode : categoryChildren.keySet()) {
 
-					    	subCatcomps.clear();
-					    	LWNode joinNode = (LWNode) nodeIterator.next();
-					    	
-					    	Collection subCategories = categoryChildren.get(joinNode);
-					    	Iterator subCatIt = subCategories.iterator();
-							
-					    	while (subCatIt.hasNext())
-					    	{
-					    		AnalyzerResult res = (AnalyzerResult) subCatIt.next();
-								if( res.getSubtypes() == null || res.getSubtypes().size() <= layerIx ) {
-									tufts.vue.LWNode node = new tufts.vue.LWNode(res.getValue());
-									
-									MetadataList mlist = new MetadataList();
+                        subCatcomps.clear();
+                        LWNode joinNode = lwNode;
 
-									double rel = res.getRelevance();
-									if (rel < 0.25)
-										mlist.add("relevance", "Low");
-									else if (rel > 0.25 && rel < 0.50)
-										mlist.add("relevance", "Medium");
-									else if (rel > 0.50 && rel < 0.75)
-										mlist.add("relevance", "High");
-									else 
-										mlist.add("relevance", "Essential");
-									
-									mlist.add("relevance score",(new Double(rel)).toString());
-									node.setMetadataList(mlist);
-									
-									if( res.getOntologies() != null ) {
-										Iterator ontIt = res.getOntologies().iterator();
-										while( ontIt.hasNext()) {
-											OntType ontType = new OntType();
-											ontType.setLabel((String)ontIt.next());
-											ontType.setBase("");
-											VueMetadataElement vme = new VueMetadataElement();
-											vme.setObject(ontType);
-											node.getMetadataList().getMetadata().add(vme);
-										}
-									}
-									
-									tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,node);
-									node.setLocation(joinNode.getLocation());
-									node.setFillColor(leafNodeColor);
-									Font f = node.getFont();
-									Font derive = f.deriveFont(((float)(10+res.getCount())));
-									node.setFont(derive);
-									link.setStrokeColor(getColorFromRelevance(res.getRelevance()));
-									subCatcomps.add(node);
-									subCatcomps.add(link);
-								}
-								else {
-									if( newCategoryChildren == null ) {
-										newCategoryChildren = new HashMap<LWNode,Collection>();
-										newTypeHash = new HashMap<String,LWNode>();
-									}
-									String subtypeStr = (String)res.getSubtypes().get(layerIx);
-									LWNode subtypeNode = newTypeHash.get(subtypeStr);
-									if( subtypeNode == null ) {
-										subtypeNode = new LWNode(subtypeStr);
-										subtypeNode.setLocation(joinNode.getLocation());
-										tufts.vue.LWLink link = new tufts.vue.LWLink(joinNode,subtypeNode);
-										subCatcomps.add(subtypeNode);
-										subCatcomps.add(link);
-										newTypeHash.put(subtypeStr,subtypeNode);
-										newCategoryChildren.put(subtypeNode,new ArrayList());
-									}
-									Collection subtypeCollection = newCategoryChildren.get(subtypeNode);
-									subtypeCollection.add(res);
-								}
-					    	}
-					    
-					        active.addChildren(subCatcomps);			    
-					        LayoutAction.search.act(subCatcomps);
-					    }
+                        Collection subCategories = categoryChildren.get(joinNode);
+
+                        for (Object subCategory : subCategories) {
+                            AnalyzerResult res = (AnalyzerResult) subCategory;
+                            if (res.getSubtypes() == null || res.getSubtypes().size() <= layerIx) {
+                                LWNode node = new LWNode(res.getValue());
+
+                                MetadataList mlist = new MetadataList();
+
+                                double rel = res.getRelevance();
+                                if (rel < 0.25)
+                                    mlist.add("relevance", "Low");
+                                else if (rel > 0.25 && rel < 0.50)
+                                    mlist.add("relevance", "Medium");
+                                else if (rel > 0.50 && rel < 0.75)
+                                    mlist.add("relevance", "High");
+                                else
+                                    mlist.add("relevance", "Essential");
+
+                                mlist.add("relevance score", (new Double(rel)).toString());
+                                node.setMetadataList(mlist);
+
+                                if (res.getOntologies() != null) {
+                                    for (Object o : res.getOntologies()) {
+                                        OntType ontType = new OntType();
+                                        ontType.setLabel((String) o);
+                                        ontType.setBase("");
+                                        VueMetadataElement vme = new VueMetadataElement();
+                                        vme.setObject(ontType);
+                                        node.getMetadataList().getMetadata().add(vme);
+                                    }
+                                }
+
+                                LWLink link = new LWLink(joinNode, node);
+                                node.setLocation(joinNode.getLocation());
+                                node.setFillColor(leafNodeColor);
+                                Font f = node.getFont();
+                                Font derive = f.deriveFont(((float) (10 + res.getCount())));
+                                node.setFont(derive);
+                                link.setStrokeColor(getColorFromRelevance(res.getRelevance()));
+                                subCatcomps.add(node);
+                                subCatcomps.add(link);
+                            } else {
+                                if (newCategoryChildren == null) {
+                                    newCategoryChildren = new HashMap<LWNode, Collection>();
+                                    newTypeHash = new HashMap<String, LWNode>();
+                                }
+                                String subtypeStr = (String) res.getSubtypes().get(layerIx);
+                                LWNode subtypeNode = newTypeHash.get(subtypeStr);
+                                if (subtypeNode == null) {
+                                    subtypeNode = new LWNode(subtypeStr);
+                                    subtypeNode.setLocation(joinNode.getLocation());
+                                    LWLink link = new LWLink(joinNode, subtypeNode);
+                                    subCatcomps.add(subtypeNode);
+                                    subCatcomps.add(link);
+                                    newTypeHash.put(subtypeStr, subtypeNode);
+                                    newCategoryChildren.put(subtypeNode, new ArrayList());
+                                }
+                                Collection subtypeCollection = newCategoryChildren.get(subtypeNode);
+                                subtypeCollection.add(res);
+                            }
+                        }
+
+                        active.addChildren(subCatcomps);
+                        LayoutAction.search.act(subCatcomps);
+                    }
 						layerIx++;
 						categoryChildren = newCategoryChildren;
 					}

@@ -82,35 +82,33 @@ public class Cluster2Layout extends Layout {
 	 
 		double radius = Math.sqrt((area * FACTOR / Math.PI));
 		// move nodes in selection
-		Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(
-				LWContainer.ChildKind.PROPER).iterator();
-		while (i.hasNext()) {
-			LWComponent c = i.next();
-			  if (c.isManagedLocation())
-	                continue; 
-			if (c instanceof LWNode) {
-				LWNode node = (LWNode) c;
-				double x = node.getX();
-				double y = node.getY();
-				double angle = Math.atan2(centerY - y, x - centerX);
-				double dist = Point2D.distance(centerX, centerY, x, y);
-				if (selection.contains(node)) {
-					double newDist = radius * dist / maxDistance;
-					double newX = centerX + newDist * Math.cos(angle);
-					double newY = centerY - newDist * Math.sin(angle);
-					node.setLocation(newX, newY);
-				} else {
-					double shiftRange = 3 * radius;
+        for (LWComponent c : VUE.getActiveMap().getAllDescendents(
+                LWContainer.ChildKind.PROPER)) {
+            if (c.isManagedLocation())
+                continue;
+            if (c instanceof LWNode) {
+                LWNode node = (LWNode) c;
+                double x = node.getX();
+                double y = node.getY();
+                double angle = Math.atan2(centerY - y, x - centerX);
+                double dist = Point2D.distance(centerX, centerY, x, y);
+                if (selection.contains(node)) {
+                    double newDist = radius * dist / maxDistance;
+                    double newX = centerX + newDist * Math.cos(angle);
+                    double newY = centerY - newDist * Math.sin(angle);
+                    node.setLocation(newX, newY);
+                } else {
+                    double shiftRange = 3 * radius;
 //					System.out.println(node.getLabel()+"\t"+radius+"\t"+shiftRange);
-					if (dist < shiftRange) {
-						double newDist = dist +(shiftRange - dist) * radius
-								/ shiftRange;
-						double newX = centerX + newDist * Math.cos(angle);
-						double newY = centerY - newDist * Math.sin(angle);
-						node.setLocation(newX, newY);
-					}
-				}
-			}
-		}
+                    if (dist < shiftRange) {
+                        double newDist = dist + (shiftRange - dist) * radius
+                                / shiftRange;
+                        double newX = centerX + newDist * Math.cos(angle);
+                        double newY = centerY - newDist * Math.sin(angle);
+                        node.setLocation(newX, newY);
+                    }
+                }
+            }
+        }
 	}
 }

@@ -99,17 +99,15 @@ public class WriteSearchXMLData {
 
 		dom.appendChild(rootElement);
 
-		Iterator it = data.iterator();
+        for (Object datum : data) {
 
-		while (it.hasNext()) {
+            SearchData search = (SearchData) datum;
 
-			SearchData search = (SearchData) it.next();
+            Element searchElement = createSearchElement(search);
 
-			Element searchElement = createSearchElement(search);
+            rootElement.appendChild(searchElement);
 
-			rootElement.appendChild(searchElement);
-
-		}
+        }
 
 	}
 

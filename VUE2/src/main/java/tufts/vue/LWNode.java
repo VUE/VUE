@@ -2291,11 +2291,9 @@ public class LWNode extends LWContainer
         void layout(float baseX, float baseY, boolean center)
         {
             float y = baseY;
-            Iterator i = iterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
+            for (LWComponent c : this) {
                 if (center)
-                    c.setLocation(baseX + (width - c.getLocalBorderWidth())/2, y);
+                    c.setLocation(baseX + (width - c.getLocalBorderWidth()) / 2, y);
                 else
                     c.setLocation(baseX, y);
                 y += c.getHeight();

@@ -90,9 +90,7 @@ public class LWPathwayList implements LWComponent.Listener, Iterable<LWPathway>
     {
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug(this + " completeXMLRestore");
         setMap(map);
-        Iterator i = iterator();
-        while (i.hasNext()) {
-            LWPathway p = (LWPathway) i.next();
+        for (LWPathway p : this) {
             p.completeXMLRestore(getMap());
             p.addLWCListener(this);
         }

@@ -484,27 +484,19 @@ public class VueApplet extends JApplet {
 			  
 			  //draw links
 			  Multiset<String> keys = map.keys();
-			  java.util.Iterator<String> linkIterator = keys.iterator();
-			  
-			  while (linkIterator.hasNext())
-			  {
-				  String fromId = linkIterator.next();
-				  
-				  Collection<String> toIds = map.get(fromId);
-				  java.util.Iterator<String> toIdIterator = toIds.iterator();
-				  while (toIdIterator.hasNext())
-				  {
-					  String tid = toIdIterator.next();
-					  LWNode fromNode = dataRowNodes.get(fromId);
-					  LWNode toNode = dataRowNodes.get(tid);
-					  
-					  if (fromNode !=null && toNode !=null)
-					  {
-						LWLink link = new LWLink(fromNode,toNode);
+
+			for (String fromId : keys) {
+				Collection<String> toIds = map.get(fromId);
+				for (String tid : toIds) {
+					LWNode fromNode = dataRowNodes.get(fromId);
+					LWNode toNode = dataRowNodes.get(tid);
+
+					if (fromNode != null && toNode != null) {
+						LWLink link = new LWLink(fromNode, toNode);
 						VUE.getActiveMap().add(link);
-					  }
-				  }
-			  }
+					}
+				}
+			}
 			  
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
@@ -585,20 +577,15 @@ public class VueApplet extends JApplet {
 			  
 			  //draw links
 			  java.util.Set<String> keys = map.keySet();
-			  java.util.Iterator<String> notesIterator = keys.iterator();
-			  
-			  while (notesIterator.hasNext())
-			  {
-				  String id = notesIterator.next();
-					 
-					  LWNode fromNode = dataRowNodes.get(id);
-					  if (fromNode !=null)
-					  {
-						  String note = map.get(id);
-						  fromNode.setNotes(note);
-					  }
-				  
-			  }
+
+			for (String id : keys) {
+				LWNode fromNode = dataRowNodes.get(id);
+				if (fromNode != null) {
+					String note = map.get(id);
+					fromNode.setNotes(note);
+				}
+
+			}
 			  
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block

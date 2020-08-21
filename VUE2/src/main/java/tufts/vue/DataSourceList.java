@@ -320,14 +320,13 @@ public class DataSourceList extends JList implements DropTargetListener
                     }
                 } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
                     fileList = (java.util.List)transfer.getTransferData(DataFlavor.javaFileListFlavor);
-                    java.util.Iterator iter = fileList.iterator();
-                    while(iter.hasNext()){
-                        File file = (File)iter.next();
-                        if (file.isDirectory()){
-                            try{
+                    for (Object o : fileList) {
+                        File file = (File) o;
+                        if (file.isDirectory()) {
+                            try {
                                 final LocalFilingManager manager = LocalFileDataSource.getLocalFilingManager();
                                 osid.shared.Agent agent = null;
-                                LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
+                                LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(), agent, null);
                                 // todo: need to extend Resource class and/or refactor this code so
                                 // we don't need the LOCAL / REMOTE distinction, or can discover it
                                 // generically.
@@ -355,7 +354,9 @@ public class DataSourceList extends JList implements DropTargetListener
                                 favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                                 favoritesTree.setRootVisible(false);
                                 cabNode.explore();
-                            }catch (Exception ex) {System.out.println("DataSourceList.drop: "+ex);}
+                            } catch (Exception ex) {
+                                System.out.println("DataSourceList.drop: " + ex);
+                            }
                         } else {
 
 
@@ -364,18 +365,17 @@ public class DataSourceList extends JList implements DropTargetListener
 //                             // CabinetResource.  Can refactor most of this all out.  Handle the
 //                             // shortcut processing FIRST, then can create a CabinetResource from a
 //                             // java.io.File, tho even that is probably overkill...
-                            
+
 //                             FileNode fileNode = new FileNode(file);
-                            
+
 //                             //tufts.Util.printStackTrace("Unsupported DROP onto " + ds + "; of " + transfer);
 
 //                             model.insertNodeInto(cabNode, rootNode, 0);
 //                             favoritesTree.expandPath(new TreePath(rootNode.getPath()));
 //                             favoritesTree.setRootVisible(false);
 
-                                
 
-                            try{
+                            try {
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
 
@@ -383,7 +383,7 @@ public class DataSourceList extends JList implements DropTargetListener
                                 // We always create a LocalCabinet, even if it's a LocalByteStore!
                                 // So dropping directories in works fine, but drop anything else and you're hosed.
                                 // Yeah: it's not working in the current build.  Can't tell if it ever has.
-                                LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
+                                LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(), agent, null);
                                 CabinetResource res = CabinetResource.create(cab);
                                 //res.setTitle(file.getAbsolutePath());
                                 CabinetEntry oldentry = res.getEntry();
@@ -412,7 +412,9 @@ public class DataSourceList extends JList implements DropTargetListener
                                 model.insertNodeInto(cabNode, rootNode, 0);
                                 favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                                 favoritesTree.setRootVisible(false);
-                            }catch (Exception ex) {System.out.println("DataSourceList.drop: "+ex);}
+                            } catch (Exception ex) {
+                                System.out.println("DataSourceList.drop: " + ex);
+                            }
                         }
                     }
                 }

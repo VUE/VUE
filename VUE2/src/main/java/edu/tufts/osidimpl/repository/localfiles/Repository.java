@@ -118,18 +118,17 @@ implements org.osid.repository.Repository
 		try {			
 			Vector cabVector = new Vector();
 			installDesktopFolders(cabVector);
-			
-			Iterator iterator = cabVector.iterator();
-			while (iterator.hasNext()) {
-				LocalCabinet localCabinet = (LocalCabinet)iterator.next();
-				result.addElement(new Asset(localCabinet, this.repositoryId));
-				
-				CabinetEntryIterator i = localCabinet.entries();				
-				while (i.hasNext()) {
-					CabinetEntry ce = i.next();
-					result.addElement(new Asset(ce, this.repositoryId));
-				}
-			}
+
+            for (Object o : cabVector) {
+                LocalCabinet localCabinet = (LocalCabinet) o;
+                result.addElement(new Asset(localCabinet, this.repositoryId));
+
+                CabinetEntryIterator i = localCabinet.entries();
+                while (i.hasNext()) {
+                    CabinetEntry ce = i.next();
+                    result.addElement(new Asset(ce, this.repositoryId));
+                }
+            }
 		} catch (Throwable t) {
 			Utilities.log(t);
 			throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);

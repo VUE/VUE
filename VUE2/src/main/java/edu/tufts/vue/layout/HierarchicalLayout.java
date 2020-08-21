@@ -22,38 +22,36 @@ public class HierarchicalLayout extends Layout {
 
 	public void layout(LWSelection selection) throws Exception {
 		HashMap<String, LWNode> processedNodes = new HashMap<String, LWNode>();
-		Iterator<LWComponent> iter = selection.iterator();
-		while (iter.hasNext()) {
-			LWComponent c = iter.next();
-			  if (c.isManagedLocation())
-	                continue; 
-			if (c instanceof LWNode) {
-				LWNode node = (LWNode) c;
-				double centerX = c.getX() + c.getWidth() / 2;
-				double centerY = c.getY() + c.getHeight() / 2;
-				double angle = 0.0;
-				List<LWNode> relatedNodes = getRelated(node, processedNodes);
-				double radius = relatedNodes.size()
-						* (c.getHeight() + c.getWidth()) / 2 / Math.PI;
-				if (radius < 3 * c.getWidth())
-					radius = 3 * c.getWidth(); // want to make the radius
-												// atleast 3 times the width
-				if (radius < MIN_RADIUS_INCREASE)
-					radius = MIN_RADIUS_INCREASE;
-				int count = 0;
-				for (LWNode related : relatedNodes) {
-					related.setLocation(centerX + radius * Math.cos(angle)
-							- related.getWidth() / 2, centerY + radius
-							* Math.sin(angle) - related.getHeight() / 2);
-					layoutChildren(node, related, relatedNodes.size(),
-							processedNodes);
-					count++;
-					angle = Math.PI * 2 * count / relatedNodes.size();
+        for (LWComponent c : selection) {
+            if (c.isManagedLocation())
+                continue;
+            if (c instanceof LWNode) {
+                LWNode node = (LWNode) c;
+                double centerX = c.getX() + c.getWidth() / 2;
+                double centerY = c.getY() + c.getHeight() / 2;
+                double angle = 0.0;
+                List<LWNode> relatedNodes = getRelated(node, processedNodes);
+                double radius = relatedNodes.size()
+                        * (c.getHeight() + c.getWidth()) / 2 / Math.PI;
+                if (radius < 3 * c.getWidth())
+                    radius = 3 * c.getWidth(); // want to make the radius
+                // atleast 3 times the width
+                if (radius < MIN_RADIUS_INCREASE)
+                    radius = MIN_RADIUS_INCREASE;
+                int count = 0;
+                for (LWNode related : relatedNodes) {
+                    related.setLocation(centerX + radius * Math.cos(angle)
+                            - related.getWidth() / 2, centerY + radius
+                            * Math.sin(angle) - related.getHeight() / 2);
+                    layoutChildren(node, related, relatedNodes.size(),
+                            processedNodes);
+                    count++;
+                    angle = Math.PI * 2 * count / relatedNodes.size();
 //					System.out.println("Completed Layout for: "+ related.getLabel());
-				}
-			}
+                }
+            }
 
-		}
+        }
 
 	}
 
@@ -132,28 +130,26 @@ public class HierarchicalLayout extends Layout {
 		processedNodes.put(node.getID(), node);
 
 		List<LWNode>		relatedNodes = new ArrayList<LWNode>();
-		Iterator<LWLink>	i = node.getLinks().iterator();
 
-		while (i.hasNext()) {
-			LWLink			link = i.next();
-			LWComponent		head = link.getHead();
-			LWComponent		tail = link.getTail();
+        for (LWLink link : node.getLinks()) {
+            LWComponent head = link.getHead();
+            LWComponent tail = link.getTail();
 
-			if (head instanceof LWNode && tail instanceof LWNode) {
-				LWNode		headNode = (LWNode) head;
-				LWNode		tailNode = (LWNode) tail;
+            if (head instanceof LWNode && tail instanceof LWNode) {
+                LWNode headNode = (LWNode) head;
+                LWNode tailNode = (LWNode) tail;
 
-				if ((processedNodes.get(tailNode.getID()) == null) && headNode == node) {
-					processedNodes.put(tailNode.getID(), tailNode);
-					relatedNodes.add(tailNode);
-				}
+                if ((processedNodes.get(tailNode.getID()) == null) && headNode == node) {
+                    processedNodes.put(tailNode.getID(), tailNode);
+                    relatedNodes.add(tailNode);
+                }
 
-				if ((processedNodes.get(headNode.getID()) == null) && tailNode == node) {
-					processedNodes.put(headNode.getID(), headNode);
-					relatedNodes.add(headNode);
-				}
-			}
-		}
+                if ((processedNodes.get(headNode.getID()) == null) && tailNode == node) {
+                    processedNodes.put(headNode.getID(), headNode);
+                    relatedNodes.add(headNode);
+                }
+            }
+        }
 
 		return relatedNodes;
 	}

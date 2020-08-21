@@ -439,11 +439,9 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 						userSelection.clear();
 						userSelection.addAll(guiSelection);
 
-						Iterator<LWComponent> deepNodes = deepSelection.iterator();
-
-						while (deepNodes.hasNext()) {
-							userSelection.remove(deepNodes.next());
-						}
+                        for (LWComponent lwComponent : deepSelection) {
+                            userSelection.remove(lwComponent);
+                        }
 
 						// Find deepSelection.
 						deepSelection.clear();
@@ -468,33 +466,30 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 
 		protected void findChildrenToDepth(Collection<LWComponent> collection, int depth) {
 			// Add each node to deepSelection.
-			Iterator<LWComponent>	nodes = collection.iterator();
 
-			while (nodes.hasNext()) {
-				LWComponent		node = nodes.next();
+            for (LWComponent node : collection) {
+                if (node.getClass() == LWNode.class) {
+                    if (!userSelection.contains(node)) {
+                        deepSelection.add(node);
+                    }
 
-				if (node.getClass() == LWNode.class) {
-					if (!userSelection.contains(node)) {
-						deepSelection.add(node);
-					}
+                    if (depth > 1) {
+                        // Add each node's links to deepSelection.
+                        Iterator<LWComponent> links = (Iterator<LWComponent>) (node.getConnected().iterator());
 
-					if (depth > 1) {
-						// Add each node's links to deepSelection.
-						Iterator<LWComponent>	links = (Iterator<LWComponent>)(node.getConnected().iterator());
+                        while (links.hasNext()) {
+                            LWComponent link = links.next();
 
-						while (links.hasNext()) {
-							LWComponent		link = links.next();
+                            if (!userSelection.contains(link)) {
+                                deepSelection.add(link);
+                            }
+                        }
 
-							if (!userSelection.contains(link)) {
-								deepSelection.add(link);
-							}
-						}
-
-						// Add each node's child nodes to deepSelection.
-						findChildrenToDepth(node.getLinked(), depth - 1);
-					}
-				}
-			}
+                        // Add each node's child nodes to deepSelection.
+                        findChildrenToDepth(node.getLinked(), depth - 1);
+                    }
+                }
+            }
 		}
 	}
 }

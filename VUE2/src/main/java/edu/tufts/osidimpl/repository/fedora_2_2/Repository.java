@@ -180,9 +180,8 @@ public class Repository implements org.osid.repository.Repository {
         try {
 //			System.out.println("fedora types " + fedoraProperties.getProperty("fedora.types"));
             Vector fedoraTypesVector = FedoraUtils.stringToVector(fedoraProperties.getProperty("fedora.types"));
-            Iterator i =fedoraTypesVector.iterator();
-            while(i.hasNext()) {
-                createFedoraObjectAssetType((String)i.next());
+            for (Object o : fedoraTypesVector) {
+                createFedoraObjectAssetType((String) o);
             }
         } catch (Throwable t) { 
 			t.printStackTrace();
@@ -202,10 +201,9 @@ public class Repository implements org.osid.repository.Repository {
      */
     
     public FedoraObjectAssetType createFedoraObjectAssetType(String type) throws org.osid.repository.RepositoryException {
-        java.util.Iterator i = assetTypes.iterator();
-        while(i.hasNext()) {
-            FedoraObjectAssetType fedoraObjectAssetType = (FedoraObjectAssetType) i.next();
-            if(fedoraObjectAssetType.getType().equals(type))
+        for (Object assetType : assetTypes) {
+            FedoraObjectAssetType fedoraObjectAssetType = (FedoraObjectAssetType) assetType;
+            if (fedoraObjectAssetType.getType().equals(type))
                 return fedoraObjectAssetType;
         }
         FedoraObjectAssetType fedoraObjectAssetType = new FedoraObjectAssetType(this,type);
@@ -229,20 +227,18 @@ public class Repository implements org.osid.repository.Repository {
     }
     
     public FedoraObjectAssetType getAssetType(String type) throws org.osid.repository.RepositoryException {
-        java.util.Iterator i = assetTypes.iterator();
-        while(i.hasNext()) {
-            FedoraObjectAssetType fedoraObjectAssetType = (FedoraObjectAssetType) i.next();
-            if(fedoraObjectAssetType.getType().equals(type))
+        for (Object assetType : assetTypes) {
+            FedoraObjectAssetType fedoraObjectAssetType = (FedoraObjectAssetType) assetType;
+            if (fedoraObjectAssetType.getType().equals(type))
                 return fedoraObjectAssetType;
         }
         return createFedoraObjectAssetType(type);
     }
     
     public boolean isFedoraObjectAssetTypeSupported(String type) {
-        java.util.Iterator i = assetTypes.iterator();
-        while(i.hasNext()) {
-            FedoraObjectAssetType fedoraObjectAssetType = (FedoraObjectAssetType) i.next();
-            if(fedoraObjectAssetType.getType().equals(type))
+        for (Object assetType : assetTypes) {
+            FedoraObjectAssetType fedoraObjectAssetType = (FedoraObjectAssetType) assetType;
+            if (fedoraObjectAssetType.getType().equals(type))
                 return true;
         }
         return false;

@@ -67,9 +67,8 @@ public class StyleMap {
     public static String printStyles() {
         String s  = new String();
         Collection<Style> c = m.values();
-        Iterator<Style> i = c.iterator();
-        while(i.hasNext()){
-            s += i.next().toString();
+        for (Style style : c) {
+            s += style.toString();
         }
         return s;
     }

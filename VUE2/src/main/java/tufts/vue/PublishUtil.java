@@ -106,26 +106,25 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
         IMSCPOrganization += "<title> VUE Cocept Map</title>";            
         LWMap saveMap = (LWMap) tufts.vue.VUE.getActiveMap().clone();
         IMSCP imscp = new IMSCP();
-        Iterator i = resourceVector.iterator();
-        while(i.hasNext()) {
-            Vector vector = (Vector)i.next();
-            Resource r = (Resource)(vector.elementAt(1));
-            Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File(new URL(r.getSpec()).getFile());
-            //File file = new File((String)vector.elementAt(1));
-            if(b.booleanValue()) {
-                System.out.println("FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
-                //resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
-                String entry = IMSCP.RESOURCE_FILES+File.separator+file.getName();
-                imscp.putEntry(entry,file);
-                IMSCPResources += getResourceTag(r.getProperties().asProperties(), entry,resourceCount);
-                IMSCPOrganization += getItemTag("ITEM"+resourceCount, "RESOURCE"+resourceCount,"Resource "+resourceCount+" in Concept Map");
-                //resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-                replaceResource(saveMap,r,Resource.getFactory().get(IMSCP.RESOURCE_FILES+File.separatorChar+file.getName()));
-                //replaceResource(saveMap,r,new MapResource(IMSCP.RESOURCE_FILES+File.separatorChar+file.getName()));
-                resourceCount++;
-            }
-        }
+       for (Object o : resourceVector) {
+           Vector vector = (Vector) o;
+           Resource r = (Resource) (vector.elementAt(1));
+           Boolean b = (Boolean) (vector.elementAt(0));
+           File file = new File(new URL(r.getSpec()).getFile());
+           //File file = new File((String)vector.elementAt(1));
+           if (b.booleanValue()) {
+               System.out.println("FileName = " + file.getName() + " index =" + resourceVector.indexOf(vector));
+               //resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
+               String entry = IMSCP.RESOURCE_FILES + File.separator + file.getName();
+               imscp.putEntry(entry, file);
+               IMSCPResources += getResourceTag(r.getProperties().asProperties(), entry, resourceCount);
+               IMSCPOrganization += getItemTag("ITEM" + resourceCount, "RESOURCE" + resourceCount, "Resource " + resourceCount + " in Concept Map");
+               //resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
+               replaceResource(saveMap, r, Resource.getFactory().get(IMSCP.RESOURCE_FILES + File.separatorChar + file.getName()));
+               //replaceResource(saveMap,r,new MapResource(IMSCP.RESOURCE_FILES+File.separatorChar+file.getName()));
+               resourceCount++;
+           }
+       }
         saveMap(saveMap);
         imscp.putEntry(IMSCP.MAP_FILE,activeMapFile);
         IMSCPOrganization +="</item>";  

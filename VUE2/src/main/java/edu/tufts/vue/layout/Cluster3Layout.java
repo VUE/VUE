@@ -62,34 +62,32 @@ public class Cluster3Layout extends Layout {
 		double maxNodeWidth = X_COL_SIZE;
 		double maxNodeHeight = Y_COL_SIZE;
 		// create the clusters and sorted list
-		Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(
-				LWContainer.ChildKind.PROPER).iterator();
-		// placing the cluster nodes in a map with the center node as a key
-		while (i.hasNext()) {
-			LWComponent c = i.next();
-			if (c instanceof LWLink) {
-				LWLink link = (LWLink) c;
-				LWComponent head = link.getHead();
-				LWComponent tail = link.getTail();
-				if (selection.contains(head)) {
-					if (!clusterMap.containsKey(head)) {
-						clusterMap.put(head, new ArrayList<LWComponent>());
-					}
-					clusterMap.get(head).add(tail);
-				}
-				if (selection.contains(tail)) {
-					if (!clusterMap.containsKey(tail)) {
-						clusterMap.put(tail, new ArrayList<LWComponent>());
-					}
-					clusterMap.get(tail).add(head);
-				}
-			} else if (c instanceof LWNode) {
-				maxNodeWidth = maxNodeWidth > c.getWidth() ? maxNodeWidth : c
-						.getWidth();
-				maxNodeHeight = maxNodeHeight > c.getHeight() ? maxNodeHeight
-						: c.getHeight();
-			}
+        // placing the cluster nodes in a map with the center node as a key
+        for (LWComponent c : VUE.getActiveMap().getAllDescendents(
+                LWContainer.ChildKind.PROPER)) {
+            if (c instanceof LWLink) {
+                LWLink link = (LWLink) c;
+                LWComponent head = link.getHead();
+                LWComponent tail = link.getTail();
+                if (selection.contains(head)) {
+                    if (!clusterMap.containsKey(head)) {
+                        clusterMap.put(head, new ArrayList<LWComponent>());
+                    }
+                    clusterMap.get(head).add(tail);
+                }
+                if (selection.contains(tail)) {
+                    if (!clusterMap.containsKey(tail)) {
+                        clusterMap.put(tail, new ArrayList<LWComponent>());
+                    }
+                    clusterMap.get(tail).add(head);
+                }
+            } else if (c instanceof LWNode) {
+                maxNodeWidth = maxNodeWidth > c.getWidth() ? maxNodeWidth : c
+                        .getWidth();
+                maxNodeHeight = maxNodeHeight > c.getHeight() ? maxNodeHeight
+                        : c.getHeight();
+            }
 
-		}
+        }
 	}
 }

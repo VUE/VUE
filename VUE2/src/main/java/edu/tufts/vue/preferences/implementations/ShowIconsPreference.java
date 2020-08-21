@@ -308,11 +308,9 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	protected synchronized void _fireVuePrefEvent(String prefName) {
 		VuePrefEvent event = new VuePrefEvent(this,getPreviousValue(prefName),getValue());
 
-		Iterator listeners = _listeners.iterator();
-
-		while(listeners.hasNext()) {
-			((VuePrefListener)listeners.next()).preferenceChanged(event);
-		}
+        for (Object listener : _listeners) {
+            ((VuePrefListener) listener).preferenceChanged(event);
+        }
 	}
 
 	public String getDescription() { 

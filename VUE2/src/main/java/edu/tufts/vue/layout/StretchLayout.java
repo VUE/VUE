@@ -68,43 +68,41 @@ public class StretchLayout extends Layout {
 //        System.out.printf("center: %.2f,%.2f\n",centerX,centerY);
         
         // move all nodes around the selection
-        Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
-        while (i.hasNext()) {
-            LWComponent c = i.next();
+        for (LWComponent c : VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER)) {
             if (c.isManagedLocation())
-                continue; 
-            if(!selection.contains(c) && c instanceof LWNode) {
+                continue;
+            if (!selection.contains(c) && c instanceof LWNode) {
                 // if node is within the selection move it to the bounding box
-                
+
                 Point2D location = c.getLocation();
                 double newX = location.getX();
                 double newY = location.getY();
                 double y = location.getY();
-                double x =location.getX();
-                double angle = Math.atan2(centerY-y,x-centerX);
-                
-                if(boundingRect.contains(location)) {
-                    newX = centerX-X_PADDING+outerA*Math.cos(angle);
-                    newY = centerY-Y_PADDING-outerB*Math.sin(angle);
+                double x = location.getX();
+                double angle = Math.atan2(centerY - y, x - centerX);
+
+                if (boundingRect.contains(location)) {
+                    newX = centerX - X_PADDING + outerA * Math.cos(angle);
+                    newY = centerY - Y_PADDING - outerB * Math.sin(angle);
 //                    System.out.println("Setting new location for: "+c.getLabel()+" angle:"+Math.toDegrees(angle));
 //                      System.out.printf("x:%3.2f,y:%3.2f,newX:%3.2f,newY:%3.2f\n",x,y,newX,newY);
                 } else {
-                    double xInnerEllipse = centerX+a*Math.cos(angle);
-                    double yInnerEllipse = centerY-b*Math.sin(angle);
-                    double xOuterEllipse = centerX+outerA*Math.cos(angle);
-                    double yOuterEllipse = centerY-outerB*Math.sin(angle);
-                    double distInner = Point2D.distance(centerX,centerY,xInnerEllipse,yInnerEllipse);
-                    double distOuter = Point2D.distance(centerX,centerY,xOuterEllipse,yOuterEllipse);
-                    double distPoint = Point2D.distance(centerX,centerY,x,y);
-                    if(distPoint < SHIFT_RANGE*distOuter) {
-                        double factor = MAX_SHIFT+ (distPoint-distInner)*(SHIFT_RANGE-MAX_SHIFT)/(SHIFT_RANGE*distOuter-distInner);
-                        double newA = outerA*factor;
-                        double newB = outerB*factor;
-                        newX = centerX-X_PADDING+newA*Math.cos(angle);
-                        newY = centerY-Y_PADDING-newB*Math.sin(angle);
+                    double xInnerEllipse = centerX + a * Math.cos(angle);
+                    double yInnerEllipse = centerY - b * Math.sin(angle);
+                    double xOuterEllipse = centerX + outerA * Math.cos(angle);
+                    double yOuterEllipse = centerY - outerB * Math.sin(angle);
+                    double distInner = Point2D.distance(centerX, centerY, xInnerEllipse, yInnerEllipse);
+                    double distOuter = Point2D.distance(centerX, centerY, xOuterEllipse, yOuterEllipse);
+                    double distPoint = Point2D.distance(centerX, centerY, x, y);
+                    if (distPoint < SHIFT_RANGE * distOuter) {
+                        double factor = MAX_SHIFT + (distPoint - distInner) * (SHIFT_RANGE - MAX_SHIFT) / (SHIFT_RANGE * distOuter - distInner);
+                        double newA = outerA * factor;
+                        double newB = outerB * factor;
+                        newX = centerX - X_PADDING + newA * Math.cos(angle);
+                        newY = centerY - Y_PADDING - newB * Math.sin(angle);
                     }
                 }
-                c.setLocation(newX,newY);
+                c.setLocation(newX, newY);
             }
         }
         

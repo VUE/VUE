@@ -1466,9 +1466,7 @@ public abstract class LWContainer extends LWComponent
     }
 
     public static void layoutChildrenRow(List selection) {
-        Iterator<LWComponent> iter = selection.iterator();
-        while (iter.hasNext()) {
-            LWComponent component = iter.next();
+        for (LWComponent component : (Iterable<LWComponent>) selection) {
             if (component instanceof LWNode) {
                 LWNode node = (LWNode) component;
                 node.layoutChildrenRow(component);
@@ -1477,9 +1475,7 @@ public abstract class LWContainer extends LWComponent
     }
 
     public static void layoutChildrenColumn(List selection) {
-        Iterator<LWComponent> iter = selection.iterator();
-        while (iter.hasNext()) {
-            LWComponent component = iter.next();
+        for (LWComponent component : (Iterable<LWComponent>) selection) {
             if (component instanceof LWNode) {
                 LWNode node = (LWNode) component;
                 node.layoutChildrenColumn(component);

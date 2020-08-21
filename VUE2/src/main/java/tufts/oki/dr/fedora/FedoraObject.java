@@ -345,17 +345,16 @@ public class FedoraObject implements osid.dr.Asset{
     }
     
     public osid.dr.InfoField getInfoField(osid.shared.Id id) throws osid.dr.DigitalRepositoryException {
-        Iterator i =infoRecordVector.iterator();
-        while(i.hasNext()) {
-            InfoRecord infoRecord = (InfoRecord)i.next();
+        for (Object o : infoRecordVector) {
+            InfoRecord infoRecord = (InfoRecord) o;
             osid.dr.InfoFieldIterator infoFieldIterator = infoRecord.getInfoFields();
-            while(infoFieldIterator.hasNext()){
+            while (infoFieldIterator.hasNext()) {
                 osid.dr.InfoField infoField = infoFieldIterator.next();
                 try {
-                    if(infoField.getId().isEqual(id))
+                    if (infoField.getId().isEqual(id))
                         return infoField;
                 } catch (osid.shared.SharedException ex) {
-                    throw new osid.dr.DigitalRepositoryException(ex.getMessage());
+                    throw new DigitalRepositoryException(ex.getMessage());
                 }
             }
         }
@@ -375,14 +374,13 @@ public class FedoraObject implements osid.dr.Asset{
     }
     
     public osid.dr.InfoRecord getInfoRecord(osid.shared.Id id) throws osid.dr.DigitalRepositoryException {
-        Iterator i = infoRecordVector.iterator();
-        while(i.hasNext()) {
-            osid.dr.InfoRecord infoRecord = (InfoRecord)i.next();
+        for (Object o : infoRecordVector) {
+            osid.dr.InfoRecord infoRecord = (InfoRecord) o;
             try {
-                if(infoRecord.getId().getIdString().equals(id.getIdString()))
+                if (infoRecord.getId().getIdString().equals(id.getIdString()))
                     return infoRecord;
             } catch (osid.shared.SharedException ex) {
-                throw new osid.dr.DigitalRepositoryException(ex.getMessage());
+                throw new DigitalRepositoryException(ex.getMessage());
             }
         }
         return null;
@@ -390,14 +388,13 @@ public class FedoraObject implements osid.dr.Asset{
     
     public osid.dr.InfoRecordIterator getInfoRecordsByInfoStructure(osid.shared.Id id) throws osid.dr.DigitalRepositoryException {
         java.util.Vector result = new java.util.Vector();
-        Iterator i = infoRecordVector.iterator();
-        while(i.hasNext()) {
-            osid.dr.InfoRecord infoRecord = (InfoRecord)i.next();
-            try {  
-                if(infoRecord.getInfoStructure().getId().getIdString().equals(id.getIdString()))
+        for (Object o : infoRecordVector) {
+            osid.dr.InfoRecord infoRecord = (InfoRecord) o;
+            try {
+                if (infoRecord.getInfoStructure().getId().getIdString().equals(id.getIdString()))
                     result.add(infoRecord);
             } catch (osid.shared.SharedException ex) {
-                throw new osid.dr.DigitalRepositoryException(ex.getMessage());
+                throw new DigitalRepositoryException(ex.getMessage());
             }
         }
         return new InfoRecordIterator(result);

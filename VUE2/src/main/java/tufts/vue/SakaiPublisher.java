@@ -160,54 +160,50 @@ public class SakaiPublisher {
         LWMap cloneMap =   tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
         
     	//Iterator<LWComponent> i = map.getAllDescendents(LWComponent.ChildKind.ANY).iterator();
-        Iterator<LWComponent> i = cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-        
-    	while(i.hasNext()) 
-    	{
-    		LWComponent component = (LWComponent) i.next();
-    		Log.debug("Component:" + component +" has resource:" + component.hasResource());
-   		if(component.hasResource()
-    				&& (component instanceof LWNode || component instanceof LWLink) 
-    				&& (component.getResource() instanceof URLResource))
-    		{
-    			URLResource resource = (URLResource) component.getResource();
-    			System.out.println("Component:" + component 
-    					+ "file:" + resource.getSpec() 
-    					+ " has file:"+resource.getSpec().startsWith(FILE_PREFIX));
-    			if(resource.isLocalFile()) {                    
-    				File file = new File(resource.getSpec().replace(FILE_PREFIX,""));
-    				System.out.println("LWComponent:" + component.getLabel() 
-    						+ " Resource: "+resource.getSpec() 
-    						+ " File:" + file + " exists:" + file.exists() 
-    						+ " MimeType" + new MimetypesFileTypeMap().getContentType(file));
-    				// Maps created on another computer could contain a reference to a local file
-    				// that doesn't exist on this user's computer.  Don't process these.
-    				if( !file.exists() ) {
-    					continue;
-    				}
-    				uploadObjectToRepository( 
-    						getHostUrl( dsConfig ),
-    						sessionId,
-    						file.getName(),
-    						folderName, 
-    						file, 
-    						RESOURCE_DESC, true );
 
-    				//Replace the link for resource in the map
-    				
-    				//TODO The following call to setProperty() clears the "File" property.
-    				// this is necessary because currently setSpec() doesn't reset the File 
-    				// property, leaving a resource with both an URL and File property.  It
-    				// shouldn't have both. - pdw 28-nov-07
-    				resource.removeProperty( "File" );
-                                  String ingestUrl =  hostUrl + "/access/content" + folderName + (new File(resource.getSpec().replace(FILE_PREFIX,""))).getName();
-                            //System.out.println( ingestUrl );
-                            // resource.setSpec(ingestUrl);
-                            component.setResource(URLResource.create(ingestUrl));
-    			}
-                      
-   		}
-    	}
+		for (LWComponent component : cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER)) {
+			Log.debug("Component:" + component + " has resource:" + component.hasResource());
+			if (component.hasResource()
+					&& (component instanceof LWNode || component instanceof LWLink)
+					&& (component.getResource() instanceof URLResource)) {
+				URLResource resource = (URLResource) component.getResource();
+				System.out.println("Component:" + component
+						+ "file:" + resource.getSpec()
+						+ " has file:" + resource.getSpec().startsWith(FILE_PREFIX));
+				if (resource.isLocalFile()) {
+					File file = new File(resource.getSpec().replace(FILE_PREFIX, ""));
+					System.out.println("LWComponent:" + component.getLabel()
+							+ " Resource: " + resource.getSpec()
+							+ " File:" + file + " exists:" + file.exists()
+							+ " MimeType" + new MimetypesFileTypeMap().getContentType(file));
+					// Maps created on another computer could contain a reference to a local file
+					// that doesn't exist on this user's computer.  Don't process these.
+					if (!file.exists()) {
+						continue;
+					}
+					uploadObjectToRepository(
+							getHostUrl(dsConfig),
+							sessionId,
+							file.getName(),
+							folderName,
+							file,
+							RESOURCE_DESC, true);
+
+					//Replace the link for resource in the map
+
+					//TODO The following call to setProperty() clears the "File" property.
+					// this is necessary because currently setSpec() doesn't reset the File
+					// property, leaving a resource with both an URL and File property.  It
+					// shouldn't have both. - pdw 28-nov-07
+					resource.removeProperty("File");
+					String ingestUrl = hostUrl + "/access/content" + folderName + (new File(resource.getSpec().replace(FILE_PREFIX, ""))).getName();
+					//System.out.println( ingestUrl );
+					// resource.setSpec(ingestUrl);
+					component.setResource(URLResource.create(ingestUrl));
+				}
+
+			}
+		}
     	//upload the map 
     	/* TODO NOTE: The map that is uploaded has changed from the map that 
     	 * was saved locally earlier this method.  The difference is that the
