@@ -115,7 +115,7 @@ public class RDFOpenAction extends VueAction {
 // write it to standard out -- fails for zotero rdf so comment out for now..
 //            model.write(System.out);
             int totalResources = 0;
-            Map<String,LWNode> hashMap = new HashMap<String,LWNode>();
+            Map<String,LWNode> hashMap = new HashMap<>();
             ResIterator resIterator = model.listSubjects();
             while(resIterator.hasNext()) {
                 com.hp.hpl.jena.rdf.model.Resource res = resIterator.nextResource();

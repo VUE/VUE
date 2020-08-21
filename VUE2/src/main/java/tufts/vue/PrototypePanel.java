@@ -81,7 +81,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		JLabel						label40 = new JLabel("40%");
 		JLabel						label20 = new JLabel("20%");
 		JLabel						label0 = new JLabel("0%");
-		Hashtable<Integer, JLabel>	labelTable = new Hashtable<Integer, JLabel>();
+		Hashtable<Integer, JLabel>	labelTable = new Hashtable<>();
 
 		label100.setFont(tufts.vue.gui.GUI.LabelFace);
 		label80.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -116,7 +116,7 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
         JLabel						label5 = new JLabel("5");
         DepthSelectionListener		depthListener = new DepthSelectionListener();        
 
-        labelTable = new Hashtable<Integer, JLabel>();
+        labelTable = new Hashtable<>();
 
         label0 = new JLabel(VueResources.getString("interactionTools.off"));
         label0.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -354,8 +354,8 @@ public class PrototypePanel extends JPanel implements ActionListener, ChangeList
 		}
 
 	static class DepthSelectionListener implements ChangeListener, LWSelection.Listener {
-		HashSet<LWComponent>	userSelection = new HashSet<LWComponent>(),	// LWComponents selected by the user
-								deepSelection = new HashSet<LWComponent>();	// LWComponents selected by this class
+		HashSet<LWComponent>	userSelection = new HashSet<>(),	// LWComponents selected by the user
+								deepSelection = new HashSet<>();	// LWComponents selected by this class
 		int						previousDepth = 0;
 		boolean					ignoreSelectionEvents = false;
 

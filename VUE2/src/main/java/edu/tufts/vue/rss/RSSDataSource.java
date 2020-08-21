@@ -128,7 +128,7 @@ public class RSSDataSource extends BrowseDataSource
 
         Log.debug("WIRE FEED: " + tufts.Util.tag(wireFeed));
 
-        final List<Resource> resources = new ArrayList<Resource>();
+        final List<Resource> resources = new ArrayList<>();
         
         Log.debug("item count: " + mItems.size());
 

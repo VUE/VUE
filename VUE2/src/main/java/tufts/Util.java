@@ -1208,7 +1208,7 @@ public class Util
     }
 
     public static <T> Itering<T> iterable(T o) {
-        return new SingletonIterable<T>(o);
+        return new SingletonIterable<>(o);
     }
 
     public static Itering<org.w3c.dom.Node> iterable(final org.w3c.dom.NodeList nl) {
@@ -1426,14 +1426,14 @@ public class Util
                                 (final Class<T> clazz,
                                  final Iterable<A> iterable)
     {
-        return new IteratorTypeFilter<A,T>(iterable, clazz);
+        return new IteratorTypeFilter<>(iterable, clazz);
     }
     
     public static <A, T extends A> Iterable<T> typeFilter
                                 (final Iterable<A> iterable,
                                  final Class<T> clazz)
     {
-        return new IteratorTypeFilter<A,T>(iterable, clazz);
+        return new IteratorTypeFilter<>(iterable, clazz);
     }
 
     private static final class IteratorTypeFilter<A,T extends A> extends AbstractItering<T> {
@@ -1557,7 +1557,7 @@ public class Util
     
     /** usage: for (SomeObject o : reverse(someObjectList)) { ... } */
     public static <T> Iterable<T> reverse(java.util.List<T> list) {
-        return new ReverseListIterator<T>(list);
+        return new ReverseListIterator<>(list);
     }
     
     /** Convenience class: provides a reversed list iteration.  List should not modified during iteration.

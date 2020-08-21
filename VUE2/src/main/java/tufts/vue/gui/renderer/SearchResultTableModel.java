@@ -23,7 +23,7 @@ import tufts.vue.SearchData;
 
 public class SearchResultTableModel extends AbstractTableModel {
 
-	private java.util.List<SearchData> searchResultArrLst = new java.util.ArrayList<SearchData>();
+	private java.util.List<SearchData> searchResultArrLst = new java.util.ArrayList<>();
 	private int columns = 2;
 	private boolean editFlg;
 	

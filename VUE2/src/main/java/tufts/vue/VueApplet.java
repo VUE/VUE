@@ -471,7 +471,7 @@ public class VueApplet extends JApplet {
 			  java.util.Collection<LWComponent> comps = VUE.getActiveMap().getAllDescendents();
 			  java.util.Iterator<LWComponent> iter = comps.iterator();
 			  //build map of data row nodes
-			  HashMap<String,LWNode> dataRowNodes = new HashMap<String,LWNode>();
+			  HashMap<String,LWNode> dataRowNodes = new HashMap<>();
 			  while (iter.hasNext())
 			  {
 				 LWComponent comp = iter.next();
@@ -529,7 +529,7 @@ public class VueApplet extends JApplet {
 			NodeList nodeLst = doc.getElementsByTagName("note");
 			
 			//build multimap of links
-			HashMap<String,String> map = new HashMap<String,String>();
+			HashMap<String,String> map = new HashMap<>();
 			  for (int s = 0; s < nodeLst.getLength(); s++) 
 			  {
 
@@ -555,7 +555,7 @@ public class VueApplet extends JApplet {
 			  java.util.Collection<LWComponent> comps = VUE.getActiveMap().getAllDescendents();
 			  java.util.Iterator<LWComponent> iter = comps.iterator();
 			  //build map of data row nodes
-			  HashMap<String,LWNode> dataRowNodes = new HashMap<String,LWNode>();
+			  HashMap<String,LWNode> dataRowNodes = new HashMap<>();
 			  while (iter.hasNext())
 			  {
 				 LWComponent comp = iter.next();

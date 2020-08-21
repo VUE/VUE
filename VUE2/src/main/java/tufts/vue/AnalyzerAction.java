@@ -116,7 +116,7 @@ public class AnalyzerAction extends Actions.LWCAction {
        // VUE.getSelection().clear();
    //     VUE.getSelection().add(mCenterComponent);
         LWMap active = VUE.getActiveMap();
-        java.util.List<LWComponent> comps = new ArrayList<LWComponent>();
+        java.util.List<LWComponent> comps = new ArrayList<>();
         for (int p=0; p < RESULTS_TO_ADD && p<size; p++)
         {
         	//System.out.println(resourceList.get(p).toString());
@@ -389,8 +389,8 @@ public class AnalyzerAction extends Actions.LWCAction {
 		    	{
 		    		GUI.activateWaitCursor();
 			    	//bags of components to add to map
-			    	final java.util.List<LWComponent> subCatcomps = new ArrayList<LWComponent>();
-			    	java.util.List<LWComponent> categoryComps = new ArrayList<LWComponent>();
+			    	final java.util.List<LWComponent> subCatcomps = new ArrayList<>();
+			    	java.util.List<LWComponent> categoryComps = new ArrayList<>();
 			    	
 			    	//Analyze the resource and get a multimap of types and values
 			    	Multimap<String,AnalyzerResult> list = null;
@@ -415,7 +415,7 @@ public class AnalyzerAction extends Actions.LWCAction {
 			    			    
 			    	Iterator<String> categoryIterator = list.keySet().iterator();
 			    	boolean hasResults = false;
-			    	HashMap<LWNode,Collection> categoryChildren = new HashMap<LWNode,Collection>();
+			    	HashMap<LWNode,Collection> categoryChildren = new HashMap<>();
 	
 			    	while (categoryIterator.hasNext())
 			    	{		
@@ -497,8 +497,8 @@ public class AnalyzerAction extends Actions.LWCAction {
                                 subCatcomps.add(link);
                             } else {
                                 if (newCategoryChildren == null) {
-                                    newCategoryChildren = new HashMap<LWNode, Collection>();
-                                    newTypeHash = new HashMap<String, LWNode>();
+                                    newCategoryChildren = new HashMap<>();
+                                    newTypeHash = new HashMap<>();
                                 }
                                 String subtypeStr = (String) res.getSubtypes().get(layerIx);
                                 LWNode subtypeNode = newTypeHash.get(subtypeStr);
@@ -606,12 +606,12 @@ public class AnalyzerAction extends Actions.LWCAction {
 	{
 	    @Override
         public List<AnalyzerResult> analyze(LWComponent c, boolean tryFallback) {
-	        return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c, tryFallback) : new java.util.ArrayList<AnalyzerResult>();
+	        return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c, tryFallback) : new java.util.ArrayList<>();
 	    }
 
 	    @Override
         public List<AnalyzerResult> analyze(LWComponent c) {
-            return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c) : new java.util.ArrayList<AnalyzerResult>();
+            return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c) : new java.util.ArrayList<>();
 	    }
 
 	    @Override

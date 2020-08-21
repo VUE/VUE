@@ -35,7 +35,7 @@ public class XmlDataSource extends BrowseDataSource
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XmlDataSource.class);
     
-    private final List<Resource> mItems = new ArrayList<Resource>();
+    private final List<Resource> mItems = new ArrayList<>();
 
     private static final String ITEM_PATH_KEY = "item_path";
     private static final String KEY_FIELD_KEY = "key_field";
@@ -775,8 +775,8 @@ public class XmlDataSource extends BrowseDataSource
     	}
 		
         //Clear this out so we can properly cleanly dataset.
-        schema.existingRows = new HashMap<String,Integer>();
-        schema.tempTable = new TreeMap<String,DataRow>();
+        schema.existingRows = new HashMap<>();
+        schema.tempTable = new TreeMap<>();
 
         do {
 			if (this.matrixFormatField.equals(TALL))
@@ -853,7 +853,7 @@ public class XmlDataSource extends BrowseDataSource
     }
     
     private java.util.List<ConfigField> getWideMatrixConfigurationUIFields(String[] values) {
-    	java.util.List<ConfigField> fields = new ArrayList<ConfigField>();
+    	java.util.List<ConfigField> fields = new ArrayList<>();
     	
     	ConfigField field1
         = new ConfigField(MATRIX_PIVOT_KEY
@@ -910,7 +910,7 @@ public class XmlDataSource extends BrowseDataSource
 	}
     
     private java.util.List<ConfigField> getMatrixConfigurationUIFields(String[] values) {
-    	java.util.List<ConfigField> fields = new ArrayList<ConfigField>();
+    	java.util.List<ConfigField> fields = new ArrayList<>();
     	
     	ConfigField field1
         = new ConfigField(MATRIX_ROW_KEY

@@ -230,7 +230,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 				Log.info("analyzing " + fileCount + " file" + (fileCount == 1 ? "." : "s."));
 			}
 
-			newComps = new ArrayList<LWComponent>();
+			newComps = new ArrayList<>();
 			findNodesOnMap();
 			totalFoundCount = 0;
 
@@ -294,8 +294,8 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 	protected void findNodesOnMap() {
 		Iterable<LWComponent>	comps = VUE.getActiveMap().getAllDescendents();
 
-		allNodes = new ArrayList<LWNode>();
-		classHash = new Hashtable<String, LWNode>();
+		allNodes = new ArrayList<>();
+		classHash = new Hashtable<>();
 
 		for (LWComponent comp : comps) {
 			if (comp instanceof LWNode) {
@@ -422,7 +422,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 											tokenizer.sval.equals(IMPLEMENTS_KEYWORD)) {
 										boolean		parsingInterfaces = true;
 
-										implementsInterfaceNames = new ArrayList<String>();
+										implementsInterfaceNames = new ArrayList<>();
 
 										while (parsingInterfaces) {
 											if (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
@@ -465,7 +465,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 									tokenizer.sval.equals(EXTENDS_KEYWORD)) {
 								boolean		parsingInterfaces = true;
 
-								extendsInterfaceNames = new ArrayList<String>();
+								extendsInterfaceNames = new ArrayList<>();
 
 								while (parsingInterfaces) {
 									if (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
@@ -1310,7 +1310,7 @@ public class JavaAnalysisPanel extends JPanel implements ActionListener {
 			}
 
 			if (interfaceCount > 0) {
-				names = new ArrayList<String>(interfaceCount);
+				names = new ArrayList<>(interfaceCount);
 
 				for (int index = 0; index < interfaceCount; index++) {
 					short					interfaceIndex = stream.readShort();

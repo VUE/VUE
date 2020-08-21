@@ -55,8 +55,8 @@ public class Cluster3Layout extends Layout {
 
 	public void layout(LWSelection selection) {
 		
-		HashMap<LWComponent, ArrayList<LWComponent>> clusterMap = new HashMap<LWComponent, ArrayList<LWComponent>>();
-		List<LWComponent> sortedComponents = new ArrayList<LWComponent>(); // nodes in the selection sorted by size
+		HashMap<LWComponent, ArrayList<LWComponent>> clusterMap = new HashMap<>();
+		List<LWComponent> sortedComponents = new ArrayList<>(); // nodes in the selection sorted by size
 		double minX = Double.POSITIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
 		double maxNodeWidth = X_COL_SIZE;
@@ -71,13 +71,13 @@ public class Cluster3Layout extends Layout {
                 LWComponent tail = link.getTail();
                 if (selection.contains(head)) {
                     if (!clusterMap.containsKey(head)) {
-                        clusterMap.put(head, new ArrayList<LWComponent>());
+                        clusterMap.put(head, new ArrayList<>());
                     }
                     clusterMap.get(head).add(tail);
                 }
                 if (selection.contains(tail)) {
                     if (!clusterMap.containsKey(tail)) {
-                        clusterMap.put(tail, new ArrayList<LWComponent>());
+                        clusterMap.put(tail, new ArrayList<>());
                     }
                     clusterMap.get(tail).add(head);
                 }

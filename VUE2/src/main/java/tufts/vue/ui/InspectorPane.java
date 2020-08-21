@@ -1165,7 +1165,7 @@ public class InspectorPane extends WidgetStack
     	super.removeAll();
     	Pane.AllPanes.clear();
     	Pane.AllPanes = null;
-    	Pane.AllPanes = new ArrayList<Pane>();
+    	Pane.AllPanes = new ArrayList<>();
     }
     
     private void hideAllPanes()

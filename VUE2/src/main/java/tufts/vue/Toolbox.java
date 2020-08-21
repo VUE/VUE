@@ -118,7 +118,7 @@ public class Toolbox {
 					LWComponent				head = link.getHead(),
 											tail = link.getTail();
 					int						arrowState = link.getArrowState();
-					HashSet<LWComponent>	compsToTraverse = new HashSet<LWComponent>();
+					HashSet<LWComponent>	compsToTraverse = new HashSet<>();
 
 					if (head != null &&
 							(expandIncoming && arrowState != LWLink.ARROW_HEAD ||
@@ -141,7 +141,7 @@ public class Toolbox {
 				if (nextDepth > -1) {
 					// Recurse for component's links.
 
-					HashSet<LWComponent>		linksToTraverse = new HashSet<LWComponent>();
+					HashSet<LWComponent>		linksToTraverse = new HashSet<>();
 
 					if (expandIncoming && expandOutgoing) {
 						linksToTraverse.addAll(comp.getLinks());

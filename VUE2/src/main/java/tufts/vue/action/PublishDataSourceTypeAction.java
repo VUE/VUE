@@ -43,7 +43,7 @@ public class PublishDataSourceTypeAction extends VueAction{
     
     private static Map<org.osid.shared.Type,String> getTypeLabelMap() {
         if(typeLabelMap == null) {
-            typeLabelMap = new HashMap<org.osid.shared.Type,String> ();
+            typeLabelMap = new HashMap<>();
             typeLabelMap.put(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE,"Fedora 2.2");
             typeLabelMap.put(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE,"Sakai");
         }

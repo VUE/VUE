@@ -59,7 +59,7 @@ public class Cluster2Layout extends Layout {
 	}
 
 	public void layout(LWSelection selection) {
-		HashMap<LWComponent, ArrayList<LWComponent>> clusterMap = new HashMap<LWComponent, ArrayList<LWComponent>>();
+		HashMap<LWComponent, ArrayList<LWComponent>> clusterMap = new HashMap<>();
 		double minX = Double.POSITIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
 		double maxNodeWidth = X_COL_SIZE;

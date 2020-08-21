@@ -43,8 +43,8 @@ public class CircularLayout extends AbstractLayout{
     
     
     public LWMap loadMap(String fileName,String mapName) throws Exception{
-        Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
-        Map<String,Integer> repeatMap = new HashMap<String,Integer>();
+        Map<String,LWNode> nodeMap = new HashMap<>();
+        Map<String,Integer> repeatMap = new HashMap<>();
         
         LWMap map = new LWMap(mapName);
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -81,7 +81,7 @@ public class CircularLayout extends AbstractLayout{
     }
     
     public LWMap createMap(RelationalDataset ds,String mapName) throws Exception{
-        Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
+        Map<String,LWNode> nodeMap = new HashMap<>();
          
         LWMap map = new LWMap(mapName);
         for(ArrayList<String> row: ds.getRowList()) {
@@ -114,7 +114,7 @@ public class CircularLayout extends AbstractLayout{
     }
     
     public LWMap createMap(ListDataset ds,String mapName) throws Exception{
-        Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
+        Map<String,LWNode> nodeMap = new HashMap<>();
         LWMap map = new LWMap(mapName);
         for(ArrayList<String> row: ds.getRowList()) {
             String node1Label = row.get(0);

@@ -51,8 +51,8 @@ public class ListRandomLayout extends Layout {
     }
 
     public LWMap createMap(Dataset ds, String mapName) throws Exception {
-        Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
-        Map<String, Integer> repeatMap = new HashMap<String, Integer>();
+        Map<String, LWNode> nodeMap = new HashMap<>();
+        Map<String, Integer> repeatMap = new HashMap<>();
         LWMap map = new LWMap(mapName);
         XmlDataSource	datasource = new XmlDataSource(mapName,ds.getFileName());
         Properties props = new Properties();

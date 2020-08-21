@@ -73,7 +73,7 @@ public class AlchemyAnalyzer implements LWComponentAnalyzer {
                         }
                     }
 
-        List<AnalyzerResult> result = new ArrayList<AnalyzerResult>();
+        List<AnalyzerResult> result = new ArrayList<>();
         final String context = strBuilder.toString();
         if (!isEmpty(context))
         {
@@ -87,7 +87,7 @@ public class AlchemyAnalyzer implements LWComponentAnalyzer {
             NodeList nodeList = doc.getElementsByTagName("entity");
             if (null != nodeList && nodeList.getLength() > 0)
             {
-                result = new ArrayList<AnalyzerResult>(nodeList.getLength());
+                result = new ArrayList<>(nodeList.getLength());
                 for (int i = 0; i < nodeList.getLength(); ++i)
                 {
                     AnalyzerResult res = parseEntity(nodeList.item(i),null);

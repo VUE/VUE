@@ -44,7 +44,7 @@ abstract public class Ontology {
     public static final String DEFAULT_ONT_LABEL = VueResources.getString("ontology.label");
     private boolean enabled = true;
     
-    protected List<OntType> types = new ArrayList<OntType>();
+    protected List<OntType> types = new ArrayList<>();
     
     static int ONT_COUNTER  =0;
     URL cssUrl;

@@ -43,8 +43,8 @@ public class GravitationalLayout extends AbstractLayout{
     
     
     public LWMap createMap(Dataset ds,String mapName) throws Exception{
-        Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
-        Map<String,Integer> repeatMap = new HashMap<String,Integer>();
+        Map<String,LWNode> nodeMap = new HashMap<>();
+        Map<String,Integer> repeatMap = new HashMap<>();
         
         LWMap map = new LWMap(mapName);
         int count = 0;

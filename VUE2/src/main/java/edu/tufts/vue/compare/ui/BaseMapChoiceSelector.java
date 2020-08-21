@@ -69,7 +69,7 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
         //private int selectedIndex = 0;
         private Object selectedItem = SELECT_STRING;
         
-        private java.util.List<ListDataListener> listeners = new java.util.ArrayList<ListDataListener>();
+        private java.util.List<ListDataListener> listeners = new java.util.ArrayList<>();
         
         public Object getSelectedItem()
         {
@@ -114,7 +114,7 @@ public class BaseMapChoiceSelector extends javax.swing.JComboBox {
         private java.util.List<LWMap> getMaps()
         {
             java.util.Iterator<LWMap> allMaps = tufts.vue.VUE.getLeftTabbedPane().getAllMaps();
-            java.util.ArrayList<LWMap> nonMergeMaps = new java.util.ArrayList<LWMap>();
+            java.util.ArrayList<LWMap> nonMergeMaps = new java.util.ArrayList<>();
             while(allMaps.hasNext())
             {
                 LWMap obj = allMaps.next();

@@ -114,7 +114,7 @@ public class Export {
 		Archive.writeArchive(map, new File(outputFile));
 	}
 	public void export(String inputFile,String outputFile,String option) throws Exception {
-		HashMap<String,Integer> optionsMap = new HashMap<String,Integer>();
+		HashMap<String,Integer> optionsMap = new HashMap<>();
 		optionsMap.put("jpeg",0);
 		optionsMap.put("png",1);
 		optionsMap.put("pdf",2);

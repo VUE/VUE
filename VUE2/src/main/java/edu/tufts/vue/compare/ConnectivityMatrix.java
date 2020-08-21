@@ -66,8 +66,8 @@ public class ConnectivityMatrix
     protected static class IndexedCountingSet<T> implements Iterable<T> {
         private static final int INDEX = 0, COUNT = 1;
         // redundant data-structures for x-way lookups:
-        private final Map<T,int[]> map = new HashMap<T,int[]>();
-        private final List<T> values = new ArrayList<T>();
+        private final Map<T,int[]> map = new HashMap<>();
+        private final List<T> values = new ArrayList<>();
         private int unique = 0;
         private int maxLen = 0;
         

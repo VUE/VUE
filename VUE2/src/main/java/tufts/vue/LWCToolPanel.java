@@ -84,7 +84,7 @@ public class LWCToolPanel extends JPanel
 
     protected JPanel mBox;
 
-    private final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
+    private final Collection<LWEditor> mEditors = new HashSet<>();
 
    
     public LWCToolPanel()

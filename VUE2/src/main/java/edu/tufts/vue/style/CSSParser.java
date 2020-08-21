@@ -121,7 +121,7 @@ public class CSSParser {
      */
     
     public Map<String,Style> parseToMap(URL url) {
-        styleMap   = new HashMap<String,Style> ();
+        styleMap   = new HashMap<>();
         isParseToMap = true;
         parse(url);
         isParseToMap = false;

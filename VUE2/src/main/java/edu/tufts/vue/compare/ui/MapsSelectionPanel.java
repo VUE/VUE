@@ -450,7 +450,7 @@ public class MapsSelectionPanel extends JPanel  {
      **/
     public List<LWMap> getMapList()
     {
-        ArrayList<LWMap> mapList = new ArrayList<LWMap>();
+        ArrayList<LWMap> mapList = new ArrayList<>();
         MapTableModel model = (MapTableModel)maps.getModel();
         int numberOfMaps = maps.getModel().getRowCount();
         for(int i=0;i<numberOfMaps;i++)
@@ -488,7 +488,7 @@ public class MapsSelectionPanel extends JPanel  {
     
     public List<Boolean> getCheckList()
     {
-        ArrayList<Boolean> checkList = new ArrayList<Boolean>();
+        ArrayList<Boolean> checkList = new ArrayList<>();
         MapTableModel model = (MapTableModel)maps.getModel();
         int numberOfMaps = maps.getModel().getRowCount();
         for(int i=0;i<numberOfMaps;i++)

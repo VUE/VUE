@@ -51,7 +51,7 @@ public class DataSourceViewer extends ContentViewer
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSourceViewer.class);
     //private static final boolean UseFederatedSearchManager = false;
-    public java.util.List<AssetIterator> assets = new ArrayList<AssetIterator>();
+    public java.util.List<AssetIterator> assets = new ArrayList<>();
     private static DRBrowser DRB;
     private static Object activeDataSource;
     String breakTag = "";
@@ -97,8 +97,8 @@ public class DataSourceViewer extends ContentViewer
     private org.osid.OsidContext context = new org.osid.OsidContext();
     //org.osid.registry.Provider checked[];
     
-    private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<SearchThread>());
-    private final java.util.List<MapBasedSearchThread> mMapBasedSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<MapBasedSearchThread>());
+    private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<>());
+    private final java.util.List<MapBasedSearchThread> mMapBasedSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<>());
 
     private static volatile DataSourceViewer singleton;
     
@@ -1123,7 +1123,7 @@ public class DataSourceViewer extends ContentViewer
             
             if (DEBUG.DR) Log.debug("processing AssetIterator: " + Util.tags(assetIterator));
 
-            final java.util.List<Resource> resourceList = new java.util.ArrayList<Resource>();
+            final java.util.List<Resource> resourceList = new java.util.ArrayList<>();
             
             final int maxResult = 10;
             int resultCount = 0;

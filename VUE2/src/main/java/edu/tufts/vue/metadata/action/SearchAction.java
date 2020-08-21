@@ -113,7 +113,7 @@ public class SearchAction extends AbstractAction
     private ResultOp resultAction = RA_SELECT;
     private final List<VueMetadataElement> searchTerms;
     
-    private List<String> textToFind = new ArrayList<String>();
+    private List<String> textToFind = new ArrayList<>();
     private boolean setBasic = true;
     private boolean textOnly = false;
     private boolean everything = false; // no longer makes functional difference
@@ -223,9 +223,9 @@ public class SearchAction extends AbstractAction
         if (queryType == AS_ONE_QUERY)
             queryList = null;
         else 
-            queryList = new ArrayList<Query>();
+            queryList = new ArrayList<>();
         
-        this.textToFind = new ArrayList<String>(); // NOTE SIDE EFFECT
+        this.textToFind = new ArrayList<>(); // NOTE SIDE EFFECT
         actualCriteriaAdded = false;
 
         if (DEBUG.SEARCH) {
@@ -457,7 +457,7 @@ public class SearchAction extends AbstractAction
         // e.g., a search for "mentor" (ClubZora test data set) might reveal that all hits happened
         // to occur on a field named "Role" ]
         
-        final Collection<URI> results = new HashSet<URI>();
+        final Collection<URI> results = new HashSet<>();
 
         // TYPE_QUERY appears to be used in most (all?) cases, which works differently than
         // TYPE_FIELD.  TYPE_FIELD, I *thought* I saw was used when we search just amongst
@@ -705,7 +705,7 @@ public class SearchAction extends AbstractAction
 
         if (doFiltering == doTargeting) throw new Error("impossible");
 
-        final Collection<LWComponent> targets = new HashSet<LWComponent>(hits.size());
+        final Collection<LWComponent> targets = new HashSet<>(hits.size());
 
         if (doTargeting) {
             // TARGETING: remove disallowed targets, and retarget node-icons to their nodes
@@ -723,7 +723,7 @@ public class SearchAction extends AbstractAction
                     targets.add(c);
             }
             // Now remove nested targets
-            final List<LWComponent> nested = new ArrayList<LWComponent>();
+            final List<LWComponent> nested = new ArrayList<>();
             for (LWComponent c : targets) {
                 if (c.atTopLevel())
                     continue;
@@ -838,8 +838,8 @@ public class SearchAction extends AbstractAction
                 }
             }
 
-            final List<LWComponent> newComps = new ArrayList<LWComponent>();
-            final List<LWNode> selectedNodes = new ArrayList<LWNode>();
+            final List<LWComponent> newComps = new ArrayList<>();
+            final List<LWNode> selectedNodes = new ArrayList<>();
 
             centralNode.setLabel(name.toString());
             newComps.add(centralNode);
@@ -929,7 +929,7 @@ public class SearchAction extends AbstractAction
     private void produceSearchResultCopyMap(final Collection<LWComponent> comps) {
         LWMap searchResultMap = new LWMap("Search Result " + ResultMapCount++);
             
-        HashMap<LWComponent,LWComponent> duplicates = new HashMap<LWComponent,LWComponent>();
+        HashMap<LWComponent,LWComponent> duplicates = new HashMap<>();
 
         for (LWComponent next : VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.EDITABLE)) {
             if (comps.contains(next)) {

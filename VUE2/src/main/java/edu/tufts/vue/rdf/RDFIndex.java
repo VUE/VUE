@@ -140,7 +140,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
     /** transpose URI results to LWComponents using our internal mapping to vue components
      * Note that this will NOT remove duplicates from the input results: that should already have been done */
     public Collection<LWComponent> decodeVueResults(Collection<URI> results) {
-        final Collection<LWComponent> hits = new ArrayList<LWComponent>(results.size()+2);
+        final Collection<LWComponent> hits = new ArrayList<>(results.size() + 2);
         for (URI uri : results) {
             final LWComponent c = vueComponentMap.get(uri);
             if (c != null)
@@ -238,7 +238,7 @@ public class RDFIndex extends com.hp.hpl.jena.rdf.model.impl.ModelCom
         //if (DEBUG.SEARCH) Log.debug("SEARCH;  substring=" + Util.tags(substring) + " queryString:\n" + Util.tags(queryString));
         if (DEBUG.SEARCH) Log.debug("searchWithSPARQL; queryString:\n" + Util.tags(queryString));
         
-        final Collection<URI> resultSet = new ArrayList<URI>();
+        final Collection<URI> resultSet = new ArrayList<>();
         final com.hp.hpl.jena.query.Query query = QueryFactory.create(queryString);
         
         if (DEBUG.SEARCH) Log.debug("QF created " + Util.tag(query)

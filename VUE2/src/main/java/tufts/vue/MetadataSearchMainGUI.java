@@ -125,7 +125,7 @@ public class MetadataSearchMainGUI extends JPanel
 
     public final static int BUTTON_COL_WIDTH = 24;
     public final static int ROW_HEIGHT = 30;
-    public List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+    public List<VueMetadataElement> searchTerms = new ArrayList<>();
     private /*final*/ SearchAction termsAction = new SearchAction(searchTerms);
     private final JTextField allSearchField = new JTextField();
     //private final SearchAction allSearch = new SearchAction(allSearchField); // not deployed
@@ -169,7 +169,7 @@ public class MetadataSearchMainGUI extends JPanel
     static AbstractAction renameAction;
     static AbstractAction deleteAction;
 
-    private final List<JComboBox> comboBoxes = new ArrayList<JComboBox>();
+    private final List<JComboBox> comboBoxes = new ArrayList<>();
     private JPopupMenu popupMenu = new JPopupMenu();
     private final String RENAME_STR = VueResources.local("searchgui.rename");
     private final String DELETE_STR = VueResources.local("searchgui.delete");
@@ -207,7 +207,7 @@ public class MetadataSearchMainGUI extends JPanel
         if(searchTermsTbl.isEditing())
             searchTermsTbl.getCellEditor().stopCellEditing();
         final SearchData data = new SearchData();
-        final List<SearchData> searchDataList = new ArrayList<SearchData>();
+        final List<SearchData> searchDataList = new ArrayList<>();
         //searchDataList = new ArrayList<SearchData>();                    
         final String searchName = getSearchName(searchResultModel.getRowCount());
 
@@ -228,7 +228,7 @@ public class MetadataSearchMainGUI extends JPanel
             searchDataList.add(data);                    
             searchResultModel.addRow(data);
             
-            searchTerms = new ArrayList<VueMetadataElement>();
+            searchTerms = new ArrayList<>();
             ((SearchTermsTableModel) searchTermsTbl.getModel()).refresh();
             VUE.getActiveMap().markAsModified();
 

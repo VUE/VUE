@@ -324,7 +324,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
             setLayout(gbLayout);
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 0;
-            order = new Vector<Component>(this.uiVector.size());
+            order = new Vector<>(this.uiVector.size());
             
             for (int i = 0, size = this.uiVector.size(); i < size; i++) {
                 final String key = (String) keyVector.elementAt(i);
@@ -767,7 +767,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
     	Vector<Component> order;
 
     	public VectorFocusTraversalPolicy(Vector<Component> order) {
-    		this.order = new Vector<Component>(order.size());
+    		this.order = new Vector<>(order.size());
     		this.order.addAll(order);
     	}
     	public Component getComponentAfter(Container focusCycleRoot,

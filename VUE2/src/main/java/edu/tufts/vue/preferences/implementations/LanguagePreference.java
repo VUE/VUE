@@ -75,7 +75,7 @@ public class LanguagePreference extends edu.tufts.vue.preferences.generics.Gener
 			public void run() {
 				String					filename = null;
 				try {
-					TreeSet<StringPair>	foundLocales = new TreeSet<StringPair>();
+					TreeSet<StringPair>	foundLocales = new TreeSet<>();
 					ClassLoader			loader = ClassLoader.getSystemClassLoader();
 					URL					url = loader.getResource("tufts/vue/");
 

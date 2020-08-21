@@ -141,12 +141,12 @@ public class MetadataEditor extends JPanel
      * anyway.  In fact, maybe we should make THAT the common model object: a VME list cache.
      */
     private LWGroup group;
-    private final Set<LWComponent> groupContents = new HashSet<LWComponent>();
+    private final Set<LWComponent> groupContents = new HashSet<>();
     /** if selection was size 1, this is set to selection.first(), otherwise, null */
     private LWComponent single;
     // We could add the analysis code for these as a feature of LWSelection:
-    private final Set<String> commonKeys = new HashSet<String>();
-    private final List<VueMetadataElement> commonPairs = new ArrayList<VueMetadataElement>();
+    private final Set<String> commonKeys = new HashSet<>();
+    private final List<VueMetadataElement> commonPairs = new ArrayList<>();
     
     /** the column the +/- buttons are at: changes table structure changes to display categories combo box
      * JTextField column is tested as: buttonColumn-1, JComboBox column as: buttonColumn-2 */
@@ -685,7 +685,7 @@ public class MetadataEditor extends JPanel
                 groupContents.add(c);
         
         // note: a HashSet does not help us much here, except perhaps for the remove(o) calls in AbstractCollection.retainAll
-        final List<VueMetadataElement> shared = new ArrayList<VueMetadataElement>();
+        final List<VueMetadataElement> shared = new ArrayList<>();
 
         // This finds the intersection for exact key+value pairs, so it's very easy for this to display
         // nothing in common.  We could change this to instead show the union of all the keys, and in cases
@@ -1359,7 +1359,7 @@ public class MetadataEditor extends JPanel
      **/
     public class MDTableModel extends AbstractTableModel
     {
-        private final java.util.List<Boolean> categoryFound = new java.util.ArrayList<Boolean>(32);
+        private final java.util.List<Boolean> categoryFound = new java.util.ArrayList<>(32);
 
         private int cols = initCols(2);
         private LWComponent source;

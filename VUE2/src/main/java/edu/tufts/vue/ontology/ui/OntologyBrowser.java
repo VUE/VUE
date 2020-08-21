@@ -47,12 +47,12 @@ public class OntologyBrowser extends JPanel {
 
     JPanel ontologiesPanel = new Widget(VueResources.getString("dockWindow.ontologies.title"));
 
-    private HashMap<OntologyBrowserKey,Widget> widgetMap = new HashMap<OntologyBrowserKey,Widget>();
+    private HashMap<OntologyBrowserKey,Widget> widgetMap = new HashMap<>();
 
     DockWindow typeDock;
     private static boolean initialized = false;
 
-    private ArrayList<OntologySelectionListener> ontologySelectionListenerList = new ArrayList<OntologySelectionListener>();
+    private ArrayList<OntologySelectionListener> ontologySelectionListenerList = new ArrayList<>();
 
     private OntologyViewer ontologyViewer;
 

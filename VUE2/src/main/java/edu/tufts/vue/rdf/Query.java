@@ -52,7 +52,7 @@ public class Query  {
     //private boolean regex = true;
     //private Operation oper  = Operation.AND;
 
-    private final List<Criteria> criteriaList = new ArrayList<Criteria>();
+    private final List<Criteria> criteriaList = new ArrayList<>();
     
     /** Creates a new instance of Query */
     public Query() {}

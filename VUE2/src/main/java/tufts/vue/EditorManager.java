@@ -28,7 +28,7 @@ public class EditorManager
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(EditorManager.class);
     
-    private static final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
+    private static final Collection<LWEditor> mEditors = new HashSet<>();
     private static final Map<LWEditor,JLabel> mLabels = new HashMap();
     private static EditorManager singleton;
     private static boolean EditorLoadingUnderway; // editors are loading values from the selection

@@ -42,7 +42,7 @@ public class LayoutFactory {
     }
     
     public List<AbstractLayout> getAvailableLayouts() {
-        List<AbstractLayout> list = new ArrayList<AbstractLayout>();
+        List<AbstractLayout> list = new ArrayList<>();
         list.add(new RandomLayout());
         list.add(new CircularLayout());
         list.add(new GravitationalLayout());

@@ -606,7 +606,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
      */
     public  static java.util.List<edu.tufts.vue.dsm.DataSource> getPublishableDatasources(org.osid.shared.Type type) {
         edu.tufts.vue.dsm.DataSource[] datasources = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
-        java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
+        java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<>();
         for (edu.tufts.vue.dsm.DataSource datasource : datasources) {
             try {
                 if (datasource.getRepository() != null) {

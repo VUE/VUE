@@ -52,7 +52,7 @@ public class ForceLayout extends Layout {
     }
     
     public   void layout(LWSelection selection) throws Exception {
-        Map<LWComponent,Integer> repeatMap = new HashMap<LWComponent,Integer>();
+        Map<LWComponent,Integer> repeatMap = new HashMap<>();
         
         double minX =10000;
         double minY = 10000;

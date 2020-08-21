@@ -1874,7 +1874,7 @@ public class VUE
     private static void positionDockWindows(final tufts.vue.gui.Screen screen)
     {
         // by default, order the windows left to right across the top
-        final List<DockWindow> acrossTopList = new ArrayList<DockWindow>();
+        final List<DockWindow> acrossTopList = new ArrayList<>();
         
         if (!MapInspector.getWindowProperties().isEnabled() || !MapInspector.getWindowProperties().isWindowVisible())
             acrossTopList.add(MapInspector);        
@@ -3894,7 +3894,7 @@ public class VUE
    // check if v1 > v2
    private static boolean isHigherVersion(String v1,String v2) {
      
-	   HashMap<String,Integer> priorityMap = new HashMap<String,Integer>();
+	   HashMap<String,Integer> priorityMap = new HashMap<>();
 	   priorityMap.put("alpha", 0);
 	   priorityMap.put("beta", 1);
 	   priorityMap.put("preview",2); 

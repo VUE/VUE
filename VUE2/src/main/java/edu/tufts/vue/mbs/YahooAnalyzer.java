@@ -51,7 +51,7 @@ public class YahooAnalyzer implements LWComponentAnalyzer {
 		return null;
 	}
 	public List<AnalyzerResult> analyze(LWComponent c, boolean fallback) {
-		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
+		List<AnalyzerResult> results = new ArrayList<>();
 		String request = "http://search.yahooapis.com/ContentAnalysisService/V1/termExtraction";
         
         HttpClient client = new HttpClient();
