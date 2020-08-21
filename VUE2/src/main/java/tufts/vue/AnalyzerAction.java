@@ -606,12 +606,12 @@ public class AnalyzerAction extends Actions.LWCAction {
 	{
 	    @Override
         public List<AnalyzerResult> analyze(LWComponent c, boolean tryFallback) {
-	        return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c, tryFallback) : new java.util.ArrayList<>();
+	        return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c, tryFallback) : new java.util.ArrayList<AnalyzerResult>();
 	    }
 
 	    @Override
         public List<AnalyzerResult> analyze(LWComponent c) {
-            return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c) : new java.util.ArrayList<>();
+            return (IsAlchemyAPIKeySet() || keyRequest()) ? super.analyze(c) : new java.util.ArrayList<AnalyzerResult>();
 	    }
 
 	    @Override
