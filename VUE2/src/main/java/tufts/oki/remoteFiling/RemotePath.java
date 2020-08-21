@@ -75,7 +75,7 @@ public class RemotePath {
      *  @author Mark Norton
      */
     String getPathString() throws osid.filing.FilingException {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
         
         //  Initialize with the rootBase;
         if (rootBase != null) {

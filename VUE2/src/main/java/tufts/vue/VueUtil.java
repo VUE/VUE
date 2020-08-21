@@ -691,7 +691,7 @@ public class VueUtil extends tufts.Util
     
     @SuppressWarnings("PointlessBitwiseExpression")
     public static String toBinary(byte b) {
-        StringBuffer buf = new StringBuffer(8);
+        StringBuilder buf = new StringBuilder(8);
         buf.append((b & (1<<7)) == 0 ? '0' : '1');
         buf.append((b & (1<<6)) == 0 ? '0' : '1');
         buf.append((b & (1<<5)) == 0 ? '0' : '1');

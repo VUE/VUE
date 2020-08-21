@@ -204,7 +204,7 @@ public class FedoraPublisher {
     private static String getDigitalObjectXML(Properties p,LWComponent comp,LWMap map,String cModel,File file) throws Exception{
         String pid = getFedoraPid(comp);
         String label = comp.getLabel();
-        StringBuffer xml = new StringBuffer();
+        StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xml.append("<foxml:digitalObject xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
         xml.append("           xmlns:foxml=\"info:fedora/fedora-system:def/foxml#\"\n");
@@ -261,7 +261,7 @@ public class FedoraPublisher {
     }
     
     public static String getDSXML(String controlGroup,String dsName,String dateString,String label, String uploadId,String contentLocationType, String mimeType) {
-        StringBuffer xml = new StringBuffer();
+        StringBuilder xml = new StringBuilder();
         xml.append("<foxml:datastream CONTROL_GROUP=\""+controlGroup+"\" ID=\""+dsName+"\" STATE=\"A\" VERSIONABLE=\"true\">\n");
         xml.append("<foxml:datastreamVersion CREATED=\""+dateString+"\" FORMAT_URI=\"http://vue.tufts.edu/docs/vueformat/\"");
         xml.append(" ID=\""+dsName+".0\" LABEL=\""+label+"\" MIMETYPE=\""+mimeType+"\">\n");
@@ -275,7 +275,7 @@ public class FedoraPublisher {
     
     private static String getDCXML(LWComponent comp) {
         String dateString = getDateString();
-        StringBuffer xml = new StringBuffer();
+        StringBuilder xml = new StringBuilder();
         xml.append("<foxml:datastream CONTROL_GROUP=\"X\" ID=\"DC\" STATE=\"A\" VERSIONABLE=\"true\">\n");
         xml.append("<foxml:datastreamVersion CREATED=\""+dateString+"\" ID=\"DC1.0\" LABEL=\"Dublin Core Metadata\" MIMETYPE=\"text/xml\">\n");
         xml.append("<foxml:contentDigest DIGEST=\"none\" TYPE=\"DISABLED\"/>\n");
@@ -307,7 +307,7 @@ public class FedoraPublisher {
     
     private static String getRelsXML(LWComponent comp,LWMap map) throws Exception  {
         String dateString = getDateString();
-        StringBuffer xml = new StringBuffer();
+        StringBuilder xml = new StringBuilder();
         xml.append("<foxml:datastream CONTROL_GROUP=\"X\" ID=\"RELS-EXT\" STATE=\"A\" VERSIONABLE=\"true\">\n");
         xml.append("<foxml:datastreamVersion CREATED=\""+dateString+"\" ID=\"RELS-EXT.0\" LABEL=\"Relationships to other objects\" MIMETYPE=\"text/xml\">\n");
         xml.append("<foxml:xmlContent>\n");

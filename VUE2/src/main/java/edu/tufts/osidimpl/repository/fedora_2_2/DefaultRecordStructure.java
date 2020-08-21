@@ -177,7 +177,7 @@ public class DefaultRecordStructure
                     java.net.URLConnection connection = url.openConnection();
                     java.net.HttpURLConnection http = (java.net.HttpURLConnection)connection;
                     java.io.InputStreamReader in = new java.io.InputStreamReader(http.getInputStream());
-                    StringBuffer xml = new StringBuffer();
+                    StringBuilder xml = new StringBuilder();
                     try {
                         int i = 0;
                         while ( (i = in.read()) != -1 ) {

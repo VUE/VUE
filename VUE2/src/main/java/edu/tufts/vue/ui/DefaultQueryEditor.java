@@ -789,7 +789,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener, LWSelec
 	private String multiFieldXML()
 	{
 		// make XML for all non-blank entries
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?><criteria>");
 		for (int i =0; i < advancedFields.length; i++) {
 			String value = advancedFields[i].getText();

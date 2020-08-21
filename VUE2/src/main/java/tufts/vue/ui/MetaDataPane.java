@@ -935,7 +935,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 	   int offset = 0;
 
 	   //    	Increase 10% for extra newlines
-	   StringBuffer buf = new StringBuffer((int) (len * 1.10));
+	   StringBuilder buf = new StringBuilder((int) (len * 1.10));
 
 	   try
 	   {

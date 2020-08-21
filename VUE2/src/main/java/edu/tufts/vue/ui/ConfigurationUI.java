@@ -648,7 +648,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 case SINGLE_LINE_MASKED_TEXT_CONTROL:
                     javax.swing.JPasswordField field1 = (javax.swing.JPasswordField)fieldVector.elementAt(i);
                     char[] password = field1.getPassword();
-                    StringBuffer sb = new StringBuffer();
+                    StringBuilder sb = new StringBuilder();
                     for (char c : password) {
                         sb.append(c);
                     }

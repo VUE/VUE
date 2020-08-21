@@ -582,7 +582,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
     // special mac glyphs representing these keys.  This replaces the old functionality
     // (swiped from the java source), in case we want to use it.
     private static String get_MacOSX_Leopard_Modifier_Names(int modifiers) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if ((modifiers & InputEvent.META_MASK) != 0) {
             //buf.append(Toolkit.getProperty("AWT.meta", "Meta"));
             //buf.append("Command");

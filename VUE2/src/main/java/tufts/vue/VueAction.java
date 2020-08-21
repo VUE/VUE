@@ -295,7 +295,7 @@ public class VueAction extends javax.swing.AbstractAction
 
     private void dumpEvent(ActionEvent actionEvent) {
 
-        final StringBuffer m = new StringBuffer(512);
+        final StringBuilder m = new StringBuilder(512);
             
         m.append(this);
         m.append(Util.TERM_GREEN);

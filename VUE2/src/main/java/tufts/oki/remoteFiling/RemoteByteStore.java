@@ -469,7 +469,7 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
      *  Get the full file name of this byte store, all the way from the absolute root.
      */
     public String getFullName() {
-        StringBuffer fn = new StringBuffer("/");
+        StringBuilder fn = new StringBuilder("/");
         ArrayList parts = new ArrayList(100);
         
         //  Walk path to root.
