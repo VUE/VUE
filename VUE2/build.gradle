@@ -197,7 +197,6 @@ dependencies {
     implementation files('lib/jxtaid.jar') // couldn't find - maybe https://mvnrepository.com/artifact/net.jxta/jxta-jxse ?
     implementation files('lib/jxtasecurity.jar') // couldn't find
 
-    implementation files('lib/plugin.jar') // couldn't find
     implementation files('lib/saxon6.5.jar') // todo some included in java now? but more errors when omitted
     implementation files('lib/simplyhtml2.jar') // couldn't find
     implementation files('lib/splash.jar') // couldn't find

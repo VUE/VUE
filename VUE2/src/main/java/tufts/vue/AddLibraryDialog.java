@@ -82,8 +82,6 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     edu.tufts.vue.dsm.DataSource newDataSource = null;
     
     private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
-    private static String ZOTERO = VueResources.getString("addLibrary.zotero.label");
-    private static String ZOTERO_DESCRIPTION = VueResources.getString("addLibrary.zotero.description");
     private static String MY_COMPUTER_DESCRIPTION = VueResources.getString("addLibrary.addbrowsecontrol");
     private static String MY_SAVED_CONTENT = VueResources.getString("addLibrary.mysavedcontent");
     private static String MY_SAVED_CONTENT_DESCRIPTION = VueResources.getString("addLibrary.savedcontent");
@@ -269,9 +267,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             
             //add all data sources we include with VUE
             listModel.addElement(MY_COMPUTER);            
-            listModel.addElement(MY_SAVED_CONTENT);         
-           // listModel.addElement(ZOTERO);   
-            //listModel.addElement(DS_RSS);
+            listModel.addElement(MY_SAVED_CONTENT);
             listModel.addElement(DS_FTP);
             listModel.addElement(LOADING);
        int ONE_TNTH_SECOND = 100;
@@ -341,9 +337,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         descriptionTextArea.setText(MY_COMPUTER_DESCRIPTION);
                     } else if (s.equals(MY_SAVED_CONTENT)) {
                         descriptionTextArea.setText(MY_SAVED_CONTENT_DESCRIPTION);
-                    } //else if (s.equals(ZOTERO)) {
-                       // descriptionTextArea.setText(ZOTERO_DESCRIPTION);
-                    /*}*/ else if (s.equals(DS_FTP)) {
+                    } else if (s.equals(DS_FTP)) {
                         descriptionTextArea.setText(DS_FTP_DESCRIPTION);
                     } else if (s.equals(DS_RSS)) {
                         descriptionTextArea.setText(DS_RSS_DESCRIPTION);
@@ -389,13 +383,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     String name = ds.getDisplayName();
                     xml = xml.replaceFirst("DEFAULT_NAME",name);
                     this.oldDataSource = ds;
-                } /*else if (s.equals(ZOTERO)) {
-                    ZoteroDataSource ds = new ZoteroDataSource(ZOTERO);
-                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field></configuration>";
-                    String name = ds.getDisplayName();
-                    xml = xml.replaceFirst("DEFAULT_NAME",name);
-                    this.oldDataSource = ds;
-                } */else if (s.equals(DS_FTP)) {
+                } else if (s.equals(DS_FTP)) {
                     RemoteFileDataSource ds = new RemoteFileDataSource();
                     xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>9</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
                     String name = ds.getDisplayName();

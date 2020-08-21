@@ -537,8 +537,6 @@ public class VUE
         //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);    	
         VueMenuBar.RootMenuBar.saveAction.setEnabled(enable);
         VueMenuBar.RootMenuBar.saveAsAction.setEnabled(enable);
-        if (VUE.isApplet() && VueApplet.isZoteroApplet())
-        	Actions.SaveCopyToZotero.setEnabled(enable);
         VueMenuBar.RootMenuBar.publishMenu.setEnabled(enable);
         Actions.CloseMap.setEnabled(enable);
         VueMenuBar.RootMenuBar.printAction.setEnabled(enable);
