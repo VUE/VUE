@@ -760,14 +760,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         	  URLConnection conn = null;
 			try {
 				conn = url.toURL().openConnection();
-			} catch (MalformedURLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-        	  InputStream in = null;
+        InputStream in = null;
 			try {
 				in = new BufferedInputStream(conn.getInputStream());
 			} catch (IOException e1) {

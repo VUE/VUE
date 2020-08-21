@@ -1023,17 +1023,13 @@ public class PathwayTable extends JTable
 	      
 			try {
 				entry = (LWPathway.Entry)transferable.getTransferData(DataFlavor.plainTextFlavor);
-			} catch (UnsupportedFlavorException e) {
+			} catch (UnsupportedFlavorException | IOException e) {
 				e.printStackTrace();	
-				arg0.rejectDrop();
-				arg0.dropComplete(false);
-			} catch (IOException e) {
-				e.printStackTrace();
 				arg0.rejectDrop();
 				arg0.dropComplete(false);
 			}
 
-			if( entry != null ) {
+        if( entry != null ) {
 				
                 // See where in the list we dropped the element.
             	PathwayTableModel model = (PathwayTableModel)this.getModel();

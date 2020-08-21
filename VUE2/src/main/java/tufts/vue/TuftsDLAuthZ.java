@@ -311,11 +311,7 @@ public class TuftsDLAuthZ {
                 if (username.compareTo(((String) admins.elementAt(i)).trim()) == 0)
                     return true;
             }
-        }
-        catch (MalformedURLException ex1) {
-            return false;
-        }
-        catch (IOException ex2) {
+        } catch (IOException ex1) {
             return false;
         }
         return false;
@@ -352,11 +348,7 @@ public class TuftsDLAuthZ {
                 if (username.compareTo(((String) admins.elementAt(i)).trim()) == 0)
                     return true;
             }
-        }
-        catch (MalformedURLException ex1) {
-            return false;
-        }
-        catch (IOException ex2) {
+        } catch (IOException ex1) {
             return false;
         }
         return false;
@@ -424,8 +416,7 @@ public class TuftsDLAuthZ {
                 System.out.println ("authorizeUser - ftn id: "+ftn.getId().getIdString()+" type: "+ftn.getFunctionType().getKeyword());
                 this.authZMgr.createAuthorization(userId, ftn.getId(), ((osid.authorization.Qualifier)qualifiers.get(TuftsDLAuthZ.ASSET)).getId());
             }
-            catch (osid.authorization.AuthorizationException ex2) {}
-            catch (osid.shared.SharedException ex3) {}
+            catch (AuthorizationException | SharedException ex2) {}
         }
     }
     
@@ -461,9 +452,8 @@ public class TuftsDLAuthZ {
             ftnId = ftn.getId();
             qualId = qual.getId();
         }
-        catch (osid.authorization.AuthorizationException ex1) {}
-        catch (osid.shared.SharedException ex2) {}
-        
+        catch (AuthorizationException | SharedException ex1) {}
+
         return authZMgr.isAuthorized (userId, ftnId, qualId);
     }
 

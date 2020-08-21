@@ -117,16 +117,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 		try {
 			is = new java.io.ByteArrayInputStream(resp_simple.getBytes(StandardCharsets.UTF_8));
 			doc = factory.newDocumentBuilder().parse((InputStream) is);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
+		} catch (ParserConfigurationException | IOException | SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -183,19 +174,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 		try {
 			is = new java.io.ByteArrayInputStream(resp_simple.getBytes(StandardCharsets.UTF_8));
 			doc = factory.newDocumentBuilder().parse((InputStream) is);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block		
-			e.printStackTrace();
-			return results;
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return results;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return results;
-		} catch (ParserConfigurationException e) {
+		} catch (ParserConfigurationException | IOException | SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return results;
@@ -285,16 +264,7 @@ public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 		try {
 			is = new java.io.ByteArrayInputStream(resp_simple.getBytes(StandardCharsets.UTF_8));
 			doc = factory.newDocumentBuilder().parse((InputStream) is);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
+		} catch (ParserConfigurationException | IOException | SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

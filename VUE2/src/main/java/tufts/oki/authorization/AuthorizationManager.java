@@ -20,6 +20,8 @@
  */
 package tufts.oki.authorization;
 import java.util.*;
+
+import osid.authorization.AuthorizationException;
 import osid.shared.*;
 
 /**
@@ -111,10 +113,7 @@ public class AuthorizationManager extends tufts.oki.OsidManager implements osid.
                 if (agentId.isEqual(az.getAgent().getId()))
                     return true;
             }
-            catch (osid.shared.SharedException ex) {
-                return false;
-            }
-            catch (osid.authorization.AuthorizationException ex2) {
+            catch (SharedException | AuthorizationException ex) {
                 return false;
             }
         }

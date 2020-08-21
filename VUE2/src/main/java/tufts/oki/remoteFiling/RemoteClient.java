@@ -24,6 +24,8 @@ import org.apache.commons.net.ftp.*;
 import java.io.*;
 import java.util.*;
 
+import osid.filing.FilingException;
+
 /**
  *  The RemoteClient class encapsulates an FTP-client session.  A host name, username,
  *  and password is required to establish the connection.  checkClient() can be used
@@ -52,10 +54,7 @@ public class RemoteClient {
             this.client = factory.createClient();
             this.rootBase = client.printWorkingDirectory();
         }
-        catch (java.io.IOException ex1) {
-            throw new osid.filing.FilingException(osid.filing.FilingException.OPERATION_FAILED);
-        }
-        catch (osid.filing.FilingException ex2) {
+        catch (IOException | FilingException ex1) {
             throw new osid.filing.FilingException(osid.filing.FilingException.OPERATION_FAILED);
         }
         server = host;             //  Cache the server name.

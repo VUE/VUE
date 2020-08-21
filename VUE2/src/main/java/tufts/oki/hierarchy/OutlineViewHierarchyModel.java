@@ -221,18 +221,10 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 hierarchyNode.updateDisplayName(newLabel);
                 revalidateTree(hierarchyNode);
             }
-        }
-        
-        catch(osid.hierarchy.HierarchyException he)
+        } catch(Exception he)
         {
             System.err.println(he.getMessage());
             he.printStackTrace();
-        }
-        
-        catch(Exception e)
-        {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
         }
     }
       
