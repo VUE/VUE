@@ -519,11 +519,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
      //   fileMenu.add(Actions.ZoteroAction);
         //fileMenu.add(exportAction);
 
-        fileMenu.add(quickImport);
+        //fileMenu.add(quickImport);
 
         //publishMenu.setEnabled(false);
-        if (!VUE.isApplet())
-        	fileMenu.add(publishMenu);
+        //if (!VUE.isApplet())
+        //	fileMenu.add(publishMenu);
         	
         pdfExportMenu = new JMenu(VueResources.getString("menu.windows.exporthandouts"));
         pdfExportMenu.setEnabled(false);
@@ -971,7 +971,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));        
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.feedback.label"), VueResources.getString("helpMenu.feedback.url")));
-        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
+        //helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
       
       /*
        * This feature was removed from the VUE website because of a security issue in the web-feature, it doesn't make 
