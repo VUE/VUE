@@ -41,7 +41,7 @@
   These properties generally define file and directory names (or paths) that
   affect where the build process stores its outputs.
 -->
-  <property name="version"     value="3.3.0"/>
+  <property name="version"     value="4.0.0"/>
   <property name="top.dir"     value="./.."/>
   <property name="top"     value=".."/>
   <property name="src"         value="${basedir}"/>
@@ -153,36 +153,34 @@
 	/>
 	<property name="thirdparty.jarfiles.names.extendedFeatures"
 		value="MERLOTOsid-1.0.jar			   
-	  		   batik-all.jar
-			   quaqua.jar
-			   gdata-client-1.0.jar
-		  	   gdata-core-1.0.jar
-		 	   fop.jar
-	  		   saaj-api-unsigned.jar
-		       saaj-impl-unsigned.jar		    
-		       okiSIDimpl.jar
-	           OSIDLoggingPlain-1.0.jar 		 	   
-		       jaxrpc-spi-unsigned.jar	   		   
-	  	  	   fedora-client_2_2.jar
-			   axis_1_5_3.jar		 	 
-	  		   TuftsOsidProvider.jar
-		  	   VUE-Java15.jar
-		       XmlfileRepositoryOSID-1.0.jar
-		 	   axis-ant.jar 
-			   MITAuthenticationTypes.jar
-			   MIT-OTS-NO_PROVIDER.jar
-			   MITRepositoryTypes.jar
-		       MITSearchTypes.jar		       
-			   OsidRegistry.jar
-			   plugin.jar
-		       apple-laf.jar
-			   splash.jar
-			   xalan.jar
-			   mail.jar 
-			   googleapi.jar
-			   activation_unsigned.jar
-		       
-	"/>
+	  		  batik-all.jar
+			    quaqua.jar
+			    gdata-client-1.0.jar
+		  	  gdata-core-1.0.jar
+		 	    fop.jar
+	  		  saaj-api-unsigned.jar
+		      saaj-impl-unsigned.jar		    
+		      okiSIDimpl.jar
+	        OSIDLoggingPlain-1.0.jar 		 	   
+		      jaxrpc-spi-unsigned.jar	   		   
+	  	  	fedora-client_2_2.jar
+			    axis_1_5_3.jar		 	 
+	  		  TuftsOsidProvider.jar
+		  	  VUE-Java15.jar
+		      XmlfileRepositoryOSID-1.0.jar
+		 	    axis-ant.jar 
+			    MITAuthenticationTypes.jar
+			    MIT-OTS-NO_PROVIDER.jar
+			    MITRepositoryTypes.jar
+		      MITSearchTypes.jar		       
+			    OsidRegistry.jar
+			    plugin.jar
+		      apple-laf.jar
+			    splash.jar
+			    xalan.jar
+			    mail.jar 
+			    googleapi.jar
+			    activation_unsigned.jar"/>
   <property name="thirdparty.jarfiles.names"
             value="xercesImpl-2.7.1.jar
                    joscar-0.9.3-bin.jar
@@ -251,7 +249,8 @@
                    xmlrpc-1.1.jar
                    simplyhtml2.jar
                    gnu-regexp-1.1.4.jar
-                   looks-2.1.4.jar
+									 looks-2.1.4.jar
+								   VAqua4.jar
                    bsh-core-2.0b4.jar
                    "/>
 
@@ -297,47 +296,45 @@
          
        -->
   <property name="thirdparty.jarfiles.names.minimal"
-            value="
-                   okiOSID-2.0a.jar
-				   joscar-0.9.3-bin.jar
-                   apache-commons.jar
-                   axis_1_5_3.jar
-                   commons-httpclient-3.1-beta1.jar      
-				   commons-lang-2.4.jar
-                   commons-codec-1.3.jar
-                   trippi-1.1.2-core.jar
-                   commons-httpclient-3.1-beta1.jar                   
-                   batik-all.jar
-                   castor-1.3-core.jar
-                   castor-1.3-xml.jar
+            value="okiOSID-2.0a.jar
+				          joscar-0.9.3-bin.jar
+                  apache-commons.jar
+                  axis_1_5_3.jar
+                  commons-httpclient-3.1-beta1.jar      
+				          commons-lang-2.4.jar
+                  commons-codec-1.3.jar
+                  trippi-1.1.2-core.jar
+                  commons-httpclient-3.1-beta1.jar                   
+                  batik-all.jar
+                  castor-1.3-core.jar
+                  castor-1.3-xml.jar
                   commons-discovery.jar
-                   commons-logging.jar
-                   dom2.jar
-                   fedora-client_2_2.jar
-                   fedoragentypes.jar
-                   fedorautilities.jar
-  				   plugin.jar
-                   fop.jar
-                   googleapi.jar
-                   jaxrpc.jar
-                   MRJAdapter.jar
-                   okiSID_rc6_1.jar
-                   saaj.jar
-                   xercesImpl-2.7.1.jar
-                   xerces-2.7.1-xml-apis.jar
-  				   quaqua.jar
-		   		   iText-2.1.4.jar 
-					twitter4j-core-2.1.0.jar
-		   		   simplyhtml2.jar
-		  	 	   gnu-regexp-1.1.4.jar
-	   			   looks-2.1.4.jar
-  				   google-collect-snapshot-20090211.jar
-    	           miglayout-3.7.2-swing.jar
-  				   json.jar
-				   AlchemyAPI.jar
-  	 			   calais.jar
-			  	   bsh-core-2.0b4.jar
-                   "/>
+                  commons-logging.jar
+                  dom2.jar
+                  fedora-client_2_2.jar
+                  fedoragentypes.jar
+                  fedorautilities.jar
+  				        plugin.jar
+                  fop.jar
+                  googleapi.jar
+                  jaxrpc.jar
+                  MRJAdapter.jar
+                  okiSID_rc6_1.jar
+                  saaj.jar
+                  xercesImpl-2.7.1.jar
+                  xerces-2.7.1-xml-apis.jar
+  				        quaqua.jar
+		   		        iText-2.1.4.jar 
+					        twitter4j-core-2.1.0.jar
+		   		        simplyhtml2.jar
+		  	 	        gnu-regexp-1.1.4.jar
+	   			        looks-2.1.4.jar
+  				        google-collect-snapshot-20090211.jar
+    	            miglayout-3.7.2-swing.jar
+  				        json.jar
+				          AlchemyAPI.jar
+  	 			        calais.jar
+			  	        bsh-core-2.0b4.jar"/>
                                                                                                           
   <path id="compile.classpath.common">
 
@@ -358,35 +355,32 @@
   	<pathelement path="${lib.home}/TuftsOsidProvider.jar"/>
   	<pathelement path="${lib.home}/json.jar"/>
   	<pathelement path="${lib.home}/joscar-0.9.3-bin.jar"/>
-	 <pathelement path="${lib.home}/AlchemyAPI.jar"/>
-  	 <pathelement path="${lib.home}/calais.jar"/>
+	  <pathelement path="${lib.home}/AlchemyAPI.jar"/>
+  	<pathelement path="${lib.home}/calais.jar"/>
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement path="${lib.home}/castor-1.3-core.jar"/>
     <pathelement path="${lib.home}/castor-1.3-xml.jar"/>
- 	<pathelement path="${lib.home}/quaqua.jar"/>
-   <pathelement path="${lib.home}/batik-all.jar"/>
+ 	  <pathelement path="${lib.home}/quaqua.jar"/>
+    <pathelement path="${lib.home}/batik-all.jar"/>
     <pathelement path="${lib.home}/fop.jar"/>
     <pathelement path="${lib.home}/plugin.jar"/>
     <pathelement path="${lib.home}/fedoragentypes.jar"/>
-      <pathelement path="${lib.home}/fedora-client_2_2.jar"/>
-    
+    <pathelement path="${lib.home}/fedora-client_2_2.jar"/>
     <pathelement path="${lib.home}/googleapi.jar"/>
     <pathelement path="${lib.home}/arq-2.5.3.jar" />
     <pathelement path="${lib.home}/axis_1_5_3.jar"/>
     <pathelement path="${lib.home}/commons-httpclient-3.1-beta1.jar"/>
-
-     <pathelement path="${lib.home}/trippi-1.1.2-core.jar"/>
+    <pathelement path="${lib.home}/trippi-1.1.2-core.jar"/>
     <pathelement path="${lib.home}/axis-ant.jar"/>
     <pathelement path="${lib.home}/commons-lang-2.4.jar"/>
     <pathelement path="${lib.home}/commons-discovery.jar"/>
     <pathelement path="${lib.home}/commons-logging.jar"/>
-     <pathelement path="${lib.home}/commons-codec-1.3.jar"/>
+    <pathelement path="${lib.home}/commons-codec-1.3.jar"/>
     <pathelement path="${lib.home}/jaxrpc.jar"/>
     <pathelement path="${lib.home}/log4j-1.2.12.jar"/>
     <pathelement path="${lib.home}/saaj.jar"/>
     <pathelement path="${lib.home}/MRJAdapter.jar"/>
     <pathelement path="${lib.home}/apple-laf.jar"/>
-
     <pathelement path="${lib.home}/okiOSID-2.0a.jar" />		
     <pathelement path="${lib.home}/okiSIDImpl.jar" />	
     <pathelement path="${lib.home}/opencsv-1.8.jar" />
@@ -404,7 +398,7 @@
     <pathelement path="${lib.home}/SessionManager.jar" />
     <pathelement path="${lib.home}/imq.jar" />
     <pathelement path="${lib.home}/jdom.jar" />
-	<pathelement path="${lib.home}/jhapi.jar" />
+	  <pathelement path="${lib.home}/jhapi.jar" />
     <pathelement path="${lib.home}/jnet.jar" />
     <pathelement path="${lib.home}/jsse.jar" />
     <pathelement path="${lib.home}/javatar.jar" />
@@ -1239,29 +1233,43 @@
  
 
   <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
+      <taskdef name="bundleapp"               
+              classpath="${lib.home}/appbundler-1.0ea.jar"
+              classname="com.oracle.appbundler.AppBundlerTask"/>
+      <mkdir dir="build/${MacDist}"/>      
 
-        <mkdir dir="build/${MacDist}"/>
-      <jarbundler dir="build/${MacDist}" verbose="true" showPlist="false"
+       <!-- Obtain path to the selected JRE -->
+      <exec executable="/usr/libexec/java_home"
+        failonerror="true"
+        outputproperty="runtime">
+         <arg value="-v"/>
+         <arg value="15"/>
+      </exec>
+      <property environment="env" />
+      <bundleapp 
+                outputdirectory="build/${MacDist}"
                 name="VUE"
-                copyright="2003-2015"
-                mainclass="tufts.vue.VUE"
-                jar="${vue.jar}"
-                icon="MacOS/VUE.icns"
-                jvmversion="1.6+"
+                displayname="VUE"
+                executableName="VUE"
+                identifier="tufts.vue.VUE"
+                shortversion="${version}"
                 version="${version}"
-                bundleid="tufts.vue.VUE"
-                stubfile="${universalstub}">
+                icon="MacOS/VUE.icns"
+                mainclassname="tufts.vue.VUE"
+                copyright="2003-2020"
+                applicationCategory="public.app-category.finance">
+                <classpath file="${build.home}/VUE.jar"/>
+                <option value="-Dapple.laf.useScreenMenuBar=true"/>
+                <option value="-Dcom.apple.macos.use-file-dialog-packages=true"/>
+                <option value="-Dcom.apple.macos.useScreenMenuBar=true"/>
+                <option value="-Dapple.awt.application.name=VUE"/>
+                <option value="-Dsun.java2d.d3d=false"/>
+                <option value="-Dcom.apple.smallTabs=true"/>
+                <option value="-Dfile.encoding=UTF-8"/>
+                <option value="-Xmx4096M"/>
+                  <runtime dir="${runtime}" />
 
-               <!-- Adjust the look, feel and behavior -->
-               <javaproperty name="apple.laf.useScreenMenuBar" value="true"/>
-               <javaproperty name="apple.awt.brushMetal" value="true"/>
-               <javaproperty name="apple.awt.showGrowBox" value="true"/>
-
-               <documenttype name="VUE Map"
-                    extensions="vue vpk" 
-                    iconFile="MacOS/VUE.icns"
-                    role="Editor"/>
-      </jarbundler>
+      </bundleapp>
   </target>
 
     <target name="test" depends="mac-dist"/>
