@@ -47,7 +47,7 @@ public class VueFileChooser extends JFileChooser{
 	public VueFileChooser()
 	{
 		super();
-	
+		
 		checkForChooser();
 		
 		
@@ -107,10 +107,10 @@ public class VueFileChooser extends JFileChooser{
 	protected JDialog createDialog(Component parent)
 	{
 		JDialog log = super.createDialog(parent);
-		if (tufts.Util.isUnixPlatform())
+		if (tufts.Util.isUnixPlatform() || tufts.Util.isMacPlatform())
 		{	
 			log.setAlwaysOnTop(true);
-		
+			
 			log.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			log.addWindowListener(new WindowListener(){
 
@@ -179,34 +179,6 @@ public class VueFileChooser extends JFileChooser{
 		boolean enhancedChooserEnabled = PreferencesManager.getBooleanPrefValue(edu.tufts.vue.preferences.implementations.EnhancedFileChooserPreference.getInstance());
 		if (!enhancedChooserEnabled)
 			putClientProperty("FileChooser.useShellFolder", Boolean.FALSE);
-	}
-	/**
-	 * Hack to get around Java Bug
-	 * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4678049
-	 * See : 4956530, 5095197,4678049
-	 */
-	public void setFileFilter(FileFilter filter) {
-
-		super.setFileFilter(filter);
-	              
-		
-
-		final BasicFileChooserUI ui = (BasicFileChooserUI) this.getUI();
-
-		final String name = ui.getFileName().trim();
-
-		if ((name == null) || (name.length() == 0)) {
-			return;
-		}
-		
-		EventQueue.invokeLater(new Thread() {
-			public void run() {
-				String currentName = ui.getFileName();
-				if ((currentName == null) || (currentName.length() == 0)) {
-					ui.setFileName(name);
-				}
-			}
-		});
-	}
+	}	
 
 }

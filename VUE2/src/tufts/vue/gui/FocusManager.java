@@ -958,16 +958,16 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
         do {
             if (parent instanceof Window) {
-                if (DEBUG.FOCUS) {
-                    out("focusCycleWindow of " + name(c) + " == " + name(parent)
-                        + " peer=" + name(parent.getPeer())
-                        + " parent=" + name(parent.getParent())
-                        + " focusable=" + parent.isFocusable()
-                        + " focusableWin=" + ((Window)parent).isFocusableWindow()
-                        );
+                //if (DEBUG.FOCUS) {
+                 //   out("focusCycleWindow of " + name(c) + " == " + name(parent)
+                  //      + " peer=" + name(parent.getPeer())
+                   //     + " parent=" + name(parent.getParent())
+                    //    + " focusable=" + parent.isFocusable()
+                     //   + " focusableWin=" + ((Window)parent).isFocusableWindow()
+                      //  );
                     //tufts.macosx.Screen.getWindow(parent).getParent();
                     //tufts.macosx.Screen.dumpWindows();
-                }
+               // }
                 return (Window) parent;
             }
             parent = parent.getParent();

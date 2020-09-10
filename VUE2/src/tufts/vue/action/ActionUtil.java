@@ -209,9 +209,15 @@ public class ActionUtil
     
     private final static void adjustExtension()
     {
-    	BasicFileChooserUI ui = (BasicFileChooserUI)saveChooser.getUI();
-		String name =ui.getFileName();
+        String name = null;
 
+    	try 
+        {
+		  name = saveChooser.getSelectedFile().getName();
+        } 
+        catch (Throwable t) {
+          //Util.printStackTrace(t);
+        }
 		String baseName = null;
 		String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
 						
@@ -252,8 +258,9 @@ public class ActionUtil
         File file = null;              
         
         VueFileChooser chooser = VueFileChooser.getVueFileChooser();
-            	
-    	
+        
+    //chooser.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+
         int option = chooser.showOpenDialog(VUE.getDialogParent());
         
         if (option == VueFileChooser.APPROVE_OPTION) {

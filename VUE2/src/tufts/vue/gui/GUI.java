@@ -280,14 +280,14 @@ public class GUI
             if (!SKIP_CUSTOM_LAF) {
 
                 try {
-                	   // FileChooser:
-                    Set includes = new HashSet();
-                    includes.add("ColorChooser");
-                    includes.add("FileChooser");
-                    includes.add("Component");
-                    includes.add("Browser");
-                    includes.add("Tree");
-                    includes.add("SplitPane");
+                    // FileChooser:
+                    //Set includes = new HashSet();
+                    //includes.add("ColorChooser");
+                    //includes.add("FileChooser");
+                    //includes.add("Component");
+                    //includes.add("Browser");
+                    //includes.add("Tree");
+                    //includes.add("SplitPane");
 
                    // includes.add("Button");
                    // includes.add("CheckBox");
@@ -301,10 +301,12 @@ public class GUI
                    // includes.add("RadioButton");	
                     
                     
-                   ch.randelshofer.quaqua.QuaquaManager.setIncludedUIs(includes);
+                   //ch.randelshofer.quaqua.QuaquaManager.setIncludedUIs(includes);
                    //System.setProperty("Quaqua.design", "panther");
-               	UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
-            
+               	   //UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
+                    if (System.getProperty("os.name", "").startsWith("Mac OS")) {
+                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                    }
             
                 	//UIManager.setLookAndFeel(ch.randelshofer.quaqua.QuaquaManager.getLookAndFeel());
                     //System.setProperty("Quaqua.design", "panther");
@@ -1116,7 +1118,7 @@ public class GUI
     		//There are a bunch of focus problems on Unix, hopefully this clears it up.
     		return new DockWindow(title,VUE.getRootWindow(),null,asToolbar,showCloseButton);
     	}
-    	else if (UseAlwaysOnTop && Util.getJavaVersion() >= 1.5f) {
+    	else if (UseAlwaysOnTop && Util.getJavaVersion() >= 1.5f) {            
             DockWindow dockWindow
                 = new DockWindow(title, DockWindow.getHiddenFrame(), null, asToolbar,showCloseButton);
             dockWindow.setFocusableWindowState(false);
@@ -1125,6 +1127,7 @@ public class GUI
         } else {
             // TODO: create method in VUE for getting DockWindow parent for use elsewhere
             return new DockWindow(title, getFullScreenWindow(), null, asToolbar,showCloseButton);
+            
             //return new DockWindow(title, VUE.getRootWindow());
         }
     }

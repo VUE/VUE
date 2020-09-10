@@ -20,3 +20,6 @@ signing_code/VUE.app
 
 # ignore ide files
 .idea/
+
+# ignore the installer package
+signing_code/VUE.pkg
