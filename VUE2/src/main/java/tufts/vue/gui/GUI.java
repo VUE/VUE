@@ -26,7 +26,6 @@ import tufts.vue.DEBUG;
 
 import java.util.*;
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -39,7 +38,6 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.filechooser.FileSystemView;
 import javax.swing.border.*;
 import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
@@ -49,7 +47,6 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 
 /**
