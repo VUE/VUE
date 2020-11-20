@@ -15,6 +15,7 @@
 
 package tufts.vue;
 
+import osid.filing.CabinetEntry;
 import tufts.Util;
 import tufts.vue.gui.*;
 
@@ -36,7 +37,7 @@ import java.awt.event.*;
 import javax.swing.tree.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import osid.filing.*;
+
 import tufts.oki.remoteFiling.*;
 import tufts.oki.localFiling.*;
 
