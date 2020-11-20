@@ -79,22 +79,21 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.16'
     runtimeOnly 'org.slf4j:slf4j-log4j12:1.7.16'
 
-    // javax
-    implementation 'javax.activation:javax.activation-api:1.2.0'
-    // todo now included but deprecation/rename in newer java
+    // javax/jakarta
+    implementation 'jakarta.activation:jakarta.activation-api:1.2.2'
+    runtimeOnly 'com.sun.activation:jakarta.activation:1.2.2'
 
-    implementation 'javax.xml:jaxrpc-api:1.1'
-    // The next two not apparently needed?
-    // runtimeOnly 'com.sun.xml.rpc:jaxrpc-impl:1.1.+'
-    // implementation 'com.sun.xml.rpc:jaxrpc-spi:1.1.+'
+    implementation 'jakarta.xml.rpc:jakarta.xml.rpc-api:1.1.4'
+    runtimeOnly 'com.sun.xml.rpc:jaxrpc-impl:1.1.+'
+    runtimeOnly 'com.sun.xml.rpc:jaxrpc-spi:1.1.+'
 
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
-    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:2.3.+'
 
-    implementation files('lib/jax-qname.jar')
+    implementation 'javax.xml:jax-qname:1.1'
 
     implementation 'javax.xml.soap:saaj-api:1.3.5' // now included, but deprecated in java 9
-    runtimeOnly 'com.sun.xml.messaging.saaj:saaj-impl:1.3.28'
+    runtimeOnly 'com.sun.xml.messaging.saaj:saaj-impl:1.3.+'
 
     // Castor data-binding framework
     implementation 'org.codehaus.castor:castor-xml:1.4.1'
@@ -141,7 +140,7 @@ dependencies {
     implementation 'xalan:xalan:2.7.+'
 
     // Apache Xerces
-    runtimeOnly 'xerces:xercesImpl:2.12.0'
+    runtimeOnly 'xerces:xercesImpl:2.12.+'
 
     // Apache XML-RPC
     implementation 'xmlrpc:xmlrpc:1.1' // TODO upgrade
@@ -203,7 +202,7 @@ dependencies {
     implementation files('lib/MITSearchTypes.jar')
 
     // macOS related
-    implementation files('lib/quaqua.jar') // v 7.4.1 not found, but others are out there.
+    runtimeOnly files('lib/quaqua.jar') // v 7.4.1 not found, but others are out there.
     implementation files('lib/apple-laf.jar')
 
     // Internal
