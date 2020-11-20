@@ -90,10 +90,10 @@ implements edu.tufts.vue.fsm.QueryEditor
         JLabel originLabel = new JLabel(VueResources.getString("jlabel.origin"));
         JLabel resultsLabel = new JLabel(VueResources.getString("jlabel.maxhits"));
         JTextField titleField = new JTextField("");
-        JComboBox classField = new JComboBox(CLASSES);
-        JComboBox subjectField = new JComboBox(SUBJECTS);
-        JComboBox originField = new JComboBox(ORIGIN);
-        JComboBox resultsField = new JComboBox(NO_RESULTS);
+        JComboBox<String> classField = new JComboBox<>(CLASSES);
+        JComboBox<String> subjectField = new JComboBox<>(SUBJECTS);
+        JComboBox<String> originField = new JComboBox<>(ORIGIN);
+        JComboBox<String> resultsField = new JComboBox<>(NO_RESULTS);
         JButton searchButton = new JButton(VueResources.getString("button.search.label"));
         
         public TitleSearchPane() {
@@ -229,10 +229,10 @@ implements edu.tufts.vue.fsm.QueryEditor
         JLabel originLabel = new JLabel(VueResources.getString("jlabel.origin"));
         JLabel resultsLabel = new JLabel(VueResources.getString("jlabel.maxhits"));
         JTextField titleField = new JTextField("");
-        JComboBox classField = new JComboBox(CLASSES);
-        JComboBox subjectField = new JComboBox(SUBJECTS);
-        JComboBox originField = new JComboBox(ORIGIN);
-        JComboBox resultsField = new JComboBox(NO_RESULTS);
+        JComboBox<String> classField = new JComboBox<>(CLASSES);
+        JComboBox<String> subjectField = new JComboBox<>(SUBJECTS);
+        JComboBox<String> originField = new JComboBox<>(ORIGIN);
+        JComboBox<String> resultsField = new JComboBox<>(NO_RESULTS);
         JButton searchButton = new JButton(VueResources.getString("button.search.label"));
         
         public ArtistSearchPane() {

@@ -18,9 +18,9 @@ package edu.tufts.osidimpl.repository.google.global;
 public class PropertiesIterator
 implements org.osid.shared.PropertiesIterator
 {
-    private java.util.Iterator iterator = null;
+    private java.util.Iterator<org.osid.shared.Properties> iterator = null;
 
-    public PropertiesIterator(java.util.Vector vector)
+    public PropertiesIterator(java.util.Vector<org.osid.shared.Properties> vector)
     throws org.osid.shared.SharedException
     {
         this.iterator = vector.iterator();

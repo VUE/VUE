@@ -15,6 +15,8 @@
 
 package edu.tufts.osidimpl.repository.artifact;
 
+import java.io.Serializable;
+
 public class Asset
 implements org.osid.repository.Asset
 {
@@ -25,7 +27,7 @@ implements org.osid.repository.Asset
     private String idString = null;
     private String displayName = null;
     private String description = null;
-    private java.util.Vector recordVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.Record> recordVector = new java.util.Vector<>();
     private String content = null;
 
     protected Asset(String displayName,
@@ -108,7 +110,7 @@ implements org.osid.repository.Asset
     public org.osid.repository.AssetIterator getAssets()
     throws org.osid.repository.RepositoryException
     {
-        return new AssetIterator(new java.util.Vector());
+        return new AssetIterator(new java.util.Vector<org.osid.repository.Asset>());
     }
 
     public org.osid.repository.AssetIterator getAssetsByType(org.osid.shared.Type assetType)
@@ -118,7 +120,7 @@ implements org.osid.repository.Asset
         {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
-        return new AssetIterator(new java.util.Vector());
+        return new AssetIterator(new java.util.Vector<org.osid.repository.Asset>());
     }
 
     public org.osid.repository.Record createRecord(org.osid.shared.Id recordStructureId)
@@ -215,7 +217,7 @@ implements org.osid.repository.Asset
     public org.osid.repository.RecordStructureIterator getRecordStructures()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.repository.RecordStructure> results = new java.util.Vector<>();
         results.addElement(new RecordStructure());
         return new RecordStructureIterator(results);
     }
@@ -299,7 +301,7 @@ implements org.osid.repository.Asset
         }
         try
         {
-            java.util.Vector results = new java.util.Vector();
+            java.util.Vector<org.osid.repository.Part> results = new java.util.Vector<>();
             for (int i=0, size = this.recordVector.size(); i < size; i++)
             {
                 org.osid.repository.Record record = (org.osid.repository.Record)this.recordVector.elementAt(i);
@@ -325,7 +327,7 @@ implements org.osid.repository.Asset
     public org.osid.shared.ObjectIterator getPartValueByPart(org.osid.shared.Id partStructureId)
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<Serializable> results = new java.util.Vector<>();
         org.osid.repository.PartIterator partIterator = getPartByPart(partStructureId);
         while (partIterator.hasNextPart())
         {
@@ -375,7 +377,7 @@ implements org.osid.repository.Asset
         }
         try
         {
-            java.util.Vector results = new java.util.Vector();
+            java.util.Vector<Serializable> results = new java.util.Vector<>();
             org.osid.repository.PartIterator partIterator = getPartsByPartStructure(partStructureId);
             while (partIterator.hasNextPart())
             {
@@ -400,7 +402,7 @@ implements org.osid.repository.Asset
         }
         try
         {
-            java.util.Vector results = new java.util.Vector();
+            java.util.Vector<org.osid.repository.Part> results = new java.util.Vector<>();
             org.osid.repository.RecordIterator recordIterator = getRecords();
             while (recordIterator.hasNextRecord())
             {
@@ -437,7 +439,7 @@ implements org.osid.repository.Asset
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.UNKNOWN_TYPE);
         }
 
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.repository.Record> results = new java.util.Vector<>();
         for (int i=0, size = this.recordVector.size(); i < size; i++)
         {
             org.osid.repository.Record r = (org.osid.repository.Record)this.recordVector.elementAt(i);

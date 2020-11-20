@@ -31,7 +31,7 @@ package  edu.tufts.osidimpl.repository.fedora_2_2;
  */
 public class MetadataElementPartStructure implements org.osid.repository.PartStructure{
     
-   private java.util.Vector partsVector = new java.util.Vector();
+   private java.util.Vector<org.osid.repository.PartStructure> partsVector = new java.util.Vector<>();
     private org.osid.repository.RecordStructure disseminationRecordStructure = null;
     private String displayName = "Part structure for metadata elements";
     private String description = "Stores metadata elements";

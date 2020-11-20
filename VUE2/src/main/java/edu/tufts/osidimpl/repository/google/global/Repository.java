@@ -125,7 +125,7 @@ implements org.osid.repository.Repository
     public org.osid.shared.TypeIterator getAssetTypes()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.shared.Type> results = new java.util.Vector<>();
         try
         {
             results.addElement(this.assetType);
@@ -141,7 +141,7 @@ implements org.osid.repository.Repository
     public org.osid.repository.RecordStructureIterator getRecordStructures()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.repository.RecordStructure> results = new java.util.Vector<>();
         results.addElement(RecordStructure.getInstance());
         return new RecordStructureIterator(results);
     }
@@ -155,7 +155,7 @@ implements org.osid.repository.Repository
         }
         if (assetType.isEqual(this.assetType))
         {
-            java.util.Vector results = new java.util.Vector();
+            java.util.Vector<RecordStructure> results = new java.util.Vector<>();
             results.addElement(RecordStructure.getInstance());
             return new RecordStructureIterator(results);
         }
@@ -165,7 +165,6 @@ implements org.osid.repository.Repository
     public org.osid.shared.TypeIterator getSearchTypes()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
         try
         {
             return new TypeIterator(this.searchTypeVector);
@@ -180,7 +179,7 @@ implements org.osid.repository.Repository
     public org.osid.shared.TypeIterator getStatusTypes()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<Type> results = new java.util.Vector<>();
         try
         {
             results.addElement(new Type("mit.edu","asset","valid"));
@@ -272,7 +271,7 @@ implements org.osid.repository.Repository
 		}
 				
 		String criteria = ((String)searchCriteria);
-		java.util.Vector result = new java.util.Vector();
+		java.util.Vector<org.osid.repository.Asset> result = new java.util.Vector<>();
         try
         {
 			Utilities.log("Google key is " + this.googleKey);
@@ -311,7 +310,7 @@ implements org.osid.repository.Repository
         }
         if (recordStructureType.isEqual(new Type("edu.tufts","recordStructure","artifact")))
         {
-            java.util.Vector results = new java.util.Vector();
+            java.util.Vector<org.osid.repository.RecordStructure> results = new java.util.Vector<>();
             results.addElement(RecordStructure.getInstance());
             return new RecordStructureIterator(results);
         }
@@ -323,7 +322,7 @@ implements org.osid.repository.Repository
     {
         try
         {
-            return new PropertiesIterator(new java.util.Vector());
+            return new PropertiesIterator(new java.util.Vector<org.osid.shared.Properties>());
         }
         catch (Throwable t)
         {

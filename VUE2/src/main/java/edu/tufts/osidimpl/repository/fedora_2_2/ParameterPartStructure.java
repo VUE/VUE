@@ -17,7 +17,7 @@ package  edu.tufts.osidimpl.repository.fedora_2_2;
 public class ParameterPartStructure
 implements org.osid.repository.PartStructure
 {
-    private java.util.Vector partsVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.PartStructure> partsVector = new java.util.Vector<>();
     private org.osid.repository.RecordStructure disseminationRecordStructure = null;
     private String displayName = "Parameter PartStructure";
     private String description = "Used to set parameters of disemmination. Parameters are optional in Dissemination and they can be single or multivalued.";

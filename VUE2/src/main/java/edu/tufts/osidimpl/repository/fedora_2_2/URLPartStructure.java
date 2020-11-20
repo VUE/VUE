@@ -17,7 +17,7 @@ package  edu.tufts.osidimpl.repository.fedora_2_2;
 public class URLPartStructure
 implements org.osid.repository.PartStructure
 {
-    private java.util.Vector partsVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.PartStructure> partsVector = new java.util.Vector<>();
     private org.osid.repository.RecordStructure imageRecordStructure = null;
     private String displayName = "URL";
     private String description = "Image URL to be display alongside others";

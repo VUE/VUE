@@ -29,12 +29,12 @@ public class AssetIterator
 implements org.osid.repository.AssetIterator
 {
     public  Unmarshaller unmarshaller = null;    
-    private java.util.Vector vector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.Asset> vector = new java.util.Vector<>();
 	private int arrayCount = 0;
     public static final String CASTOR_MAPPING = "artifact.xml";
 	private org.osid.shared.Id recordStructureId = RecordStructure.getInstance().getId();
 
-    protected AssetIterator(java.util.Vector vector)
+    protected AssetIterator(java.util.Vector<org.osid.repository.Asset> vector)
     throws org.osid.repository.RepositoryException
     {
         this.vector = vector;

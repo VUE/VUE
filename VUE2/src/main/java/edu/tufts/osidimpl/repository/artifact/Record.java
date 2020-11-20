@@ -18,7 +18,7 @@ package edu.tufts.osidimpl.repository.artifact;
 public class Record
 implements org.osid.repository.Record
 {
-    private java.util.Vector partVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.Part> partVector = new java.util.Vector<>();
     private org.osid.shared.Id recordStructureId = null;
     private String displayName = null;
     private org.osid.shared.Id id = null;

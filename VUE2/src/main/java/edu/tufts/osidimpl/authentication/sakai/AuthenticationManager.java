@@ -40,7 +40,7 @@ implements org.osid.authentication.AuthenticationManager
     throws org.osid.authentication.AuthenticationException
     {
         try {
-            java.util.Vector v = new java.util.Vector();
+            java.util.Vector<org.osid.shared.Type> v = new java.util.Vector<>();
             v.addElement(this.authenticationType);
             return new TypeIterator(v);
         }

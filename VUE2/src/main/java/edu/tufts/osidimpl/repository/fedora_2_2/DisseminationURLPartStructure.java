@@ -18,7 +18,7 @@ package  edu.tufts.osidimpl.repository.fedora_2_2;
 public class DisseminationURLPartStructure
 implements org.osid.repository.PartStructure
 {
-    private java.util.Vector partsVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.PartStructure> partsVector = new java.util.Vector<>();
     private org.osid.repository.RecordStructure disseminationRecordStructure = null;
     private String displayName = "Dissemination URL";
     private String description = "A URL to get the dissemination of Fedora Object";

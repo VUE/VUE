@@ -96,7 +96,7 @@ implements org.osid.repository.RecordStructure
     public org.osid.repository.PartStructureIterator getPartStructures()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.repository.PartStructure> results = new java.util.Vector<>();
         try
         {
             results.addElement(ArtifactPartStructure.getInstance());

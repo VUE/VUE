@@ -23,7 +23,7 @@ public class DefaultRecordStructure
     public static final String DEFAULT_DC_DS = "DC";
     public static final String DEFAULT_RESOURCE_DS ="RESOURCE";
     public static final String DEFAULT_MAP_DS = "map.vue";
-    private java.util.Vector partsVector = new java.util.Vector();
+    private final java.util.Vector<org.osid.repository.PartStructure> partsVector = new java.util.Vector<>();
     private String displayName = "Image Specific Data";
     private String description = "Provides information about and image (thumbnail and view URLs)";
     private org.osid.shared.Id id = null;

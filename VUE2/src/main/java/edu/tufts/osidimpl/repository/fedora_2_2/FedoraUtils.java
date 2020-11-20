@@ -32,10 +32,10 @@ public class FedoraUtils {
     public static final String NOT_DEFINED = "Property not defined";
     public static final String OP_ACTUALS = "fedora.search.advanced.operators.actuals";
     
-    private static java.util.Map prefsCache = new java.util.HashMap();
+    private static final java.util.Map<String, Preferences> prefsCache = new java.util.HashMap<>();
     
-    public static java.util.Vector stringToVector(String str) {
-        java.util.Vector vector = new java.util.Vector();
+    public static java.util.Vector<String> stringToVector(String str) {
+        java.util.Vector<String> vector = new java.util.Vector<>();
         java.util.StringTokenizer  st = new java.util.StringTokenizer(str,SEPARATOR);
         while(st.hasMoreTokens()){
             vector.add(st.nextToken());

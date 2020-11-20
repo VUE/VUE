@@ -19,7 +19,7 @@ public class ImageRecordStructure
     public static final String MEDIUM_RES = "bdef:TuftsImage/getMediumRes/";
     public static final String THUMBNAIL = "bdef:TuftsImage/getThumbnail/";
     public static final String FULLVIEW = "bdef:AssetDef/getFullView/";
-    private java.util.Vector partsVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.PartStructure> partsVector = new java.util.Vector<>();
     private String displayName = "Image Specific Data";
     private String description = "Provides information about and image (thumbnail and view URLs)";
     private org.osid.shared.Id id = null;

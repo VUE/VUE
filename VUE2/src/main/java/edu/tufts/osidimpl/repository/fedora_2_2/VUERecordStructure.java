@@ -27,7 +27,7 @@ public class VUERecordStructure   implements org.osid.repository.RecordStructure
     public static final String[] dcFields = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
     public static final String  DC_NAMESPACE = "dc:";
     
-    private java.util.Vector partsVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.PartStructure> partsVector = new java.util.Vector<>();
     private String displayName = "VUE Specific Data";
     private String description = "Provides information to be used by VUE";
     private org.osid.shared.Id id = null;
