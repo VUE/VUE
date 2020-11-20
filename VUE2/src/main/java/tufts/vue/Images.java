@@ -15,35 +15,64 @@
 
 package tufts.vue;
 
-import tufts.Util;
-import tufts.DocDump;
-
-import static tufts.vue.Resource.*;
-
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.lang.ref.*;
-import java.net.URL;
-import java.net.URI;
-import java.net.URLConnection;
-import java.io.*;
-import java.awt.Image;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.RenderedImage;
-import javax.swing.ImageIcon;
-import javax.imageio.*;
-import javax.imageio.metadata.*;
-import javax.imageio.event.*;
-import javax.imageio.stream.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
-import javax.xml.xpath.*;
-import org.w3c.dom.NodeList;
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriter;
+import javax.imageio.event.IIOReadProgressListener;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataFormatImpl;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageInputStreamImpl;
+import javax.imageio.stream.ImageOutputStream;
+
+import tufts.DocDump;
+import tufts.Util;
+import tufts.vue.gui.GUI;
+
+import static tufts.vue.Resource.CONTENT_ASOF;
+import static tufts.vue.Resource.CONTENT_MODIFIED;
+import static tufts.vue.Resource.CONTENT_SIZE;
+import static tufts.vue.Resource.CONTENT_TYPE;
 
 /**
  *
@@ -57,6 +86,8 @@ import org.w3c.dom.NodeList;
  */
 public class Images
 {
+    private static final Class toolkitImage;
+    private static final Method getColorModel;
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Images.class);
 
     private static final boolean ALLOW_HIGH_QUALITY_ICONS = true;
@@ -1563,6 +1594,20 @@ public class Images
         ImageThreadPriority = priority; // for thread factory
         
         ProcessingPool = new ImmediatelyReducablePool(useCores);
+
+
+        Method method;
+        Class clazz;
+        try {
+            clazz = Class.forName("sun.awt.image.ToolkitImage");
+            method = clazz.getMethod("getColorModel");
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            clazz = null;
+            method = null;
+        }
+        getColorModel = method;
+        toolkitImage = clazz;
+
     }
 
     private static ThreadPoolExecutor createThreadPool(int nThreads) {
@@ -1883,7 +1928,7 @@ public class Images
         private final Thread thread;
 
         /**
-         * @param src must be any valid src *except* a Resource
+         * @param imageSRC must be any valid src *except* a Resource
          * @param resource - if this is tied to a resource to update with meta-data after loading
          */
         LoadThread(ImageSource imageSRC, Listener firstRelay) {
@@ -3188,52 +3233,58 @@ public class Images
 
         return new tufts.vue.Size(width, height);
     }
-    
 
-    private static Handle produceDrawnIcon(Image source, int maxSide)
-    {
-        final java.awt.Dimension size = fitInto(maxSide, source.getWidth(null), source.getHeight(null));
+
+
+    private static Handle produceDrawnIcon(Image source, int maxSide) {
+        final Dimension size = fitInto(maxSide, source.getWidth(null), source.getHeight(null));
 
         final Image iconSource;
         int transparency;
 
         if (source instanceof BufferedImage)
-            transparency = ((BufferedImage)source).getTransparency();
+            transparency = ((BufferedImage) source).getTransparency();
         else
             transparency = Transparency.OPAQUE;
 
         if (ALLOW_HIGH_QUALITY_ICONS /*&& DrawContext.isImageQualityRequested()*/) {
             // this is clever: we can still make use of the high-quality image
             // smoothing (tho it's still quite slow) by copying out the quality
-            // image data then immediately flusing the created image.  And with our
+            // image data then immediately flushing the created image.  And with our
             // old 1GB busting use-case we're still down at 82MB after GC cool-down.
             // Amazing.
             iconSource = source.getScaledInstance(size.width, size.height, Image.SCALE_SMOOTH);
 
-            if (iconSource instanceof sun.awt.image.ToolkitImage) { // will probably always be a ToolkitImage
-                // generally neeeded in case the the image has alpha, so transparency will be Transparency.TRANSLUCENT
-                // This will normally have already been pulled from the BufferedImage source, but just in
-                // case the source wasn't a BufferedImage:
-                transparency = ((sun.awt.image.ToolkitImage)iconSource).getColorModel().getTransparency();
+            if (getColorModel != null) {
+                if (toolkitImage.isInstance(iconSource)) {// will probably always be a ToolkitImage
+                    // generally needed in case the the image has alpha, so transparency will be Transparency.TRANSLUCENT
+                    // This will normally have already been pulled from the BufferedImage source, but just in
+                    // case the source wasn't a BufferedImage:
+                    try {
+                        transparency = ((ColorModel) getColorModel.invoke(toolkitImage)).getTransparency();
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-                
+
             // note: there are supposed to be faster methods available for generating
             // similar quality that involve multi-pass down-scaling that have been
             // documented, tho the benchmarks don't likely include a comparison to
             // the most recent Mac OS X Java 1.6 implementation, that may use
             // CoreImage underneath. See:
             // http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
-                
+
         } else {
             iconSource = source;
         }
 
-            
-        final Image icon = tufts.vue.gui.GUI.getDeviceConfigForWindow(null)
-            .createCompatibleImage(size.width, size.height, transparency);
+
+        final Image icon = GUI.getDeviceConfigForWindow(null)
+                .createCompatibleImage(size.width, size.height, transparency);
 
         final Graphics2D g = (Graphics2D) icon.getGraphics();
-            
+
         if (iconSource == source) {
             // The source is the original raw image -- we'll be down-scaling during the
             // drawImage, so quality is going to be low.  Note: setImageQuality is not much
@@ -3246,9 +3297,11 @@ public class Images
 
         if (iconSource != source)
             iconSource.flush(); // crucial to release the memory consumed
-        
+
         return new Handle(icon); // note: could load with source size info, but not needed in this case
     }
+
+
 
     private static Image producePlatformIcon(Image source, int maxSide)
     {
