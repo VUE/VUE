@@ -69,6 +69,11 @@ launch4j {
 
 createAllExecutables.dependsOn(shadowJar)
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-Xlint:unchecked'
+    options.deprecation = true
+}
+
 dependencies {
     // javax
     implementation 'javax.activation:javax.activation-api:1.2.0'
