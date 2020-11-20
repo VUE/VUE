@@ -180,6 +180,9 @@ dependencies {
     // TODO upgrade to https://mvnrepository.com/artifact/com.rometools/rome
     implementation 'rome:rome:0.9'
 
+    // Needed for text blocks - see #4
+    implementation group: 'gnu-regexp', name: 'gnu-regexp', version: '1.1.4'
+
     // Tufts-related
     implementation files('lib/TuftsOsidProvider.jar')
 
