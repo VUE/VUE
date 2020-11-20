@@ -28,6 +28,7 @@ import tufts.vue.VueResources;
 
 import tufts.vue.gui.Screen;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -1005,12 +1006,18 @@ public class DockWindow
 
     private static void dumpGC(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        sun.java2d.SurfaceData sd = null;
-        if (g instanceof sun.java2d.SunGraphics2D)
-            sd = ((sun.java2d.SunGraphics2D)g).surfaceData;
-        
+        Object genericSd = null;
+        try {
+            Class surfaceData = Class.forName("sun.java2d.SurfaceData");
+            Class sunGraphics2D = Class.forName("sun.java2d.SunGraphics2D");
+            if (sunGraphics2D.isInstance(g)) {
+                genericSd = sunGraphics2D.getField("surfaceData").get(g);
+            }
+        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+            // no worries
+        }
         System.out.println("\t" +
-                           Util.objectTag(g) + " surface=" + sd
+                           Util.objectTag(g) + " surface=" + genericSd
                            + "\n\t      clip " + g.getClip()
                            + "\n\tclipBounds " + g.getClipBounds()
                            //+ "\n\t     hints " + g2.getRenderingHints()
