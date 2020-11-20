@@ -14,19 +14,25 @@
  */
 package tufts.vue;
 
-import java.awt.*;
-import java.applet.*;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Multiset;
+import com.jgoodies.looks.LookUtils;
+import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
+
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -37,29 +43,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
-import javax.swing.*;
+import javax.swing.JApplet;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.Multiset;
-import com.jgoodies.looks.LookUtils;
-import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
-import com.sun.org.apache.xerces.internal.impl.XMLScanner;
-
-import edu.tufts.vue.mbs.AnalyzerResult;
-
 import tufts.vue.ds.DataAction;
-import tufts.vue.ds.DataTree;
-import tufts.vue.ds.Schema;
-import tufts.vue.ds.XMLIngest;
 import tufts.vue.ds.XmlDataSource;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueMenuBar;
