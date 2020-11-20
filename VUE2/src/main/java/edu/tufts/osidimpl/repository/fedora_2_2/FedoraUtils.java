@@ -60,7 +60,7 @@ public class FedoraUtils {
 			Preferences prefs = (Preferences) prefsCache.get(conf);
 			if (prefs != null)
 				return prefs;
-			Class clazz = new FedoraUtils().getClass();
+			Class clazz = FedoraUtils.class;
 			prefs = Preferences.userNodeForPackage(clazz);
 			//System.out.println("trying to find preferences " + conf);
 			InputStream stream = null;
@@ -75,7 +75,7 @@ public class FedoraUtils {
 				}
 				stream = new FileInputStream(path);
 			}
-			prefs.importPreferences(stream);
+			Preferences.importPreferences(stream);
 			prefsCache.put(conf, prefs);
 			stream.close();
 			return prefs;

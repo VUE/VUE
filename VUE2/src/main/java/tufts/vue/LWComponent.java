@@ -3093,7 +3093,7 @@ public class LWComponent
             text = text.replaceAll("%", "%pct;");
             // replace all instances of two spaces with space+%sp;
             // to break them up (and thus we wont lose space runs)
-            text = text.replaceAll("  ", " %sp;");
+            text = text.replaceAll(" {2}", " %sp;");
             text = text.replaceAll("\t", "%tab;");
             return escapeNewlines(text);
         }

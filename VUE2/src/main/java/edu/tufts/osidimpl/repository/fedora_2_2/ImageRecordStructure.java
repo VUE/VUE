@@ -34,7 +34,7 @@ public class ImageRecordStructure
     throws org.osid.repository.RepositoryException {
         try {
             this.id = new PID("ImageRecordStructureId");
-        } catch (org.osid.shared.SharedException sex) {
+        } catch (org.osid.shared.SharedException ignored) {
         }
         this.sThumbnailPartStructure = new ThumbnailPartStructure(this, repository);
         this.sURLPartStructure = new URLPartStructure(this, repository);
