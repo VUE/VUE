@@ -5,9 +5,9 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, vue4rebase ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, vue4rebase ]
 
 jobs:
   build:
