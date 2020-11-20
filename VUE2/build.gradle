@@ -84,10 +84,8 @@ dependencies {
     // runtimeOnly 'com.sun.xml.rpc:jaxrpc-impl:1.1.+'
     // implementation 'com.sun.xml.rpc:jaxrpc-spi:1.1.+'
 
-    implementation 'javax.xml.bind:jaxb-api:1.0.+'
-    // todo upgrade this and its impl see https://www.jesperdj.com/2018/09/30/jaxb-on-java-9-10-11-and-beyond/
-    runtimeOnly 'com.sun.xml.bind:jaxb-impl:1.0.+'
-    // todo try 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
 
     implementation files('lib/jax-qname.jar')
 
