@@ -28,21 +28,25 @@ package tufts.vue;
  * @author  sfraize
  */
 
-import sun.net.www.protocol.file.FileURLConnection;
-import tufts.Util;
-import tufts.vue.DEBUG;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
-import javax.swing.JComponent;
-
 import org.xml.sax.InputSource;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.JComponent;
+
 import edu.tufts.vue.ui.ConfigurationUI;
+import tufts.Util;
 
 public abstract class BrowseDataSource implements DataSource
 {
@@ -361,53 +365,63 @@ public abstract class BrowseDataSource implements DataSource
         // something any Resource can do.
         // TODO: handle for local-file case
 
-       URLConnection conn = openAddress();
+        URLConnection conn = openAddress();
 
+
+        // First try really pretty hard to get the encoding.
         String encoding = null;
 
-        if (conn instanceof FileURLConnection)
-        {
-           
+
+        boolean isFileUrlConnection = false;
+        try {
+            final Class<?> fileUrlConnection = Class.forName("sun.net.www.protocol.file.FileURLConnection");
+            if (fileUrlConnection.isInstance(conn)) {
+                isFileUrlConnection = true;
+            }
+        } catch (ClassNotFoundException e) {
+            // no problem, the other code works fine.
+        }
+        if (isFileUrlConnection) {
+            // This is a local file, look for encoding in the first line.
+
             BufferedReader bufferedReader = null;
             String xmlDeclaration = null;
-			try {
-				bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-				xmlDeclaration = bufferedReader.readLine();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+            try {
+                bufferedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                xmlDeclaration = bufferedReader.readLine();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
 
-			if (xmlDeclaration !=null)
-			{
-				Pattern p = Pattern.compile(".*encoding=\"(.*?)\".*");
-				Matcher m = p.matcher(xmlDeclaration);
-				m.find();
+            if (xmlDeclaration != null) {
+                Pattern p = Pattern.compile(".*encoding=\"(.*?)\".*");
+                Matcher m = p.matcher(xmlDeclaration);
 
-				try {
-					encoding = m.group(1);
-				} catch(Exception e) {
-					e.printStackTrace();
-				}
-				finally {
-					if (bufferedReader!=null)
-						try {
-							bufferedReader.close();
-						} catch (IOException e) {							
-							e.printStackTrace();
-						}
-					conn = openAddress();
-				}
+                try {
+                    if (m.find()) {
+                        encoding = m.group(1);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (bufferedReader != null)
+                        try {
+                            bufferedReader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    conn = openAddress();
+                }
 
-			}
+            }
+        } else {
+            // Try asking the connection for the encoding.
+            encoding = conn.getContentEncoding();
         }
-        else
-        {
-        	encoding = conn.getContentEncoding();
-        }
-        
-        
-        
+
+
         if (encoding == null) {
+            // If no luck yet, try looking in content type.
             String ct = conn.getContentType();
             Log.debug("content-type[" + ct + "]");
             if (ct != null) {
