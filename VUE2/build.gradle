@@ -75,6 +75,10 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
+    // logging: manually specify these to override deps
+    implementation 'org.slf4j:slf4j-api:1.7.16'
+    runtimeOnly 'org.slf4j:slf4j-log4j12:1.7.16'
+
     // javax
     implementation 'javax.activation:javax.activation-api:1.2.0'
     // todo now included but deprecation/rename in newer java
@@ -104,6 +108,9 @@ dependencies {
     implementation files('lib/OSIDLoggingPlain-1.0.jar')
     implementation files('lib/XmlfileRepositoryOSID-1.0.jar')
     implementation files('lib/OsidRegistry.jar')
+    implementation files('lib/OSIDIdNoPersist-1.0.jar')
+
+    runtimeOnly 'com.ibm.icu:icu4j:74.1'
 
     // Apache Axis
     implementation 'axis:axis-ant:1.4'
