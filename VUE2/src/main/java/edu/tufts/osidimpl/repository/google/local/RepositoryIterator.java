@@ -18,9 +18,9 @@ package edu.tufts.osidimpl.repository.google.local;
 public class RepositoryIterator
 implements org.osid.repository.RepositoryIterator
 {
-    private java.util.Iterator iterator = null;
+    private java.util.Iterator<org.osid.repository.Repository> iterator = null;
 
-    public RepositoryIterator(java.util.Vector vector)
+    public RepositoryIterator(java.util.Vector<org.osid.repository.Repository> vector)
     throws org.osid.repository.RepositoryException
     {
         this.iterator = vector.iterator();
@@ -36,7 +36,7 @@ implements org.osid.repository.RepositoryIterator
     throws org.osid.repository.RepositoryException
     {
 		try {
-			return (org.osid.repository.Repository)iterator.next();
+			return iterator.next();
 		} catch (Throwable t) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
 		}

@@ -61,7 +61,7 @@ public class MetaMap implements TableBag, XMLUnmarshalListener, tufts.vue.ds.Rel
     private int mChanges;
     private List<TableBag.Listener> listeners;
 
-    private static final Map<String,Key> KEY_MAP = new java.util.concurrent.ConcurrentHashMap();
+    private static final Map<String,Key> KEY_MAP = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static final boolean KEY_DEBUG_MODE = false;
 

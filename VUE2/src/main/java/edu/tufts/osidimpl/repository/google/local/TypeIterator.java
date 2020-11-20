@@ -18,9 +18,9 @@ package edu.tufts.osidimpl.repository.google.local;
 public class TypeIterator
 implements org.osid.shared.TypeIterator
 {
-    private java.util.Iterator iterator = null;
+    private java.util.Iterator<org.osid.shared.Type> iterator = null;
 
-    public TypeIterator(java.util.Vector vector)
+    public TypeIterator(java.util.Vector<org.osid.shared.Type> vector)
     throws org.osid.shared.SharedException
     {
         this.iterator = vector.iterator();
@@ -36,7 +36,7 @@ implements org.osid.shared.TypeIterator
     throws org.osid.shared.SharedException
     {
 		try {
-			return (org.osid.shared.Type)iterator.next();
+			return iterator.next();
 		} catch (Throwable t) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
 		}

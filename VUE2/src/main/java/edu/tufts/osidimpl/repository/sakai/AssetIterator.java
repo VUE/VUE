@@ -21,7 +21,7 @@ import javax.xml.namespace.QName;
 public class AssetIterator
 implements org.osid.repository.AssetIterator
 {
-    private java.util.Iterator iterator = null;
+    private java.util.Iterator<org.osid.repository.Asset> iterator = null;
 	private String siteString = null;
 	private String key = null;
 	
@@ -32,7 +32,7 @@ implements org.osid.repository.AssetIterator
 	public static final String TYPE_TAG = "type";
 	public static final String URL_TAG = "url";
 
-    public AssetIterator(java.util.Vector vector)
+    public AssetIterator(java.util.Vector<org.osid.repository.Asset> vector)
 		throws org.osid.repository.RepositoryException
     {
         this.iterator = vector.iterator();
@@ -45,7 +45,7 @@ implements org.osid.repository.AssetIterator
 		this.siteString = siteString;
 		this.key = key;
 		
-		java.util.Vector result = new java.util.Vector();
+		java.util.Vector<org.osid.repository.Asset> result = new java.util.Vector<>();
 		try {
 			javax.xml.parsers.DocumentBuilderFactory dbf = null;
 			javax.xml.parsers.DocumentBuilder db = null;

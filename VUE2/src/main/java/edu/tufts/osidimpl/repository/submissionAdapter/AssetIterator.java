@@ -18,9 +18,9 @@ package edu.tufts.osidimpl.repository.submissionAdapter;
 public class AssetIterator
 implements org.osid.repository.AssetIterator
 {
-    private java.util.Iterator iterator = null;
+    private java.util.Iterator<org.osid.repository.Asset> iterator = null;
 	
-    public AssetIterator(java.util.Vector vector)
+    public AssetIterator(java.util.Vector<org.osid.repository.Asset> vector)
 		throws org.osid.repository.RepositoryException
     {
         this.iterator = vector.iterator();

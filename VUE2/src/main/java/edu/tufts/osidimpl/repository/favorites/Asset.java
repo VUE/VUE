@@ -15,6 +15,7 @@
 
 package edu.tufts.osidimpl.repository.favorites;
 
+import java.io.Serializable;
 import osid.filing.*;
 import tufts.oki.remoteFiling.*;
 import tufts.oki.localFiling.*;
@@ -31,7 +32,7 @@ public class Asset
     private String idString = null;
     private String displayName = null;
     private String description = null;
-    private java.util.Vector recordVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.Record> recordVector = new java.util.Vector<>();
     private String content = null;
     
     protected Asset(org.osid.shared.Id repositoryId,String displayName, String description) {
@@ -266,7 +267,7 @@ public class Asset
     
     public org.osid.shared.ObjectIterator getPartValueByPart(org.osid.shared.Id partStructureId)
     throws org.osid.repository.RepositoryException {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<Serializable> results = new java.util.Vector<>();
         org.osid.repository.PartIterator partIterator = getPartByPart(partStructureId);
         while (partIterator.hasNextPart()) {
             results.addElement(partIterator.nextPart().getValue());
@@ -305,7 +306,7 @@ public class Asset
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
         try {
-            java.util.Vector results = new java.util.Vector();
+            java.util.Vector<Serializable> results = new java.util.Vector<>();
             org.osid.repository.PartIterator partIterator = getPartsByPartStructure(partStructureId);
             while (partIterator.hasNextPart()) {
                 org.osid.repository.Part part = partIterator.nextPart();
@@ -324,7 +325,7 @@ public class Asset
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
         try {
-            java.util.Vector results = new java.util.Vector();
+            java.util.Vector<org.osid.repository.Part> results = new java.util.Vector<>();
             org.osid.repository.RecordIterator recordIterator = getRecords();
             while (recordIterator.hasNextRecord()) {
                 org.osid.repository.Record record = recordIterator.nextRecord();
@@ -350,7 +351,7 @@ public class Asset
         }
         
         
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.repository.Record> results = new java.util.Vector<>();
         for (int i=0, size = this.recordVector.size(); i < size; i++) {
             org.osid.repository.Record r = (org.osid.repository.Record)this.recordVector.elementAt(i);
             if (r.getRecordStructure().getType().isEqual(recordStructureType)) {

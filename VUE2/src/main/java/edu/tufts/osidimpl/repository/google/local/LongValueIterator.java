@@ -18,9 +18,9 @@ package edu.tufts.osidimpl.repository.google.local;
 public class LongValueIterator
 implements org.osid.shared.LongValueIterator
 {
-    private java.util.Iterator iterator = null;
+    private java.util.Iterator<Long> iterator = null;
 
-    public LongValueIterator(java.util.Vector vector)
+    public LongValueIterator(java.util.Vector<Long> vector)
     throws org.osid.shared.SharedException
     {
         this.iterator = vector.iterator();

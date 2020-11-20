@@ -20,7 +20,7 @@ import java.util.*;
 
 public class AssetIterator
         implements org.osid.repository.AssetIterator {
-    private java.util.Iterator iterator = null;
+    private Iterator<org.osid.repository.Asset> iterator = null;
     private SearchCriteria lSearchCriteria = null;
     private String numberToAskForString = "100";
     private int numberToAskFor = 100;
@@ -36,7 +36,7 @@ public class AssetIterator
    // throws org.osid.repository.RepositoryException {
    //     this.iterator = vector.iterator();
    // }
-    public AssetIterator(List<Asset> assetList)  throws org.osid.repository.RepositoryException {
+    public AssetIterator(List<org.osid.repository.Asset> assetList)  throws org.osid.repository.RepositoryException {
         this.iterator = assetList.iterator();
     }
     
@@ -58,14 +58,14 @@ public class AssetIterator
                 lSearchCriteria.setResults(0);
                 
                 org.osid.repository.AssetIterator ai = FedoraRESTSearchAdapter.search(repository,lSearchCriteria);
-                java.util.Vector v = new java.util.Vector();
+                java.util.Vector<org.osid.repository.Asset> v = new java.util.Vector<>();
                 while (ai.hasNextAsset()) v.addElement(ai.nextAsset());
                 this.iterator = v.iterator();
             } else if ( (searchCriteria instanceof String) && (searchType.isEqual(multiFieldSearchType)) ) {
                 lSearchCriteria = new SearchCriteria();
                 
                 // parse criteria to get the field-value pairs
-                java.util.List conditions = getConditions((String)searchCriteria);
+                java.util.List<Condition> conditions = getConditions((String)searchCriteria);
                 
                 lSearchCriteria.setConditions((fedora.server.types.gen.Condition[])conditions.toArray(new Condition[0]));
                 lSearchCriteria.setMaxReturns(numberToAskForString);
@@ -73,11 +73,11 @@ public class AssetIterator
                 lSearchCriteria.setResults(0);
                 
                 org.osid.repository.AssetIterator ai = FedoraRESTSearchAdapter.advancedSearch(repository,lSearchCriteria);
-                java.util.Vector v = new java.util.Vector();
+                java.util.Vector<org.osid.repository.Asset> v = new java.util.Vector<>();
                 while (ai.hasNextAsset()) v.addElement(ai.nextAsset());
                 this.iterator = v.iterator();
             } else {
-                this.iterator = new java.util.Vector().iterator();
+                this.iterator = new java.util.Vector<org.osid.repository.Asset>().iterator();
             }
         } catch (Exception ex) {
             Utilities.log(ex);
@@ -87,8 +87,8 @@ public class AssetIterator
     }
     
     // parse XML with type-value pairs to Condition objects
-    private java.util.List getConditions(String xml) {
-        java.util.List conditions = new java.util.ArrayList();
+    private java.util.List<Condition> getConditions(String xml) {
+        java.util.List<Condition> conditions = new java.util.ArrayList<>();
 //		System.out.println("advanced criteria " + xml);
         
         try {

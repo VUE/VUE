@@ -15,12 +15,14 @@
 
 package edu.tufts.osidimpl.repository.google.local;
 
+import java.io.Serializable;
+
 public class ObjectIterator
 implements org.osid.shared.ObjectIterator
 {
-    private java.util.Iterator iterator = null;
+    private java.util.Iterator<Serializable> iterator = null;
 
-    public ObjectIterator(java.util.Vector vector)
+    public ObjectIterator(java.util.Vector<Serializable> vector)
     throws org.osid.shared.SharedException
     {
         this.iterator = vector.iterator();
@@ -36,7 +38,7 @@ implements org.osid.shared.ObjectIterator
     throws org.osid.shared.SharedException
     {
 		try {
-			return (java.io.Serializable)iterator.next();
+			return iterator.next();
 		} catch (Throwable t) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
 		}

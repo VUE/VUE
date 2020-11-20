@@ -20,10 +20,10 @@ package tufts.oki.dr.fedora;
 public class AssetIterator
 implements osid.dr.AssetIterator
 {
-    private java.util.Vector vector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.Asset> vector = new java.util.Vector<org.osid.repository.Asset>();
     private int i = 0;
 
-    public AssetIterator(java.util.Vector vector)
+    public AssetIterator(java.util.Vector<org.osid.repository.Asset> vector)
     throws osid.dr.DigitalRepositoryException
     {
         this.vector = vector;

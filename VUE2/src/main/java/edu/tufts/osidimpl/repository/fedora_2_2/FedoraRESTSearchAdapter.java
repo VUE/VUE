@@ -119,7 +119,7 @@ public class FedoraRESTSearchAdapter {
         }
     }
     private static org.osid.repository.AssetIterator getAssetIterator(Repository repository, NodeList fieldNode) throws org.osid.repository.RepositoryException  {
-        List<Asset> resultList = new ArrayList<>();
+        List<org.osid.repository.Asset> resultList = new ArrayList<>();
         try {
             if(fieldNode.getLength() == 0) {
                 System.out.println("search return no results");

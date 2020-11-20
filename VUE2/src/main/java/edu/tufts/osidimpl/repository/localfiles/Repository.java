@@ -136,7 +136,7 @@ implements org.osid.repository.Repository
 		return new AssetIterator(result);
 	}
 			
-	private void installDesktopFolders(Vector cabVector)
+	private void installDesktopFolders(Vector<LocalCabinetEntry> cabVector)
 	{
 		osid.shared.Agent agent = null; //  This may cause problems later.
 		
@@ -231,7 +231,7 @@ implements org.osid.repository.Repository
     public org.osid.shared.TypeIterator getAssetTypes()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.shared.Type> results = new java.util.Vector<>();
         try
         {
             results.addElement(this.assetType);
@@ -247,7 +247,7 @@ implements org.osid.repository.Repository
     public org.osid.repository.RecordStructureIterator getRecordStructures()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.repository.RecordStructure> results = new java.util.Vector<>();
         results.addElement(RecordStructure.getInstance());
         return new RecordStructureIterator(results);
     }
@@ -261,7 +261,7 @@ implements org.osid.repository.Repository
         }
         if (assetType.isEqual(this.assetType))
         {
-            java.util.Vector results = new java.util.Vector();
+            java.util.Vector<org.osid.repository.RecordStructure> results = new java.util.Vector<>();
             results.addElement(RecordStructure.getInstance());
             return new RecordStructureIterator(results);
         }
@@ -271,7 +271,7 @@ implements org.osid.repository.Repository
     public org.osid.shared.TypeIterator getSearchTypes()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.shared.Type> results = new java.util.Vector<>();
         try
         {
             return new TypeIterator(this.searchTypeVector);
@@ -286,7 +286,7 @@ implements org.osid.repository.Repository
     public org.osid.shared.TypeIterator getStatusTypes()
     throws org.osid.repository.RepositoryException
     {
-        java.util.Vector results = new java.util.Vector();
+        java.util.Vector<org.osid.shared.Type> results = new java.util.Vector<>();
         try
         {
             results.addElement(new Type("mit.edu","asset","valid"));

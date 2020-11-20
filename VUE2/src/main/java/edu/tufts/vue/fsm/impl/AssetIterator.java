@@ -3,10 +3,10 @@ package edu.tufts.vue.fsm.impl;
 public class AssetIterator
 implements org.osid.repository.AssetIterator
 {
-    private java.util.Vector vector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.Asset> vector = new java.util.Vector();
     private int i = 0;
 
-    public AssetIterator(java.util.Vector vector)
+    public AssetIterator(java.util.Vector<org.osid.repository.Asset> vector)
     throws org.osid.repository.RepositoryException
     {
         this.vector = vector;

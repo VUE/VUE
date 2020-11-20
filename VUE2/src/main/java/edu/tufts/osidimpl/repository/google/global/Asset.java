@@ -31,7 +31,7 @@ implements org.osid.repository.Asset
     private String idString = null;
     private String displayName = null;
     private String description = null;
-    private java.util.Vector recordVector = new java.util.Vector();
+    private java.util.Vector<org.osid.repository.Record> recordVector = new java.util.Vector<>();
     private String content = null;
 	
     protected Asset(String displayName,

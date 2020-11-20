@@ -81,16 +81,16 @@ public class Repository implements org.osid.repository.Repository {
     private String userName = null;
     private String password = null;
     private String conf = null;
-    private java.util.Vector recordStructures = new java.util.Vector();
-    private java.util.Vector assetTypes = new java.util.Vector();
-    private java.util.Vector searchTypes = new java.util.Vector();
-    private java.util.Vector assets = new java.util.Vector();
+    private final java.util.Vector<org.osid.repository.RecordStructure> recordStructures = new java.util.Vector<>();
+    private final java.util.Vector<org.osid.shared.Type> assetTypes = new java.util.Vector<>();
+    private final java.util.Vector<org.osid.shared.Type> searchTypes = new java.util.Vector<>();
+    private final java.util.Vector<org.osid.repository.Asset> assets = new java.util.Vector<>();
     private java.util.Properties configuration;
     private org.osid.shared.Id id = null;
     // private URL configuration = null;
-	private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
-	private org.osid.shared.Type multiFieldSearchType = new Type("mit.edu","search","multiField");      
-    private org.osid.shared.Type repositoryType = new Type("tufts.edu","repository","fedora_2_2");
+	private final org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
+	private final org.osid.shared.Type multiFieldSearchType = new Type("mit.edu","search","multiField");
+    private final org.osid.shared.Type repositoryType = new Type("tufts.edu","repository","fedora_2_2");
     
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;

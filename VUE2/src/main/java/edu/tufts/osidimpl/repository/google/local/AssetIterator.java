@@ -30,7 +30,7 @@ import org.xml.sax.InputSource;
 public class AssetIterator
 implements org.osid.repository.AssetIterator
 {
-    private java.util.Iterator iterator = new java.util.Vector().iterator();
+    private java.util.Iterator<org.osid.repository.Asset> iterator = new java.util.Vector<org.osid.repository.Asset>().iterator();
 	private int currentIndex = 0;
 	private String searchURL = null;
 	private String criteria = null;
@@ -72,7 +72,7 @@ implements org.osid.repository.AssetIterator
 		performSearch();    
 	}
 
-    protected AssetIterator(java.util.Vector v)
+    protected AssetIterator(java.util.Vector<org.osid.repository.Asset> v)
 		throws org.osid.repository.RepositoryException
     {
 		initializedByVector = true;
@@ -108,7 +108,7 @@ implements org.osid.repository.AssetIterator
 	{
 		try {
 			if (this.currentIndex > 100) {
-				this.iterator = (new java.util.Vector()).iterator();
+				this.iterator = (new java.util.Vector<org.osid.repository.Asset>()).iterator();
 			} else {
 				url = new URL(this.searchURL+"&num=10&start="+this.currentIndex+"&q="+this.criteria);
 				//System.out.println("Google search = " + url);
@@ -124,8 +124,8 @@ implements org.osid.repository.AssetIterator
 				result = "";
 				
 				GSP gsp = loadGSP(googleResultsFile);
-				java.util.Iterator i = gsp.getRES().getResultList().iterator();
-				java.util.Vector resultVector = new java.util.Vector();
+				java.util.Iterator<Result> i = gsp.getRES().getResultList().iterator();
+				java.util.Vector<org.osid.repository.Asset> resultVector = new java.util.Vector<>();
 				
 				while(i.hasNext()) {
 					Result r = (Result)i.next();

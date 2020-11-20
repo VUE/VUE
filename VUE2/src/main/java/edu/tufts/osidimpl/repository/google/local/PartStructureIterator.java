@@ -18,9 +18,9 @@ package edu.tufts.osidimpl.repository.google.local;
 public class PartStructureIterator
 implements org.osid.repository.PartStructureIterator
 {
-    private java.util.Iterator iterator = null;
+    private java.util.Iterator<org.osid.repository.PartStructure> iterator = null;
 
-    public PartStructureIterator(java.util.Vector vector)
+    public PartStructureIterator(java.util.Vector<org.osid.repository.PartStructure> vector)
     throws org.osid.repository.RepositoryException
     {
         this.iterator = vector.iterator();
@@ -36,7 +36,7 @@ implements org.osid.repository.PartStructureIterator
     throws org.osid.repository.RepositoryException
     {
 		try {
-			return (org.osid.repository.PartStructure)iterator.next();
+			return iterator.next();
 		} catch (Throwable t) {
             throw new org.osid.repository.RepositoryException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
 		}
