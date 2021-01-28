@@ -16,7 +16,7 @@
 package edu.tufts.vue.preferences.ui;
 
 import java.util.*;
-
+import tufts.vue.gui.DockWindow;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.*;
@@ -25,7 +25,7 @@ import javax.swing.plaf.metal.MetalTreeUI;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.*;
-
+import java.awt.Component;
 import edu.tufts.vue.preferences.PreferenceConstants;
 import edu.tufts.vue.preferences.PreferencesManager;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
@@ -51,6 +51,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLDecoder;
+import javax.swing.JDialog;
 
 /**
  * @author Mike Korcynski
@@ -97,6 +98,45 @@ public class PreferencesDialog extends JDialog {
                 }
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		prefTree.setSelectionRow(1);
+
+		if (tufts.Util.isUnixPlatform() || tufts.Util.isMacPlatform())
+			{	
+				this.setAlwaysOnTop(true);
+				this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+				this.addWindowListener(new WindowListener(){
+
+				   
+	                
+					public void windowActivated(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowClosed(WindowEvent e) {
+						 DockWindow.ToggleAllVisible(); 
+						
+					}
+					public void windowClosing(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowDeactivated(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowDeiconified(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowIconified(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowOpened(WindowEvent e) {
+						DockWindow.HideAllWindows(); 
+						
+					}
+				});
+			}
 	}
 		
 		  // Finds the path in tree as specified by the array of names. The names array is a
@@ -106,6 +146,7 @@ public class PreferencesDialog extends JDialog {
 	        TreeNode root = (TreeNode)tree.getModel().getRoot();
 	        return find2(tree, new TreePath(root), names, 0, true);
 	    }
+    	
 	    private TreePath find2(JTree tree, TreePath parent, Object[] nodes, int depth, boolean byName) {
 	        TreeNode node = (TreeNode)parent.getLastPathComponent();
 	        Object o = node;

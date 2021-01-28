@@ -341,7 +341,7 @@ public class DockWindow
     /** test */
     public static void setManagedWindows(boolean managed) {
         ManagedWindows = managed;
-        MacWindowShadowEnabled = !managed;
+        MacWindowShadowEnabled = false; //!managed;
     }
 
 //     public static void lowerAll() {
@@ -362,7 +362,7 @@ public class DockWindow
     	 * The bug described here on Linux : 
     	 * Read this topic online: http://vue-forums.uit.tufts.edu/posts/list/957.page#3658
     	 */
-        if (!VUE.isApplet() && Util.isUnixPlatform()) {    	
+        if (Util.isUnixPlatform()) {    	
             
             _peer = new DialogPeer(VUE.getApplicationFrame(), title, !ON_TOP, !DECORATED);
             
@@ -371,7 +371,8 @@ public class DockWindow
             // Still required on the Mac (at least Leopard)
             // DockWindow's will still go behind the working full-screen window otherwise,
             // or create some other wierd unacceptable behaviour.
-            _peer = new WindowPeer(owner == null ? getHiddenFrame() : owner);
+            //_peer = new WindowPeer(VUE.getApplicationFrame());
+            _peer = new DialogPeer(VUE.getApplicationFrame(), title, !ON_TOP, true);
             
         } else {
             
@@ -786,7 +787,7 @@ public class DockWindow
 
         isDarkTitleBar = isMacAquaMetal;
         //isGradientTitle = isMac;
-        isGradientTitle = true;
+        isGradientTitle = false;
 
         if (OverrideMacAquaBrushedMetal && Util.getJavaVersion() >= 1.5f)
             isMacAquaMetal = false;
@@ -3739,7 +3740,7 @@ public class DockWindow
         
         mParent = parent;
         //mContentPane.setCloseButtonVisible(parent == null || !parent.getStackTop().isStackOwner);
-        mContentPane.setCloseButtonVisible(!isStacked() || isStackTop());
+        mContentPane.setCloseButtonVisible(false);//!isStacked() || isStackTop());
     }
 
 
@@ -4364,7 +4365,7 @@ public class DockWindow
 
         private void installTitlePanel(String title, boolean asToolbar) {
             mTitle = new TitlePanel(title);
-            if (asToolbar)
+            if (asToolbar && !isMacAqua)
                 add(new Gripper(), BorderLayout.WEST);
             else
                 add(mTitle, titleConstraints);
@@ -4629,10 +4630,10 @@ public class DockWindow
              if (isMacAqua) {
                  // close button at left
                  add(Box.createHorizontalStrut(6));
-                 add(mCloseButton);
+                 //add(mCloseButton);
                  add(Box.createHorizontalStrut(4));
                  //add(mOpenLabel);
-                 add(mLabel);
+                // add(mLabel);
                  add(Box.createGlue());
                  if (mHelpButton != null)
                      add(mHelpButton);

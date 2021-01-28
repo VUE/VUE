@@ -1355,7 +1355,7 @@ public class VUE
         // menu bar) when a tool window has focus.  Actually, mac appears to do something smart
         // also: if parent get's MAXIMIZED, it will return to the keep on top behaviour, but you
         // have to manually hide/show it to get it back on top.
-        //
+        //        
         // Also: for some odd reason, if we use an intermediate root window as the
         // master parent, the MapPanner display doesn't repaint itself when dragging it
         // or it's map!
@@ -1365,7 +1365,7 @@ public class VUE
         // [ Assuming this is java 1.4 -- 1.5? ]
         
         // is done in buildApplicationInterface
-        //getRootWindow().setVisible(true);
+        getRootWindow().setVisible(true);
 
         //out("ACTIONTMAP " + java.util.Arrays.asList(frame.getRootPane().getActionMap().allKeys()));
         //out("INPUTMAP " + java.util.Arrays.asList(frame.getRootPane().getInputMap().allKeys()));
@@ -1784,7 +1784,7 @@ public class VUE
         	// It appears on Windows we need to actually wait till the frame is shown also...
 
         	// show before split adjust on pc
-        	if (!Util.isMacPlatform())
+        	//if (!Util.isMacPlatform())
         		ApplicationFrame.setVisible(true);
         
         	if (SplitPaneRightButtonOneTouchActionHandler != null) {
@@ -1817,6 +1817,8 @@ public class VUE
         	// can show after split adjust on mac (turns out: only on older, slower macs)
         	if (Util.isMacPlatform()) {
         		ApplicationFrame.setVisible(true);
+            
+
 
             if (SplitPaneRightButtonOneTouchActionHandler != null) {
                 // This is backup: hit it one more time just in case, as on the

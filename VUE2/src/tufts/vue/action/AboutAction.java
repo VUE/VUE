@@ -79,7 +79,7 @@ public class AboutAction extends tufts.vue.VueAction
         JLabel jtf = new JLabel("<html><font color = \"#20316A\"> <br><br>"
                                 + "&nbsp;&nbsp;&nbsp;Developed by Tufts University<br> " 
                                 + "&nbsp;&nbsp;&nbsp;University Information Technology<br>" 
-                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2015 Tufts University<br>"
+                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2020 Tufts University<br>"
                                 + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                                 + "&nbsp;&nbsp;&nbsp;Version "+VueResources.getString("vue.version")+" <br>"
                                 + "&nbsp;&nbsp;&nbsp;Built " + Version.Date + " at " + Version.Time
@@ -100,7 +100,7 @@ public class AboutAction extends tufts.vue.VueAction
         jtf.addMouseListener(new javax.swing.event.MouseInputAdapter() {
                 public void mouseClicked(MouseEvent evt) {
                     try {
-                        VueUtil.openURL("http://vue.tccs.tufts.edu");
+                        VueUtil.openURL("http://vue.tufts.edu");
                         window.setVisible(false);
                         window.dispose();
                     } catch (Exception ex) {}
