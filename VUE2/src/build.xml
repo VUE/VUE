@@ -4,7 +4,7 @@
     This build file can build all the VUE sources, as well as package
     them into various jar files useful for testing or test
     distribution.  This including a Mac Finder or Windows Explorer
-    double-clickable (runnable) jar file that inclues all required
+    double-clickable (runnable) jar file that includes all required
     third party libraries (if java has already been installed on the
     system).  Or it can be run from the command line with:
     
@@ -63,7 +63,7 @@
   <property name="test.home"   value="${top.dir}/test" />
   <property name="test.lib"   value="${test.home}/lib" />
   <property name="junit.jar"   value="${test.lib}/junit.jar" />
-  <property name="target.version" value="1.6"/>
+  <property name="target.version" value="1.8"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
   <property name="jre.home" value="/usr/local/atsys/jenkins/jre/jre7"/>
@@ -91,7 +91,7 @@
   <property name="compile.deprecation" value="false"/>
   <property name="compile.optimize"    value="false"/>
 
-  <!-- runtime argumennts for debugging -->
+  <!-- runtime arguments for debugging -->
   <property name="vue.args"    value=""/>
 
 
@@ -130,14 +130,14 @@
        merge jar file). You'll know you're have this problem if you see
        (this from including jhbasic.jar):
         Exception in thread "main" java.lang.SecurityException:
-                no manifiest section for signature file entry Javax/help/resources/Constants_zh.class
+                no manifest section for signature file entry Javax/help/resources/Constants_zh.class
   -->
   <!-- Notes about individual jar files: -->
   <!-- jlfgr-1_0.jar: Contains Java toolbarButtonGraphics -->
   <!-- castor-0.9.7.jar contains XML, JDO & DAX: we only need the XML in castor-0.9.7-xml.jar -->
   <!-- aclibico-1.0.jar: ImageIO reader service for .ico image files (based on .bmp, for website favicon) -->
   <!-- Have started to move most recently updated libraries to the top, so any overlapping
-       sub-libraries will get the latest version (as when jar'd togeter, first found is what's used).  SMF 8/29/05  -->
+       sub-libraries will get the latest version (as when jar'd together, first found is what's used).  SMF 8/29/05  -->
   <!-- aclibico-1.0.jar: SMF 2006-03-29; removed for now: is claiming to handle all images types (no just .ico)
        and completely blowing out the java VM when it tries (out of memory)-->
   <!-- 2007-01-01 SMF: updated castor to version castor-1.0.5-xml.jar -->
@@ -146,7 +146,7 @@
   <!-- 2009-03-25 SMF: updated castor to version castor-1.3-core.jar -->
 <!-- 2008-07-23 SMF: added google collections 
   		2009-01-26 MK: Added the gdata client, because of an OSID classpath problem, the gdata stuff uses .getPackage which 
-  		inturn uses VUE's classloader instead of the OSID's classloader so the classes need to be in VUE in order
+  		in turn uses VUE's classloader instead of the OSID's classloader so the classes need to be in VUE in order
   		to work properly-->
 	<property name="applet.jarfiles.names"
 		value="castor-1.3-xml.jar"
@@ -280,7 +280,7 @@
      include iTunesDR.jar).  The error message we get when attempting to do that
      doesn't tell us anything about what it can't find, so we're just going to
      go with the overkill list above.  But it looks like with some vetting, we
-     could reduce the size of the distriubtion to less than half it's current size. -->
+     could reduce the size of the distribution to less than half it's current size. -->
      <!--
          Used for exporting to SVG:
                    batik-all.jar
@@ -289,8 +289,8 @@
          axis (org.apache.axis)         FEDORA code uses this (tufts/oki/{dr,repository}/fedora)
          saaj (javax.xml.soap)          For SOAP (FEDORA access support)
          fop (org.apache.fop)           For PDFTransform.java
-         castor (org.exolab.castor)     For XML persistance support
-         dom2 (org.w3c.dom)             For SVGConverion, XMLView & AssetResource
+         castor (org.exolab.castor)     For XML persistence support
+         dom2 (org.w3c.dom)             For SVGConversion, XMLView & AssetResource
          jaxrpc (javax.xml.rpc)         FEDORA
          xercesImpl.jar                 For SVGConversion (Document/DocumentImpl)  WHICH VERSION??
          
@@ -561,8 +561,6 @@
   </target>
   <target name="compile" depends="prepare,version"
     description="Compile Java sources using default javac">
-    <!-- echo message="lib.home is ${lib.home}"/ -->
-
    
 
     <javac srcdir="${basedir}"
@@ -1088,13 +1086,13 @@
           description="Create VUE-lib.jar - a separate jar file containing the kitchen-sink set of third party libraries to run VUE (dev convenience target).">
     <!-- Note: this pathcovert is for the debug output only.  It isn't used in the zipping... -->
     <pathconvert pathsep=" " property="info.jarfiles" refid="thirdparty.jarfiles.classpath"/>
-    <echo message="Jaring: ${info.jarfiles}"/>
+    <echo message="Jarring: ${info.jarfiles}"/>
     <!-- There is a bunch of of crap in the lib file we really don't need: figure out how to exclude. -->
     <!-- Stuff like .java sources, .html files and .txt files, and from axis-ant.jar, a big fat js.jar (javascript) & bsf.jar files? -->
     <!-- Also: do we really need the /hyph/*.hyp files?  Are these Hyphenation Dictionaries? -->
     <jar destfile="${vue-lib.jar}" compress="false" index="true" update="false" duplicate="preserve">
-      <!-- zipgroupfileset is extremely picky and limited: each one can name one dir & one string represeting names from that dir,
-        and cannont include sub-items, such as a filelist, which would have been a bit cleaner for an ordered set of jar files. -->
+      <!-- zipgroupfileset is extremely picky and limited: each one can name one dir & one string representing names from that dir,
+        and cannot include sub-items, such as a filelist, which would have been a bit cleaner for an ordered set of jar files. -->
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names.extendedFeatures}"/>
     </jar>
@@ -1102,7 +1100,7 @@
 
   <target name="jar-lib-minimal"
           description="Create VUE-lib-minimal.jar - a jar file containing the minimal set libraries to run VUE (testing).">
-    <echo message="Jaring: ${thirdparty.jarfiles.names.minimal}"/>
+    <echo message="Jarring: ${thirdparty.jarfiles.names.minimal}"/>
     <jar destfile="VUE-lib-minimal.jar" compress="true" index="true" update="false">
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names.minimal}"/>
     </jar>
@@ -1134,7 +1132,7 @@
           description="Create a minimal library containing Mac OS X specific noop calls for building w/out the deprecated cocoa classes">
     <!-- Build for stuff that makes use of the Apple com.apple.cocoa.{application,foundation}.* classes
          that reside in /System/Library/Java in Mac OS X, which can access native OS X features via
-         classes such as NSWindow, NSApplcation, etc. -->
+         classes such as NSWindow, NSApplication, etc. -->
     <mkdir dir="maclib/classes"/>
     <javac srcdir="${basedir}" 
            destdir="maclib/classes"
@@ -1331,8 +1329,11 @@ cclass Version {
         <!-- Start with min of 10MB (VUE uses this much just starting up) -->
         <jvmarg value="-Xms10m"/>
         <!-- Increase max allowed memory from default 64MB to 2GB -->
-        <jvmarg value="-Xmx1024m"/>
-        <!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
+        <jvmarg value="-Xmx2048m"/>
+	<!-- Set prefs to user directory -->
+	<jvmarg value="-Djava.util.prefs.userRoot=/home/${user.name}/.java"/>
+	<jvmarg value="-Djava.util.prefs.systemRoot=/home/${user.name}/.java"/>
+	<!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
         <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
         <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
         <arg value="${vue.args}"/>
@@ -1494,7 +1495,7 @@ VUEApplet.zip - ${appletMD5}
     
    <target name="installers" depends="release,linux-jar">
           <taskdef name="nsis" classname="net.sf.nsisant.Task">
-            <classpath location="/usr/local/atsys/jenkins/nsis/nsis-2.46/ant/nsisant-1.2.jar"/>
+            <classpath location="${lib.home}/nsisant-1.2.jar"/>
            </taskdef>
 		  <copy todir="${nullsoftjre.home}">
   			<fileset dir="${jre.home}"/>
