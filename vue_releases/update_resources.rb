@@ -1,5 +1,5 @@
 #!/usr/bin/env /usr/bin/ruby
-require "/usr/local/atsys/jenkins/vue_releases/java_props.rb"
+require "./java_props.rb"
 require "date"
 
 props = JavaProps.new(ARGV[0])
