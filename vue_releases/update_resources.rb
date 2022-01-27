@@ -1,5 +1,5 @@
 #!/usr/bin/env /usr/bin/ruby
-require "./java_props.rb"
+require File.expand_path("./java_props.rb", __FILE__)
 require "date"
 
 props = JavaProps.new(ARGV[0])
