@@ -1238,13 +1238,6 @@
               classname="com.oracle.appbundler.AppBundlerTask"/>
       <mkdir dir="build/${MacDist}"/>      
 
-       <!-- Obtain path to the selected JRE -->
-      <exec executable="/usr/libexec/java_home"
-        failonerror="true"
-        outputproperty="runtime">
-         <arg value="-v"/>
-         <arg value="15"/>
-      </exec>
       <property environment="env" />
       <bundleapp 
                 outputdirectory="build/${MacDist}"
@@ -1267,7 +1260,7 @@
                 <option value="-Dcom.apple.smallTabs=true"/>
                 <option value="-Dfile.encoding=UTF-8"/>
                 <option value="-Xmx4096M"/>
-                  <runtime dir="${runtime}" />
+                
 
       </bundleapp>
   </target>
