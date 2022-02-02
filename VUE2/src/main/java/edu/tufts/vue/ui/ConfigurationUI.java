@@ -16,7 +16,6 @@ package edu.tufts.vue.ui;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.ContainerOrderFocusTraversalPolicy;
 import java.awt.FocusTraversalPolicy;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,15 +26,13 @@ import javax.swing.JTextField;
 
 import tufts.vue.VueResources;
 import tufts.vue.VueUtil;
-
-import tufts.vue.gui.VueButton;
 import tufts.vue.gui.VueFileChooser;
 
 public class ConfigurationUI extends javax.swing.JPanel {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ConfigurationUI.class);
     
-    private static String xmlFilename = null;
+    private static final String xmlFilename = null;
     private static final String FILE_NOT_FOUND_MESSAGE = "Cannot find or open ";
     
     private static final String DEFAULT_TAG = "default";
@@ -63,20 +60,19 @@ public class ConfigurationUI extends javax.swing.JPanel {
 
     private static final int MAX_CONTROL_CODE = COMBO_BOX_CONTROL;
     
-    private java.util.Vector defaultValueVector = new java.util.Vector();
-    private java.util.Vector descriptionVector = new java.util.Vector();
-    private java.util.Vector keyVector = new java.util.Vector();
-    private java.util.Vector mandatoryVector = new java.util.Vector();
-    private java.util.Vector maxCharsVector = new java.util.Vector();
-    private java.util.Vector titleVector = new java.util.Vector();
-    private java.util.Vector uiVector = new java.util.Vector();
-    private java.util.Vector fieldVector = new java.util.Vector();
-    private java.util.Vector valuesVector = new java.util.Vector();
+    private final Vector<String> defaultValueVector = new java.util.Vector<>();
+    private final Vector<String> descriptionVector = new java.util.Vector<>();
+    private final Vector<String> keyVector = new java.util.Vector<>();
+    private final Vector<Boolean> mandatoryVector = new java.util.Vector<>();
+    private final Vector<Integer> maxCharsVector = new java.util.Vector<Integer>();
+    private final Vector<String> titleVector = new java.util.Vector<String>();
+    private final Vector<Integer> uiVector = new java.util.Vector<>();
+    private final java.util.Vector fieldVector = new java.util.Vector();
+    private final java.util.Vector valuesVector = new java.util.Vector();
     
-    private java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
-    private java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+    private final java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+    private final java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
     private JButton chooser;
-    private ActionListener chooserActionListener;
     private JTextField textField8;
     
     private String errorMessage = null;
@@ -197,9 +193,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
                     this.errorMessage = "Title must be non-null";
                     return;
                 }
-                Boolean isMandatory = new Boolean(true);
+                Boolean isMandatory = true;
                 try {
-                    isMandatory = new Boolean(mandatory);
+                    isMandatory = Boolean.valueOf(mandatory);
                 } catch (Exception ex) {
                     this.errorMessage = "Mandatory must be true or false";
                     return;
@@ -229,9 +225,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
 //                         numChars = 8;
 //                 }
                 
-                Integer uiCode = new Integer(0);
+                Integer uiCode = 0;
                 try {
-                    uiCode = new Integer(ui);
+                    uiCode = Integer.valueOf(ui);
                     int n = uiCode;
                     if ( (n < 0) || (n > MAX_CONTROL_CODE) ) {
                         this.errorMessage = "Invalid UI control code: " + n;
@@ -268,7 +264,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                             break;
                         case BOOLEAN_CONTROL:
                             try {
-                                Boolean b = new Boolean(defaultValue);
+                                Boolean b = Boolean.valueOf(defaultValue);
                             } catch (Exception ex) {
                                 this.errorMessage = "Default value for " + key + " must be true or false";
                                 return;
@@ -276,7 +272,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                             break;
                         case INTEGER_CONTROL:
                             try {
-                                Integer ix = new Integer(defaultValue);
+                                Integer ix = Integer.valueOf(defaultValue);
                             } catch (Exception ex) {
                                 this.errorMessage = "Default value for " + key + " must be an integer";
                                 return;
@@ -284,7 +280,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                             break;
                         case FLOAT_CONTROL:
                             try {
-                                Float f = new Float(defaultValue);
+                                Float f = Float.valueOf(defaultValue);
                             } catch (Exception ex) {
                                 this.errorMessage = "Default value for " + key + " must be a float";
                                 return;
@@ -327,21 +323,21 @@ public class ConfigurationUI extends javax.swing.JPanel {
             order = new Vector<>(this.uiVector.size());
             
             for (int i = 0, size = this.uiVector.size(); i < size; i++) {
-                final String key = (String) keyVector.elementAt(i);
-                final int uiCode = (Integer) uiVector.elementAt(i);
-                final String defaultValue = (String)defaultValueVector.elementAt(i);
+                final String key = keyVector.elementAt(i);
+                final int uiCode = uiVector.elementAt(i);
+                final String defaultValue = defaultValueVector.elementAt(i);
                 
                 // if default value from Provider is null, check that there is not a value already set
                 
-                final String title = (String)titleVector.elementAt(i);
-                final int numChars = (Integer) maxCharsVector.elementAt(i);
+                final String title = titleVector.elementAt(i);
+                final int numChars = maxCharsVector.elementAt(i);
                 // FYI: JTextField.setColumns doesn't actually limit the size
                 // of the text field: it just sets the preferred size, which
                 // may be ignored depending on the GridBag configuration.
 
                 final boolean limitWidth = numChars > 0;
                 
-                final boolean isMandatory = (Boolean) mandatoryVector.elementAt(i);
+                final boolean isMandatory = mandatoryVector.elementAt(i);
                 //String prefix = (isMandatory) ? "*" : "";
                 final javax.swing.JLabel prompt = new javax.swing.JLabel(title + ": ");
 
@@ -425,37 +421,30 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         break;
                     case BOOLEAN_CONTROL:
                         String[] items = new String[2];
-                        if (defaultValue != null) {
-                            boolean b = new Boolean(defaultValue); // validated earlier
-                            if (b) {
-                                items[0] = "true";
-                                items[1] = "false";
-                            } else {
-                                items[1] = "true";
-                                items[0] = "false";
-                            }
-                        } else {
-                            items[0] = "true";
-                            items[1] = "false";
-                        }
-                        javax.swing.JComboBox box = new javax.swing.JComboBox(items);
+                        boolean b = (defaultValue != null)
+                                ? Boolean.valueOf(defaultValue) // validated earlier
+                                : true;
+                        items[0] = Boolean.toString(b);
+                        items[1] = Boolean.toString(!b);
+
+                        javax.swing.JComboBox<String> box = new javax.swing.JComboBox<>(items);
                         populateField(prompt,box, limitWidth);
                         break;
                     case INTEGER_CONTROL:
                         javax.swing.JFormattedTextField textField4 = null;
                         if (defaultValue != null) {
-                            textField4 = new javax.swing.JFormattedTextField(new Integer(defaultValue));
+                            textField4 = new javax.swing.JFormattedTextField(Integer.valueOf(defaultValue));
                         } else {
-                            textField4 = new javax.swing.JFormattedTextField(new Integer(0));
+                            textField4 = new javax.swing.JFormattedTextField(0);
                         }
                         populateField(prompt,textField4, limitWidth);
                         break;
                     case FLOAT_CONTROL:
                         javax.swing.JFormattedTextField textField5 = null;
                         if (defaultValue != null) {
-                            textField5 = new javax.swing.JFormattedTextField(new Float(defaultValue));
+                            textField5 = new javax.swing.JFormattedTextField(Float.valueOf(defaultValue));
                         } else {
-                            textField5 = new javax.swing.JFormattedTextField(new Float(0.0));
+                            textField5 = new javax.swing.JFormattedTextField(0.0F);
                         }
                         populateField(prompt,textField5, limitWidth);
                         break;
@@ -489,9 +478,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         }
                         
                         chooser = new JButton(VueResources.getString("resourceInstallation.chooserOpen"));
-                        
-                        
-                        chooserActionListener = new ActionListener() {
+
+
+                        ActionListener chooserActionListener = new ActionListener() {
                             public void actionPerformed(ActionEvent e) {
                                 VueFileChooser fileChooser = VueFileChooser.getVueFileChooser();
                                 fileChooser.setCurrentDirectory(new java.io.File("."));
@@ -508,7 +497,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         break;
                 }
                 
-                String description = (String)descriptionVector.elementAt(i);
+                String description = descriptionVector.elementAt(i);
                 if (description != null) {
                     prompt.setToolTipText(description);
                 }                
@@ -630,8 +619,8 @@ public class ConfigurationUI extends javax.swing.JPanel {
     public java.util.Properties getProperties() {
         java.util.Properties properties = new java.util.Properties();
         for (int i = 0, size = this.uiVector.size(); i < size; i++) {
-            int uiCode = (Integer) uiVector.elementAt(i);
-            String key = (String)keyVector.elementAt(i);
+            int uiCode = uiVector.elementAt(i);
+            String key = keyVector.elementAt(i);
             
             switch( uiCode) {
                 case COMBO_BOX_CONTROL:
@@ -701,10 +690,10 @@ public class ConfigurationUI extends javax.swing.JPanel {
     
     public void setProperties(java.util.Properties properties) {
         for (int i = 0, size = this.keyVector.size(); i < size; i++) {
-            String key = (String)keyVector.elementAt(i);
+            String key = keyVector.elementAt(i);
             String value = properties.getProperty(key);
             if (value != null) {
-                int uiCode = (Integer) uiVector.elementAt(i);
+                int uiCode = uiVector.elementAt(i);
                 
                 switch( uiCode) {
                     case SINGLE_LINE_CLEAR_TEXT_CONTROL:
