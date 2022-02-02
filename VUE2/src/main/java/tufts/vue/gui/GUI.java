@@ -976,7 +976,7 @@ public class GUI
                 // debug: does this return us anything interesting?  java 1.5 default impl delegates to ShellFolder,
                 // so result should presumably be the same
                 fsIcon = javax.swing.filechooser.FileSystemView.getFileSystemView().getSystemIcon(file);
-            } catch (Throwable _) {}
+            } catch (Throwable _t) {}
             
             Log.warn("could not get Icon for filetype: " + ext + "." + sizeRequest + "; " + t + "; fsIcon=" + fsIcon);
             
