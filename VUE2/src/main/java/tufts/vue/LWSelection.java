@@ -35,7 +35,7 @@ import com.google.common.collect.HashMultiset;
  */
 
 // could have this listen to everyone in it, and then folks who want
-// to monitor the selected object can only once regiester as a
+// to monitor the selected object can only once register as a
 // selectedEventListener, instead of always adding and removing from
 // the individual objects.
 
@@ -47,8 +47,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         /** @return true if the given object acceptable for selection  */
         boolean accept(LWComponent c);
     }
-    private List listeners = new java.util.ArrayList();
-    private List controlListeners = new java.util.LinkedList();
+    private List<Listener> listeners = new java.util.ArrayList<>();
+    private List<ControlListener> controlListeners = new java.util.LinkedList<>();
     private Rectangle2D.Float mBounds = null;
     private LWSelection lastSelection;
     
@@ -129,7 +129,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         mHeight = h;
     }
 
-    /** @return an unmodifable list of our contents useful for iteration */
+    /** @return an unmodifiable list of our contents useful for iteration */
     public List<LWComponent> contents() {
         if (mSecureList == null)
             mSecureList = java.util.Collections.unmodifiableList(this);
@@ -243,9 +243,9 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 //Log.debug("content summary: " + mTypes);
             }
             Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);
-            int nlistener = listeners.size();
+            int nListener = listeners.size();
             long start = 0;
-            for (int i = 0; i < nlistener; i++) {
+            for (int i = 0; i < nListener; i++) {
                 if (DEBUG.SELECTION && DEBUG.META) debug("notifying: #" + (i+1) + " " + (i<9?" ":""));
                 Listener l = listener_iter[i];
                 try {
@@ -295,7 +295,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
 
     /** for Actions.java */
-    java.util.List getListeners()
+    List<Listener> getListeners()
     {
         return this.listeners;
     }
@@ -391,11 +391,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return true;
         
     }
-    
-    //public boolean add(Object o) {
-    //throw new RuntimeException(this + " can't add " + o.getClass() + ": " + o);
-    //}
-    
+
     /** Make sure all in Iterable are in selection & do a single change notify at the end */
     public void add(Iterable<LWComponent> iterable) {
         add(iterable.iterator());
@@ -463,7 +459,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
 
     protected boolean isSelectable(LWComponent c) {
-        return c instanceof LWMap.Layer == false;
+        return !(c instanceof LWMap.Layer);
     }
     
     private synchronized boolean addSilent(LWComponent c)
@@ -614,7 +610,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     /**
      * clearAndNotify
-     * This emthod clears teh selection and always notifies
+     * This method clears the selection and always notifies
      * listeners of a change.
      *
      **/
@@ -688,7 +684,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             // TODO: ideally, we would listen for hierarchy change events on the
             // selection contents, and auto-recompute mParents whenever a change was
             // detected -- otherwise, mParents immediately becomes incorrect if a user
-            // action reparents any of the selection contents. This currently has to be
+            // action re-parents any of the selection contents. This currently has to be
             // watched for manually by calling resetStatistics (e.g., see LayersUI).
             
             for (LWComponent c : this) {
@@ -720,15 +716,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return mBounds;
     }
 
-//     /** return shape bounds of map selection in map (not screen) coordinates
-//      * Does NOT inclde any stroke widths. */
-//     public Rectangle2D getShapeBounds()
-//     {
-//         if (size() == 0)
-//             return null;
-//         return LWMap.getBounds(iterator());
-//     }
-
     void flushBounds()
     {
         mBounds = null;
@@ -752,7 +739,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     public LWComponent last()
     {
-        return size() == 0 ? null : (LWComponent) get(size()-1);
+        return size() == 0 ? null : get(size()-1);
     }
 
     public Set<Class> getTypes() {
