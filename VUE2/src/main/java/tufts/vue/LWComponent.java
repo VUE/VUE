@@ -24,12 +24,10 @@ import java.awt.Shape;
 import java.awt.Rectangle;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Stroke;
 import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.AlphaComposite;
-import java.awt.font.TextAttribute;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.awt.Transparency;
@@ -38,7 +36,6 @@ import java.util.*;
 import java.util.regex.*;
 import java.net.*;
 
-import javax.swing.text.StyleConstants;
 //import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 
@@ -328,7 +325,7 @@ public class LWComponent
     protected transient List<LWPathway.Entry> mEntries;
 
     /** properties for use by model clients (e.g., UI components) */
-    protected transient HashMap mClientData;
+    protected transient HashMap<Object, Object> mClientData;
     // need MetaMap (a multi-map) for XML data-sets that can have more than one value per key
     protected transient MetaMap mDataMap;
 
@@ -346,19 +343,19 @@ public class LWComponent
 
     protected transient BufferedImage mImageBuffer;
 
-    public static final Comparator XSorter = new Comparator<LWComponent>() {
+    public static final Comparator<LWComponent> XSorter = new Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
                 // we multiply up the result so as not to loose differential precision in the integer result
                 return (int) (128f * (c1.x - c2.x));
             }
         };
-    public static final Comparator YSorter = new Comparator<LWComponent>() {
+    public static final Comparator<LWComponent> YSorter = new Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
                 return (int) (128f * (c1.y - c2.y));
             }
         };
 
-    public static final Comparator GridSorter = new Comparator<LWComponent>() {
+    public static final Comparator<LWComponent> GridSorter = new Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
                 if (c1.y == c2.y)
                     return XSorter.compare(c1, c2);
@@ -1436,7 +1433,7 @@ public class LWComponent
 
 
     public static final String KEY_LabelFormat = "label.format";
-    public static final Key KEY_Label = new Key<LWComponent,String>("label", KeyType.DATA) {
+    public static final Key<LWComponent, String> KEY_Label = new Key<LWComponent,String>("label", KeyType.DATA) {
         @Override public void setValueWithContext(LWComponent c, String val, Object context) {
             if (context == PROPERTY_SET_UNDO)
                 c.setLabelImpl(val, true, false);
@@ -1445,7 +1442,7 @@ public class LWComponent
         }
         @Override public String getValue(LWComponent c) { return c.getLabel(); }
     };
-    public static final Key KEY_Notes = new Key<LWComponent,String>("notes", KeyType.DATA) {
+    public static final Key<LWComponent, String> KEY_Notes = new Key<LWComponent,String>("notes", KeyType.DATA) {
         @Override public void setValue(LWComponent c, String val) { c.setNotes(val); }
         @Override public String getValue(LWComponent c) { return c.getNotes(); }
     };
@@ -1501,7 +1498,7 @@ public class LWComponent
             if (o == null) // storing null means remove value
                 return;
             else
-                mClientData = new HashMap(2);
+                mClientData = new HashMap<>(2);
         }
 
         if (DEBUG.DATA) {
@@ -1670,8 +1667,8 @@ public class LWComponent
      * passing flags into the dupe context.
      */
     public static class LinkPatcher {
-        private java.util.Map<LWComponent,LWComponent> mCopies = new java.util.IdentityHashMap();
-        private java.util.Map<LWComponent,LWComponent> mOriginals = new java.util.IdentityHashMap();
+        private java.util.Map<LWComponent,LWComponent> mCopies = new java.util.IdentityHashMap<>();
+        private java.util.Map<LWComponent,LWComponent> mOriginals = new java.util.IdentityHashMap<>();
 
         public LinkPatcher() {
             if (DEBUG.DND) Log.debug("LinkPatcher: created");
@@ -2931,7 +2928,7 @@ public class LWComponent
 
     protected void addEntryRef(LWPathway.Entry e) {
         if (mEntries == null) {
-            mEntries = new ArrayList();
+            mEntries = new ArrayList<>();
             mVisibleSlideIconIterator = new SlideIconIter();
         }
         if (!mEntries.contains(e))
@@ -2953,7 +2950,7 @@ public class LWComponent
     private void addPathwayRef(LWPathway p)
     {
         if (mPathways == null)
-            mPathways = new ArrayList();
+            mPathways = new ArrayList<>();
         if (!mPathways.contains(p)) {
             mPathways.add(p);
             // todo: too late, UNDELETING flag already cleared (call is from pathway on pathway undelete)
@@ -3467,7 +3464,7 @@ public class LWComponent
 
     protected void addSyncClient(LWComponent c) {
         if (mSyncClients == null)
-            mSyncClients = new HashSet();
+            mSyncClients = new HashSet<>();
         mSyncClients.add(c);
     }
 
@@ -3820,7 +3817,7 @@ public class LWComponent
                 stored.add(s);
             return stored;
         } else
-            return (List) getChildren();
+            return (List<LWComponent>) getChildren();
     }
 
 
@@ -3847,7 +3844,7 @@ public class LWComponent
         if (kind == ChildKind.PROPER)
             return java.util.Collections.EMPTY_LIST;
         else
-            return getAllDescendents(kind, new java.util.ArrayList(), Order.TREE);
+            return getAllDescendents(kind, new java.util.ArrayList<>(), Order.TREE);
     }
 
     public final Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag) {
@@ -3884,7 +3881,7 @@ public class LWComponent
     {
         if (DEBUG.UNDO) out(this + " adding link ref to " + link);
         if (mLinks == null)
-            mLinks = new ArrayList(4);
+            mLinks = new ArrayList<>(4);
         if (mLinks.contains(link)) {
             //tufts.Util.printStackTrace("addLinkRef: " + this + " already contains " + link);
             if (DEBUG.Enabled) Log.warn("addLinkRef: " + this + " already contains " + link);
@@ -3972,7 +3969,7 @@ public class LWComponent
      **/
     public Collection<LWComponent> getLinked() {
         // default uses a set, in case there are multiple links to the same endpoint
-        return getLinked(new HashSet(getLinks().size()));
+        return getLinked(new HashSet<>(getLinks().size()));
     }
 
     protected Collection<LWComponent> getLinked(Collection<LWComponent> bag) {
@@ -4006,9 +4003,9 @@ public class LWComponent
                 dcl++;
 
         if (dcl == 0 || dcl == links.size())
-            return getLinked(links, new HashSet(links.size()));
+            return getLinked(links, new HashSet<>(links.size()));
         else
-            return getLinked(getPriorityDataLinks(getLinks()), new HashSet(dcl));
+            return getLinked(getPriorityDataLinks(getLinks()), new HashSet<>(dcl));
     }
 
     /** @return list will only contain LWLink */
@@ -4029,7 +4026,7 @@ public class LWComponent
         // (e.g., all the countries clustering around a region they're in)
 
         //final Collection<LWLink> countDataLinks = new ArrayList();
-        final Collection<LWLink> normalDataLinks = new ArrayList(links.size());
+        final Collection<LWLink> normalDataLinks = new ArrayList<>(links.size());
 
         // todo performance: just produce integer counts, then construct the
         // lists in the rare case they're needed
@@ -4329,10 +4326,10 @@ public class LWComponent
 
     /** @return a collection of our ancestors.  default impl returns a list with nearest ancestor first */
     public List<LWComponent> getAncestors() {
-        return (List) getAncestors(new ArrayList(8));
+        return (List<LWComponent>) getAncestors(new ArrayList<LWComponent>(8));
     }
 
-    protected Collection<LWComponent> getAncestors(Collection bag) {
+    protected Collection<LWComponent> getAncestors(Collection<LWComponent> bag) {
         if (parent != null) {
             bag.add(parent);
             return parent.getAncestors(bag);
@@ -7149,7 +7146,7 @@ public class LWComponent
         setFlag(Flag.PRUNED, pruned);
     }
 
-    public static final Key KEY_State =
+    public static final Key<LWComponent, Integer> KEY_State =
         new Key<LWComponent,Integer>("state") {
         @Override public void setValue(LWComponent c, Integer state) { c.mState = state; } // for undo
         @Override public Integer getValue(LWComponent c) { return c.mState; } // for undo/debug
