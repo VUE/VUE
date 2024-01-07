@@ -1447,7 +1447,7 @@ public class DockWindow
             // which is important for MacOSX window shadow.
             // Unfrotunately, this is not full-proof, but
             // adding a call to toFront seems to have fixed this?
-            if (isMacAqua && MacWindowShadowEnabled  && !VUE.isApplet()) {
+            if (isMacAqua && MacWindowShadowEnabled ) {
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
                     superSetVisible(true);
                     toFront();
@@ -1468,7 +1468,7 @@ public class DockWindow
     	
         setVisible(show, true);
     	
-        if (show && !VUE.isApplet())
+        if (show)
         	toFront();
     }
 
@@ -1495,18 +1495,18 @@ public class DockWindow
             return;
         }
 
-        if (show && !VUE.isApplet()) {
+        if (show ) {
             if (autoUnrollOnShow && isRolledUp())
                 setRolledUp(false);
             else if (false && mUnrolledShape != null)
                 // need to show before we do this!  Will need to tweak us so that's okay to do.
                 setShapeAnimated(getX(), getY(), mUnrolledShape.width, mUnrolledShape.height);
             
-        } else if (false && !VUE.isApplet()) {
-            if (!isRolledUp())
-                mUnrolledShape = getBounds();
-            setShapeAnimated(getX(), getY(), getWidth(), 0);
-        }
+         }// else if (false && !VUE.isApplet()) {
+        //     if (!isRolledUp())
+        //         mUnrolledShape = getBounds();
+        //     setShapeAnimated(getX(), getY(), getWidth(), 0);
+        // }
 
         if (isVisible() == mShowing)
             return;
@@ -1531,7 +1531,7 @@ public class DockWindow
             mChildWhenHidden = null;
             mParentWhenHidden = null;
             
-            if ((isMac && true || windowStackChanged) && !VUE.isApplet()) {
+            if ((isMac && true || windowStackChanged)) {
                 raiseChildrenLater();
             }
         }
@@ -1653,13 +1653,14 @@ public class DockWindow
         if (VUE.usingAnchorDock() == false)
             return;
         
-    	  if (!VUE.isApplet() && Util.isMacLeopard() && VUE.getAnchorDock().isVisible()) {
-          	VUE.getAnchorDock().setVisible(false);
-          }
-          if (!VUE.isApplet() && Util.isMacLeopard()) {	
-          	VUE.getAnchorDock().setVisible(true);
-          	VUE.getAnchorDock().toFront();
-          }
+          //TODO: MAC LEOPARD MARKED AS DEPRECATED... MAY WANT TO SEE HOW USEFUL THIS IS.
+    	//   if ( Util.isMacLeopard() && VUE.getAnchorDock().isVisible()) {
+        //   	VUE.getAnchorDock().setVisible(false);
+        //   }
+        //   if ( Util.isMacLeopard()) {	
+        //   	VUE.getAnchorDock().setVisible(true);
+        //   	VUE.getAnchorDock().toFront();
+        //   }
           return;
     }
     private boolean isPointFullyOnScreen(Point p, Dimension size, Dimension screenSize)
@@ -1715,7 +1716,7 @@ public class DockWindow
 
         GUI.setRootPaneNames(_peer, title);
 
-        if (isMac && Util.isMacCocoaSupported() && isDisplayable() && !VUE.isApplet()) {
+        if (isMac && Util.isMacCocoaSupported() && isDisplayable() ) {
             // isDisplayable true if we have a peer, which we need before MacOSX lib calls
             try {
                 MacOSX.setTitle(_win, title);
@@ -3588,7 +3589,7 @@ public class DockWindow
     
 
     private void updateWindowShadow() {
-        if (isMac && Util.isMacCocoaSupported() &&!VUE.isApplet()) {
+        if (isMac && Util.isMacCocoaSupported() ) {
 
             if (!MacWindowShadowEnabled) {
                 setWindowShadow(false);

@@ -275,12 +275,11 @@ public class SaveAction extends VueAction
 			// don't know this as not all the above stuff is passing
             // exceptions on to us!
             Log.debug("Save completed for " + file);
-            if (!VUE.isApplet())
-            {
+           
             	VueFrame frame = (VueFrame)VUE.getMainWindow();
             	String title = VUE.getName() + ": " + name;                      
             	frame.setTitle(title);
-            }
+            
             if (name.endsWith(".vue"))
             {
              RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();

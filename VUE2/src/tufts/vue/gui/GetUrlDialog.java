@@ -105,18 +105,14 @@ final RecentlyOpenedUrlManager roum = RecentlyOpenedUrlManager.getInstance();
 		Dimension dialogDim = getSize();
 	
 		Dimension frameDim = null;
-		if (!tufts.vue.VUE.isApplet())
-			frameDim = tufts.vue.VUE.getApplicationFrame().getSize();
-		else
-			frameDim = tufts.vue.VUE.getRootWindow().getSize();
+		frameDim = tufts.vue.VUE.getApplicationFrame().getSize();
 			
 		Dimension screenSize = getToolkit().getScreenSize();
 		Point location = null; 
 		
-		if (!tufts.vue.VUE.isApplet())
+		
 			location = tufts.vue.VUE.getApplicationFrame().getLocation();
-		else
-			location = tufts.vue.VUE.getRootWindow().getLocation();
+		
 		location.translate((frameDim.width - dialogDim.width) / 2,
 				(frameDim.height - dialogDim.height) / 2);
 		location.x = Math.max(0, Math.min(location.x, screenSize.width

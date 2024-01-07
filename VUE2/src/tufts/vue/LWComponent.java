@@ -61,6 +61,10 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 // line-wrapped text.  Otherwise, in LWNode's, setting label before size set will cause
 // the size to be set.
 
+/** for debug */
+final class LW {}
+
+
 public class LWComponent
     implements VueConstants, XMLUnmarshalListener
 {
@@ -8103,8 +8107,6 @@ public class LWComponent
 }
 
 
-/** for debug */
-final class LW {}
 
 
 

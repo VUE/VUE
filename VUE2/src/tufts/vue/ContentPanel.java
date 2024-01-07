@@ -36,10 +36,10 @@ public class ContentPanel extends JPanel {
 
 
 	public ContentPanel(DockWindow dockWindow) {
-		if (!VUE.isApplet()) {
+		
 			resources = new DRBrowser(true, dockWindow);
 			addBrowser(VueResources.getString("dockWindow.contentPanel.resources.title"), resources);
-		}
+		
 
 		datasets = new DSBrowser(dockWindow);
 		addBrowser(VueResources.getString("dockWindow.contentPanel.datasets.title"), datasets);
@@ -99,10 +99,12 @@ public class ContentPanel extends JPanel {
 	}
 
 	public void showDatasetsTab() {
-		tabbedPane.setSelectedIndex(VUE.isApplet() ? 0 : 1);
+		//TODO: THIS USED TO CHECK IF IT WAS AN APPLET
+		tabbedPane.setSelectedIndex(1);
 	}
 
 	public void showOntologiesTab() {
-		tabbedPane.setSelectedIndex(VUE.isApplet() ? 1 : 2);
+		//TODO: THIS USED TO CHECK IF IT WAS AN APPLET
+		tabbedPane.setSelectedIndex(2);
 	}
 }

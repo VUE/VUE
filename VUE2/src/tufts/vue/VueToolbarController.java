@@ -43,7 +43,7 @@ public class VueToolbarController
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueToolbarController.class);
     
     /** the list of tool names is under this key in the resources **/
-    public static final String DefaultToolsKey = VUE.isApplet() ? "appletToolbarToolNames" : "mainToolbarToolNames";
+    public static final String DefaultToolsKey = "mainToolbarToolNames";
     private static VueToolbarController sController;
 	
 	

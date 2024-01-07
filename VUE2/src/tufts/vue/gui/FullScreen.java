@@ -317,7 +317,7 @@ public class FullScreen
         }
 
         void makeInvisible() {
-            if (!isHidden && Util.isMacCocoaSupported() && !VUE.isApplet()) {
+            if (!isHidden && Util.isMacCocoaSupported() ) {
                 isHidden = true;
                 MacOSX.setWindowAlpha(this, 0);
             }

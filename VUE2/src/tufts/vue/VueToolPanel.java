@@ -135,15 +135,11 @@ public class VueToolPanel extends JPanel
          
         if (debug)
             pButton.setBackground(Color.magenta);
-        else if (!VUE.isApplet())
-            GUI.applyToolbarColor(pButton);
         else
         {
-        	//For the life of me I can't figure out what's wrong with L&F on applets but 
-        	//buttons are not getting the same background properties as panels, weird. Hack
-        	//for now.
-        	pButton.setBackground(p.getBackground());
+            GUI.applyToolbarColor(pButton);
         }
+
         if (addToMainToolbar)
         	add( pButton);
         mButtonGroup.add( pButton);

@@ -137,8 +137,9 @@ public abstract class ContentViewer extends JPanel {
 		*/
 		if (!SwingUtilities.isEventDispatchThread())		
 		{
-			if (VUE.isApplet())
-				System.out.println("not threadsafe except for AWT");
+			//TODO: KIND OF LIKE WHAT WAS THE POINT OF THIS ?
+			// if (VUE.isApplet())
+			// 	System.out.println("not threadsafe except for AWT");
 		//	else
 				throw new Error("not threadsafe except for AWT");
 		}

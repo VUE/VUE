@@ -5360,10 +5360,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
 
-    	if (VUE.isApplet() && VueApplet.isZoteroApplet() && r!=null) {
-        	sSinglePopup.addSeparator();
-    		sSinglePopup.add(Actions.AddResourceToZotero);
-    	}
+    	// if (VUE.isApplet() && VueApplet.isZoteroApplet() && r!=null) {
+        // 	sSinglePopup.addSeparator();
+    	// 	sSinglePopup.add(Actions.AddResourceToZotero);
+    	// }
 
     	sSinglePopup.addSeparator();
     	
@@ -5512,7 +5512,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	{    		
     		sSinglePopup.addSeparator();
     		sSinglePopup.add(Actions.ContextNotesAction);
-    		if (!VUE.isApplet())
+    		
     			sSinglePopup.add(syncMenu);
     		sSinglePopup.addSeparator();
     		sSinglePopup.add(Actions.Paste);
@@ -5540,7 +5540,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     	sSinglePopup.addSeparator();
     	sSinglePopup.add(Actions.ContextNotesAction);
-   	    if (!VUE.isApplet())
+   	 
    	    	sSinglePopup.add(syncMenu);
 
    	    sSinglePopup.addSeparator();
@@ -5905,7 +5905,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sMapPopup.add(Actions.ZoomFit);
             sMapPopup.add(Actions.ZoomActual);
 
-            if (!(Util.isUnixPlatform() || VUE.isApplet()) ) {
+            if (!Util.isUnixPlatform()) {
             	sMapPopup.add(Actions.ToggleFullScreen);
             }
 
@@ -6978,27 +6978,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
          */
         private void displayContextMenu(MouseEvent e, LWComponent hitComponent) {
         	PopupFactory factory=null;
-            if (!VUE.isApplet() && VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+            if ( VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
                 // on mac, attempt to pop a menu in true full-screen mode
                 // put's us to black screen and leaves us there!
                 return;
             }
-            if (!VUE.isApplet())
-            {
+          
             	factory = PopupFactory.getSharedInstance();
          		PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance())); 
-            }
+            
             if (VueSelection.isEmpty() || VueSelection.only() instanceof LWMap) {
             	                       
                 getMapPopup().show(e.getComponent(), e.getX(), e.getY());
             } else if (VueSelection.size() == 1) {
-                if (!VUE.isApplet())
+              
              		PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
                 getSingleSelectionPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
             } else {
                 getMultiSelectionPopup().show(e.getComponent(), e.getX(), e.getY());
             }
-            if (!VUE.isApplet())
+           
             	PopupFactory.setSharedInstance(factory);
         }
         

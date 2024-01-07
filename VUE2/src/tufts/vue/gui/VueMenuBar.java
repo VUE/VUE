@@ -63,7 +63,6 @@ import tufts.vue.RecentlyOpenedFilesManager;
 import tufts.vue.Resource;
 import tufts.vue.VUE;
 import tufts.vue.VueAction;
-import tufts.vue.VueApplet;
 import tufts.vue.VueConstants;
 import tufts.vue.VueResources;
 import tufts.vue.VueTool;
@@ -509,10 +508,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.addSeparator();        
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
-        if (VUE.isApplet() && VueApplet.isZoteroApplet())
-        {
-        	fileMenu.add(Actions.SaveCopyToZotero);
-        }
+       
+        // if (VUE.isApplet() && VueApplet.isZoteroApplet())
+        // {
+        // 	fileMenu.add(Actions.SaveCopyToZotero);
+        // }
+       
         fileMenu.add(Actions.Revert);
         Actions.Revert.setEnabled(false);
         fileMenu.addSeparator();
@@ -589,21 +590,21 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.addSeparator();
         fileMenu.add(printAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, metaMask));
         fileMenu.add(printAction).setText(VueResources.getString("menu.windows.printvisible"));
-        if (!VUE.isApplet())
-        	fileMenu.add(pdfExportMenu);        
+        // if (!VUE.isApplet())
+        // 	fileMenu.add(pdfExportMenu);        
         rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
       
-        if (VUE.isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && GUI.isMacAqua())) {
-            // Do NOT add quit to the file menu.
-            // Either we're an applet w/no quit, or it's already in the mac application menu bar.
-            // FYI, MRJAdapter.isSwingUsingScreenMenuBar() is not telling us the truth.
-        } else {
+        // if (VUE.isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && GUI.isMacAqua())) {
+        //     // Do NOT add quit to the file menu.
+        //     // Either we're an applet w/no quit, or it's already in the mac application menu bar.
+        //     // FYI, MRJAdapter.isSwingUsingScreenMenuBar() is not telling us the truth.
+        // } else {
             fileMenu.addSeparator();
             JMenuItem exitItem = new JMenuItem(VueResources.getString("menu.windows.exit"));
             exitItem.setMnemonic('x');
             exitItem.addActionListener(exitAction);
             fileMenu.add(exitItem);
-        }
+        //}
         
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Edit Menu
@@ -626,10 +627,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.ShrinkSelection);
         editMenu.add(Actions.Reselect);
         editMenu.add(Actions.DeselectAll);
-        if (!tufts.Util.isMacPlatform() || VUE.isApplet())
-        {   editMenu.addSeparator();
-            editMenu.add(Actions.Preferences);
-        }
+        // if (!tufts.Util.isMacPlatform() || VUE.isApplet())
+        // {   editMenu.addSeparator();
+        //     editMenu.add(Actions.Preferences);
+        // }
         
         if (DEBUG.IMAGE)
             editMenu.add(Images.ClearCacheAction);
@@ -645,25 +646,24 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.add(Actions.ZoomToSelection);
         viewMenu.add(Actions.ZoomActual);
         viewMenu.addSeparator();            
-        if (!(Util.isUnixPlatform() || VUE.isApplet()) ) {
-            viewMenu.add(viewFullScreen);
-        }
+        // if (!(Util.isUnixPlatform() || VUE.isApplet()) ) {
+        //     viewMenu.add(viewFullScreen);
+        // }
         
-        if (!VUE.isApplet()) {
-            viewMenu.add(splitScreenItem);
-            viewMenu.add(viewSuperScreen);
-        }
+        // if (!VUE.isApplet()) {
+        //     viewMenu.add(splitScreenItem);
+        //     viewMenu.add(viewSuperScreen);
+        // }
         
         if (DEBUG.TWITTER)
         	viewMenu.add(viewKiosk);
         
-        if (!VUE.isApplet())
-        	viewMenu.addSeparator();
-        if (!VUE.isApplet())
-        {
+        
+        viewMenu.addSeparator();
+       
         	viewMenu.add(toggleSlideIconsItem);
         	viewMenu.addSeparator();
-        }
+        
 
         if (LWComponent.COLLAPSE_IS_GLOBAL)
             viewMenu.add(makeCheckBox(Actions.ToggleGlobalCollapse));
@@ -831,11 +831,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Presentation Menu
         ////////////////////////////////////////////////////////////////////////////////////
-        if (!VUE.isApplet())
-        {
+       
         	presentationMenu.add(playbackMenu);
         	presentationMenu.addSeparator();
-        }
+        
         
         presentationMenu.addMenuListener(new MenuListener(){
 			public void menuCanceled(MenuEvent e) {/* no op	*/}
@@ -860,18 +859,17 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			}});
         presentationMenu.add(newSlideItem);
         presentationMenu.add(newMergeNodeItem);
-        if (!VUE.isApplet())
-        	presentationMenu.addSeparator();
+        presentationMenu.addSeparator();
+        
         if (VUE.getSlideDock() != null) {
             presentationMenu.add(Actions.MasterSlide);                
             presentationMenu.add(Actions.PreviewInViewer);
         }
         //slidePreviewMenu.add(Actions.PreviewOnMap);
-        if (!VUE.isApplet())
-        {
+       
         	presentationMenu.add(Actions.PreviewOnMap);
         	presentationMenu.add(Actions.EditMasterSlide);
-        }
+        
         	// slidePreviewMenu.add(Actions.PreviewInViewer);
       //  presentationMenu.add(slidePreviewMenu);
          playbackMenu.addMenuListener(new MenuListener()
@@ -915,8 +913,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	
         });
         
-        if (!VUE.isApplet())
-        {
+        
         	notesMenu.add(Actions.MapAsPDF);
         	notesMenu.add(Actions.FullPageSlideNotes);
         	notesMenu.add(Actions.Slides8PerPage);
@@ -924,10 +921,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	notesMenu.add(Actions.SpeakerNotes4);
         	notesMenu.add(Actions.AudienceNotes);
         	notesMenu.add(Actions.SpeakerNotesOutline);   
-        }
         
-        if (!VUE.isApplet())
-        	presentationMenu.add(notesMenu);
+        
+        
+        presentationMenu.add(notesMenu);
         
         presentationMenu.addMenuListener(new MenuListener(){
 			public void menuCanceled(MenuEvent e) {/* no op	*/}
@@ -964,7 +961,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Build Help Menu
         ////////////////////////////////////////////////////////////////////////////////////
 
-        if (tufts.Util.isMacPlatform() == false || VUE.isApplet()) {
+        if (tufts.Util.isMacPlatform() == false ) {
             // already in standard MacOSX place
             helpMenu.add(new AboutAction());
             helpMenu.addSeparator();
@@ -987,8 +984,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         helpMenu.add(new ShortcutsAction());
         
         helpMenu.addSeparator();
-        if (!VUE.isApplet())
-        	helpMenu.add(new ShowLogAction());
+      
+        helpMenu.add(new ShowLogAction());
       
         ////////////////////////////////////////////////////////////////////////////////////
         // Build final main menu bar
@@ -1034,7 +1031,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         windowMenu.addSeparator();
 //      if (VUE.getContentDock()!= null && !VUE.isApplet()){
             windowMenu.add(createWindowItem(VUE.getContentDock(), KeyEvent.VK_3, VueResources.getString("dockWindow.contentPanel.title")));
-            if (!VUE.isApplet())
+        
             	windowMenu.add(Actions.ResourcesAction);
             windowMenu.add(Actions.DatasetsAction);
             windowMenu.add(Actions.OntologiesAction);
@@ -1049,9 +1046,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
             windowMenu.add(createWindowItem(VUE.getLayersDock(), KeyEvent.VK_5, VueResources.getString("menu.windows.layers")));
         if (VUE.getMapInfoDock() !=null)
             windowMenu.add(createWindowItem(VUE.getMapInfoDock(), KeyEvent.VK_6, VueResources.getString("menu.windows.mapinfo")));
-        if (VUE.getOutlineDock() !=null && !VUE.isApplet())	
+        if (VUE.getOutlineDock() !=null )	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(), KeyEvent.VK_7, VueResources.getString("menu.windows.outline")));
-        if (VUE.getPannerDock() !=null && !VUE.isApplet())	
+        if (VUE.getPannerDock() !=null )	
         	windowMenu.add(createWindowItem(VUE.getPannerDock(), 0, VueResources.getString("menu.windows.panner")));
         if (VUE.getPresentationDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getPresentationDock(), KeyEvent.VK_8, VueResources.getString("menu.windows.pathways")));

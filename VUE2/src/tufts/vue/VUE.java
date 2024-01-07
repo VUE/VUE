@@ -14,7 +14,6 @@
  */
 package tufts.vue;
 
-import java.applet.AppletContext;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -58,7 +57,6 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -138,7 +136,7 @@ public class VUE
 
     private static final Logger Log = Logger.getLogger(VUE.class);
     
-    private static AppletContext sAppletContext 	= null;
+   
     
     /** The currently active selection.
      * elements in ModelSelection should always be from the ActiveModel */
@@ -556,8 +554,8 @@ public class VUE
         //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);    	
         VueMenuBar.RootMenuBar.saveAction.setEnabled(enable);
         VueMenuBar.RootMenuBar.saveAsAction.setEnabled(enable);
-        if (VUE.isApplet() && VueApplet.isZoteroApplet())
-        	Actions.SaveCopyToZotero.setEnabled(enable);
+        // if (VUE.isApplet() && VueApplet.isZoteroApplet())
+        // 	Actions.SaveCopyToZotero.setEnabled(enable);
         VueMenuBar.RootMenuBar.publishMenu.setEnabled(enable);
         Actions.CloseMap.setEnabled(enable);
         VueMenuBar.RootMenuBar.printAction.setEnabled(enable);
@@ -704,25 +702,17 @@ public class VUE
         ActiveInstance.removeListener(clazz, reflectedListener);
     }	
     
-    public static void setAppletContext(AppletContext ac) {
-        sAppletContext = ac;
-    }
-    public static AppletContext getAppletContext() {
-        return sAppletContext;
-    }
-    public static boolean isApplet() {
-    	if (VueApplet.getInstance() !=null)
-    		return VueApplet.getInstance().getAppletContext() != null;
-    	else
-    		return false;
-      //  return sAppletContext != null;
-    }
+  
+    // public static boolean isApplet() {
+    // 	if (VueApplet.getInstance() !=null)
+    // 		return VueApplet.getInstance().getAppletContext() != null;
+    // 	else
+    // 		return false;
+    //   //  return sAppletContext != null;
+    // }
 
     public static String getSystemProperty(String name) {
-        // If we're an applet, System.getProperty will throw an AccessControlException
-        if (false && isApplet())
-            return null;
-        else {
+      
             String prop;
             try {
                 prop = System.getProperty(name);
@@ -732,7 +722,7 @@ public class VUE
                 prop = null;
             }
             return prop;
-        }
+        
     }
 
     public static final String NullSystemProperty = "";
@@ -1213,8 +1203,7 @@ public class VUE
         // VUE-879: UrlAuthentication should initialized BEFORE
         // startRepositoryConfiguration.  It will listen for events from VDSM to scan
         // each DataSource as it's configured for any authentication credentials.
-       if (VUE.isApplet())
-    	   return;
+      
     	UrlAuthentication.getInstance();
             
         final VueDataSourceManager VDSM =
@@ -1240,12 +1229,12 @@ public class VUE
     static void initApplication()
     {
         final Window splashScreen;
-        if (VUE.isApplet())
-        {
-        	//SKIP_DR=true;
-        	SKIP_SPLASH=true;
-        	SKIP_CAT=true;
-        }
+        // if (VUE.isApplet())
+        // {
+        // 	//SKIP_DR=true;
+        // 	SKIP_SPLASH=true;
+        // 	SKIP_CAT=true;
+        // }
         if (SKIP_DR || SKIP_SPLASH ) {
             splashScreen = null;
             //DEBUG.Enabled = true;
@@ -1489,24 +1478,17 @@ public class VUE
         //-------------------------------------------------------
         // Create the tabbed panes for the viewers
         //-------------------------------------------------------
-    	if (!VUE.isApplet())
-    	{
+    	
     		mMapTabsLeft = new MapTabbedPane("*left", true);
     		mMapTabsRight = new MapTabbedPane("right", false);
-    	}
-    	else
-    		mMapTabsLeft = new MapTabbedPane("*left",true);//VueApplet.getMapTabbedPane();
-        
+    	
+    	
         
         //-------------------------------------------------------
         // Create the split pane
         //-------------------------------------------------------
     	mViewerSplit = buildSplitPane(mMapTabsLeft, mMapTabsRight);
-    	if (VUE.isApplet())
-    	{
-    		mViewerSplit.setBackground(new Color(244,244,244));
-    		
-    	}
+    	
     	//GUI.applyToolbarColor(mMapTabsRight);
         
         //-------------------------------------------------------
@@ -1515,7 +1497,7 @@ public class VUE
         
         if (DEBUG.INIT) out("creating VueFrame...");
 
-        if (!VUE.isApplet())
+        
         	VUE.ApplicationFrame = new VueFrame();
         
         if (DEBUG.INIT) out("created VueFrame");
@@ -1545,8 +1527,7 @@ public class VUE
 
         final JComponent toolbar;
         JPanel toolbarPanel = null;        
-        if (!VUE.isApplet())
-        {
+       
         	 if (VueToolPanel.IS_CONTEXTUAL_TOOLBAR_ENABLED)
                  toolbar = tbc.getToolbar();
              else
@@ -1558,15 +1539,14 @@ public class VUE
              } else {
                 ApplicationFrame.addComp(toolbarPanel, BorderLayout.NORTH);
              }
-        }
+        
         
         createDockWindows();
 
         
         final tufts.vue.gui.Screen screen = GUI.getScreenForWindow(null);
-        
-        if (!VUE.isApplet())
-        {
+      //TODO: LOOKS LIKES YOU CAN PROBABLY REMOVE THIS IF APPLETS NO LONGER RUN IN MODERN BROWERS  
+       
         	// GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
         	
         	//final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
@@ -1773,12 +1753,11 @@ public class VUE
         		if (DEBUG.INIT) Util.printStackTrace("\"pressing\": " + SplitPaneRightButtonOneTouchActionHandler);
 
         		// Not reliable on PC unless we invokeLater
-        		if (!VUE.isApplet())
-        		{
+        		
         			GUI.invokeAfterAWT(new Runnable() { public void run() {
         			SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);                  
         			}});
-        		}
+        		
         		// this is also eventually getting eaten in java 1.5: no matter where
         		// we put this call during init: will have to patch w/more hacking
         		// or live with it.  Actually, it get's eaten eventually in java 1.4.2
@@ -1812,7 +1791,6 @@ public class VUE
             }
         }
         
-        }
         if (toolbarDock != null) {
             toolbarDock.suggestLocation(screen.top, screen.left);
             toolbarDock.setWidth(screen.width);
@@ -1844,7 +1822,7 @@ public class VUE
   //                                     );        	
         	
         		DockWindow.flickerAnchorDock();
-            	if (!VUE.isApplet())
+            
             		formatDock.setVisible(true);
         	}
         
@@ -1912,7 +1890,7 @@ public class VUE
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 // TODO: doesn't appear to be allowing old state to rule as is supposed to:
                 assignDefaultPositions(acrossTop);
-                if (!VUE.isApplet())
+                
                     DockWindow.RestoreAllWindowStates();
             }});
         }
@@ -1970,7 +1948,7 @@ public class VUE
         // Pathways panel
         //-----------------------------------------------------------------------------
         pathwayPanel = new PathwayPanel(VUE.getDialogParentAsFrame());
-        if (pathwayDock == null  || VUE.isApplet())
+        if (pathwayDock == null )
         pathwayDock = GUI.createDockWindow(VueResources.getString("dockWindow.presentation.title"),
         		VueResources.getString("dockWindow.Pathways.helpText"), pathwayPanel);
 
@@ -1983,7 +1961,7 @@ public class VUE
 
         //formatDock = null;
         floatingZoomPanel = new FloatingZoomPanel();
-        if (floatingZoomDock == null || VUE.isApplet())
+        if (floatingZoomDock == null )
         {
         	floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
         	floatingZoomDock.setContent(floatingZoomPanel);
@@ -1995,7 +1973,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         // Panner
         //-----------------------------------------------------------------------------
-        if (pannerDock == null || VUE.isApplet())
+        if (pannerDock == null )
         {
         	pannerDock = GUI.createDockWindow(VueResources.getString("dockWindow.panner.title"),
         			VueResources.getString("dockWindow.Panner.helpText"), new MapPanner());
@@ -2017,7 +1995,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         // Map Inspector
         //-----------------------------------------------------------------------------
-        if (MapInspector == null || VUE.isApplet())
+        if (MapInspector == null )
         {
         	MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"),
         			VueResources.getString("dockWindow.MapInfo.helpText"));
@@ -2028,7 +2006,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         // Meta data Search
         //-----------------------------------------------------------------------------
-        if (metaDataSearchDock == null || VUE.isApplet())
+        if (metaDataSearchDock == null)
         {        	
         	metaDataSearchDock = GUI.createDockWindow(VueResources.getString("dockWindow.search.title"),
         			VueResources.getString("dockWindow.Search.helpText"));        	
@@ -2037,7 +2015,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         // Interaction Tools panel
         //-----------------------------------------------------------------------------
-        if (interactionToolsDock == null || VUE.isApplet())
+        if (interactionToolsDock == null )
         {
         	interactionToolsDock = GUI.createDockWindow(VueResources.getString("dockWindow.interactionTools.title"),
         			VueResources.getString("dockWindow.ExplorationTools.helpText"));
@@ -2051,7 +2029,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         // Content window
         //-----------------------------------------------------------------------------
-        if (!SKIP_DR && (contentDock == null || VUE.isApplet()))
+        if (!SKIP_DR && contentDock == null )
         {
         	contentDock = GUI.createDockWindow(VueResources.getString("dockWindow.contentPanel.title"),
         			VueResources.getString("dockWindow.Content.helpText"));
@@ -2062,7 +2040,7 @@ public class VUE
       //-----------------------------------------------------------------------------
         // Merge Maps
         //-----------------------------------------------------------------------------
-        if (mergeMapsDock == null || VUE.isApplet())
+        if (mergeMapsDock == null)
         {        	
         	mergeMapsDock = GUI.createDockWindow(VueResources.getString("dockWindow.mergemaps.title"),
         			VueResources.getString("dockWindow.MergeMaps.helpText"));        	
@@ -2074,7 +2052,8 @@ public class VUE
 
         //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
         inspectorPane = new tufts.vue.ui.InspectorPane();
-        if (ObjectInspector == null || VUE.isApplet())
+     
+        if (ObjectInspector == null)
         {
         	ObjectInspector = GUI.createDockWindow(VueResources.getString("dockWindow.info.title"),
         			VueResources.getString("dockWindow.Info.helpText"));
@@ -2083,7 +2062,7 @@ public class VUE
         	ObjectInspector.setHeight(575);
         }
         
-    	if (layersDock == null || VUE.isApplet())
+    	if (layersDock == null)
     	{
     		layersDock = GUI.createDockWindow(VueResources.getString("dockWindow.layers.title"),
     				VueResources.getString("dockWindow.Layers.helpText"), new tufts.vue.ui.LayersUI());
@@ -2159,9 +2138,9 @@ public class VUE
             VUE.ActiveMapHandler.addListener(outlineTree);
             outlineScroller.setPreferredSize(new Dimension(500, 300));
             //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
-            if (outlineDock == null  || VUE.isApplet())
-            	outlineDock =  GUI.createDockWindow(VueResources.getString("dockWindow.outline.title"),
-            			VueResources.getString("dockWindow.Outline.helpText"), outlineScroller);
+            // if (outlineDock == null  || VUE.isApplet())
+            // 	outlineDock =  GUI.createDockWindow(VueResources.getString("dockWindow.outline.title"),
+            // 			VueResources.getString("dockWindow.Outline.helpText"), outlineScroller);
 
             DataSourceViewer.initUI();
             
@@ -2173,7 +2152,7 @@ public class VUE
 
         //formatDock = null;
         formattingPanel = new FormatPanel();
-        if (formatDock == null || VUE.isApplet())
+        if (formatDock == null )
         {
         	formatDock = GUI.createDockWindow(VueResources.getString("dockWindow.format.title"),true,true);
         	formatDock.setContent(formattingPanel);
@@ -2187,7 +2166,7 @@ public class VUE
             //Util.isMacLeopard()
             && Util.getJavaVersion() >= 1.5f
             && DockWindow.useManagedWindowHacks()
-            && !VUE.isApplet();
+            /* && !VUE.isApplet() */;
 
         // 2009-07-23 SMF: Current Mac OS X 1.5 JVM appears to NOT need the Leopard anchor,
         // but java 1.6 JVM still does.  This just with one test -- we'll need to keep
@@ -2378,7 +2357,7 @@ public class VUE
         searchPanelGBC.weightx = 1.0;
         searchPanel.add(searchField, searchPanelGBC);
 
-        if (!VUE.isApplet()) {
+       
             gBC.fill = GridBagConstraints.HORIZONTAL;			
             gBC.gridx = 4;
             gBC.gridy = 0;
@@ -2387,7 +2366,7 @@ public class VUE
             toolbarPanel.add(searchPanel, gBC);
             // Need to add a tiny bit of pad at right:
             //if (DEBUG.Enabled) toolbarPanel.add(new JLabel(" "));
-        }
+        
 
         if (DEBUG.INIT) out("created ToolBar");
         
@@ -3342,8 +3321,8 @@ public class VUE
         if (file == null)
             return;
 
-        if (VUE.isApplet())
-        {
+       
+        
         	if (	(getActiveMap() != null) && 
     				!getActiveMap().hasContent() && 
     				getActiveMap().getFile() == null)
@@ -3357,9 +3336,8 @@ public class VUE
     				abe.printStackTrace();
     			}
     		}
-        }
-        else
-        {
+        
+       
         	/*
         	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
         	 * requested in vue-520 
@@ -3393,7 +3371,7 @@ public class VUE
             		closeMap(getActiveMap());
             	
         	}
-        }
+        
 
         
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
@@ -3476,24 +3454,7 @@ public class VUE
         if (url == null)
             return;
 
-        if (VUE.isApplet())
-        {
-        	if (	(getActiveMap() != null) && 
-    				!getActiveMap().hasContent() && 
-    				getActiveMap().getFile() == null)
-    		{
-    			try
-    			{
-    				closeMap(getActiveMap());
-    			}
-    			catch(ArrayIndexOutOfBoundsException abe)
-    			{
-    				abe.printStackTrace();
-    			}
-    		}
-        }
-        else
-        {
+      
         	/*
         	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
         	 * requested in vue-520 
@@ -3527,8 +3488,9 @@ public class VUE
             		closeMap(getActiveMap());
             	
         	}
-        }
+        
 
+        // end block
       /*  
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
@@ -3643,11 +3605,9 @@ public class VUE
 
         diagPop();
         
-        if (VUE.isApplet())
-        {
         	if (LWPathway.isShowingSlideIcons())
         		LWPathway.toggleSlideIcons();
-        }        
+            
         return leftViewer;
     }
 
@@ -3742,31 +3702,9 @@ public class VUE
     
     /** return the root VUE window, mainly for those who'd like it to be their parent */
     public static Window getRootWindow() {
-    	if (!VUE.isApplet())
+    
     		return VUE.ApplicationFrame;
-    	else
-    	{
-    		Frame[] frames = JFrame.getFrames();
-    		//System.out.println("FRAME LENGTH " + frames.length);
-    		JApplet app =  VueApplet.getInstance();
-    		Container c = app.getParent();
-    		while (!(c instanceof Window))
-    		{
-    			c = c.getParent();
-    		}
-    		return (Window)c;
-    	}
-    	/*
-        if (true) {
-            return VUE.frame;
-        } else {
-            if (rootWindow == null) {
-                //rootWindow = makeRootFrame();
-                rootWindow = makeRootWindow();
-            }
-            return rootWindow;
-        }
-        */
+    	
     }
     /*
     private static Window makeRootWindow() {

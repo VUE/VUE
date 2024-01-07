@@ -337,7 +337,7 @@ public class DataTree extends javax.swing.JTree
         	{
         		if (relation.getFromLabel().equals(trueName) || relation.getToLabel().equals(trueName))
         		{        			                			                			
-        			for (DataNode n : mAllRowsNode.getChildren()) {
+        			for (TreeNode n : mAllRowsNode.getChildren()) {
      		         	RowNode rn = (RowNode)n;
      		         	
         		     if (rn.isMapPresent()) {
@@ -422,8 +422,8 @@ public class DataTree extends javax.swing.JTree
         final Field keyField = mSchema.getKeyField();
         final String keyFieldName = keyField.getName();
 
-        for (DataNode n : mAllRowsNode.getChildren()) {
-            final DataRow row = n.getRow();
+        for (TreeNode n : mAllRowsNode.getChildren()) {
+            final DataRow row = ((DataNode)n).getRow();
             if (row.isContextChanged()) {
                 //Log.debug("Context changed: " + Util.tag(row));
                 String keyValue = row.getValue(keyField);
@@ -1167,13 +1167,17 @@ public class DataTree extends javax.swing.JTree
 
         if (map != null) {
             final String annot = map.getLabel();
-            for (DataNode n : mRootNode.getChildren()) {
+            for (TreeNode n : mRootNode.getChildren()) {
+
+                DataNode n2 = (DataNode)n;
+
                 if (Thread.interrupted()) return true;
-                n.annotate(map);
+                n2.annotate(map);
                 if (!n.isLeaf())
-                    for (DataNode cn : n.getChildren()) {
+                    for (TreeNode cn : n2.getChildren()) {
+                        DataNode cn2 = (DataNode) cn;
                         if (Thread.interrupted()) return true;
-                        cn.annotate(map);
+                        cn2.annotate(map);
                     }
             }
         }
@@ -1181,10 +1185,12 @@ public class DataTree extends javax.swing.JTree
         int _newRowCount = 0;
         int _changedRowCount = 0;
      //   if (mAllRowsNode.getChildren() !=null)
-        for (DataNode n : mAllRowsNode.getChildren()) {
-            if (!n.isMapPresent())
+        for (TreeNode n : mAllRowsNode.getChildren()) {
+
+            DataNode n2 = (DataNode)n;
+            if (!n2.isMapPresent())
                 _newRowCount++;
-            if (n.isContextChanged())
+            if (n2.isContextChanged())
                 _changedRowCount++;
         }
 
@@ -1355,7 +1361,7 @@ public class DataTree extends javax.swing.JTree
                             Log.error("interrupted; exiting; " + schema);
                             return;
                         }
-                        if (DataTree.this == ForegroundTree && !VUE.isApplet()) // referring to NORM_PRIORITY can fail in Applets
+                        if (DataTree.this == ForegroundTree) // referring to NORM_PRIORITY can fail in Applets
                             setPriority(NORM_PRIORITY - 1);
                         else
                             setPriority(MIN_PRIORITY);
@@ -1795,10 +1801,11 @@ public class DataTree extends javax.swing.JTree
         // this is somewhat of a special case of doing a drop
         final List<DataRow> newRows = new ArrayList();
 	
-        for (DataNode n : mAllRowsNode.getChildren()) {
-            if (!n.isMapPresent()) {
+        for (TreeNode n : mAllRowsNode.getChildren()) {
+            DataNode n2 = (DataNode) n;
+            if (!n2.isMapPresent()) {
                 //Log.debug("ADDING TO MAP: " + n);
-                newRows.add(n.getRow());
+                newRows.add(n2.getRow());
             }
         }
 	
@@ -1949,7 +1956,7 @@ public class DataTree extends javax.swing.JTree
 
         protected DataNode() {}
 
-        Vector<DataNode> getChildren() {
+        Vector<TreeNode> getChildren() {
             return super.children;
         }
 

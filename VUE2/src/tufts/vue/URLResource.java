@@ -1814,11 +1814,10 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                          * www.fedoracommons.org from an applet in Firefox on the mac it will hang
                          * Java and firefox and you have to force quit the application.
                          */
-                        if (!VUE.isApplet())
+                      
                         	type = url.openConnection().getHeaderField("Content-type");
-                        else
-                        	type = null;
-                        if (DEBUG.Enabled) {
+                      
+                            if (DEBUG.Enabled) {
                             out("got contentType " + url + " [" + type + "]");
                             //Util.printStackTrace("GOT CONTENT TYPE");
                         }
