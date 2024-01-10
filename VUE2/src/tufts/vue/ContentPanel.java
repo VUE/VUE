@@ -28,18 +28,16 @@ import edu.tufts.vue.ontology.ui.OntologyBrowser;
 import tufts.vue.gui.DockWindow;
 
 public class ContentPanel extends JPanel {
-	public static final long	serialVersionUID = 1;
-	JTabbedPane					tabbedPane = new JTabbedPane();
-	DRBrowser					resources = null;
-	DSBrowser					datasets = null;
-	OntologyBrowser				ontologies = null;
-
+	public static final long serialVersionUID = 1;
+	JTabbedPane tabbedPane = new JTabbedPane();
+	DRBrowser resources = null;
+	DSBrowser datasets = null;
+	OntologyBrowser ontologies = null;
 
 	public ContentPanel(DockWindow dockWindow) {
-		
-			resources = new DRBrowser(true, dockWindow);
-			addBrowser(VueResources.getString("dockWindow.contentPanel.resources.title"), resources);
-		
+
+		resources = new DRBrowser(true, dockWindow);
+		addBrowser(VueResources.getString("dockWindow.contentPanel.resources.title"), resources);
 
 		datasets = new DSBrowser(dockWindow);
 		addBrowser(VueResources.getString("dockWindow.contentPanel.datasets.title"), datasets);
@@ -50,9 +48,9 @@ public class ContentPanel extends JPanel {
 
 		dockWindow.setContent(tabbedPane);
 
-		if (DEBUG.Enabled) tabbedPane.setSelectedIndex(1);
+		if (DEBUG.Enabled)
+			tabbedPane.setSelectedIndex(1);
 	}
-
 
 	public void finalize() {
 		resources = null;
@@ -62,8 +60,9 @@ public class ContentPanel extends JPanel {
 	}
 
 	protected void addBrowser(String title, JPanel browser) {
-		JScrollPane scrollPane = new JScrollPane(null, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		JViewport	viewport = scrollPane.getViewport();
+		JScrollPane scrollPane = new JScrollPane(null, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		JViewport viewport = scrollPane.getViewport();
 
 		viewport.setOpaque(false);
 
@@ -77,7 +76,8 @@ public class ContentPanel extends JPanel {
 
 		tabbedPane.addTab(title, scrollPane);
 
-		if (DEBUG.BOXES) scrollPane.setBorder(new LineBorder(Color.green, 4));
+		if (DEBUG.BOXES)
+			scrollPane.setBorder(new LineBorder(Color.green, 4));
 	}
 
 	public void loadDataSourceViewer() {
@@ -99,12 +99,12 @@ public class ContentPanel extends JPanel {
 	}
 
 	public void showDatasetsTab() {
-		//TODO: THIS USED TO CHECK IF IT WAS AN APPLET
+		// TODO: THIS USED TO CHECK IF IT WAS AN APPLET
 		tabbedPane.setSelectedIndex(1);
 	}
 
 	public void showOntologiesTab() {
-		//TODO: THIS USED TO CHECK IF IT WAS AN APPLET
+		// TODO: THIS USED TO CHECK IF IT WAS AN APPLET
 		tabbedPane.setSelectedIndex(2);
 	}
 }

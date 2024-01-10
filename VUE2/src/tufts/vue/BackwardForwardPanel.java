@@ -27,17 +27,14 @@ import tufts.vue.Actions;
 import tufts.vue.gui.VueButton;
 import tufts.vue.gui.VueButtonIcon;
 
-public class BackwardForwardPanel extends JPanel
-{
-	public static final long	serialVersionUID = 1;
-
+public class BackwardForwardPanel extends JPanel {
+	public static final long serialVersionUID = 1;
 
 	public BackwardForwardPanel() {
 		super(new GridLayout(1, 2, 0, 0));
 
-
-		VueButton	backwardButton = createButton(Actions.ViewBackward, VueResources.getIcon("Back.raw")),
-					forwardButton = createButton(Actions.ViewForward, VueResources.getIcon("Forward.raw"));
+		VueButton backwardButton = createButton(Actions.ViewBackward, VueResources.getIcon("Back.raw")),
+				forwardButton = createButton(Actions.ViewForward, VueResources.getIcon("Forward.raw"));
 
 		add(backwardButton);
 		add(forwardButton);
@@ -47,14 +44,13 @@ public class BackwardForwardPanel extends JPanel
 		}
 	}
 
-
 	protected VueButton createButton(Action action, Icon icon) {
-		VueButton	newButton = new VueButton(action);
+		VueButton newButton = new VueButton(action);
 
 		VueButtonIcon.installGenerated(newButton, icon, null);
 
-		Icon		installedIcon = newButton.getIcon();
-		Dimension	buttonSize = new Dimension(installedIcon.getIconWidth(), installedIcon.getIconHeight());
+		Icon installedIcon = newButton.getIcon();
+		Dimension buttonSize = new Dimension(installedIcon.getIconWidth(), installedIcon.getIconHeight());
 
 		newButton.setMinimumSize(buttonSize);
 		newButton.setMaximumSize(buttonSize);

@@ -2,10 +2,18 @@
 <!-- Do Not Remove: Saved Mon Aug 22 05:44:41 EDT 2005 by sfraize on platform Windows 2000 5.0 -->
 <!-- Do Not Remove: Saved by @(#)VUE: built August 20 2005 at 1543 by sfraize on Mac OS X 10.4.2 ppc JVM 1.4.2_07-215 -->
 <?xml version="1.0" encoding="US-ASCII"?>
-<LW-MAP xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="none" ID="0"
-    label="startup_unicode.vue" x="35.0" y="24.0" width="822.5496"
-    height="506.40283" strokeWidth="0.0" autoSized="true">
+<LW-MAP
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="none"
+  ID="0"
+  label="startup_unicode.vue"
+  x="35.0"
+  y="24.0"
+  width="822.5496"
+  height="506.40283"
+  strokeWidth="0.0"
+  autoSized="true"
+>
     <notes>This is the VUE start-up map.</notes>
     <fillColor>#ffffff</fillColor>
     <font>SansSerif-plain-18</font>

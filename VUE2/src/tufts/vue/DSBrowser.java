@@ -27,17 +27,15 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
 import tufts.vue.ui.AssociationsPane;
 
-
 public class DSBrowser extends ContentBrowser {
-	public static final long	serialVersionUID = 1;
+	public static final long serialVersionUID = 1;
 	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DSBrowser.class);
 
-	public static DockWindow			dockWindow = null;
-	protected Widget					librariesPane = new Widget(VueResources.getString("dockWindow.contentPanel.datasets.title"));
-	protected AssociationsPane			associationsPane = new AssociationsPane();
-	protected Widget					browsePane = new Widget(VueResources.getString("button.browse.label"));
-	protected DataSetViewer				dataSetViewer = new DataSetViewer(this);
-
+	public static DockWindow dockWindow = null;
+	protected Widget librariesPane = new Widget(VueResources.getString("dockWindow.contentPanel.datasets.title"));
+	protected AssociationsPane associationsPane = new AssociationsPane();
+	protected Widget browsePane = new Widget(VueResources.getString("button.browse.label"));
+	protected DataSetViewer dataSetViewer = new DataSetViewer(this);
 
 	public DSBrowser(DockWindow dw) {
 		super("DSBrowser");
@@ -48,16 +46,17 @@ public class DSBrowser extends ContentBrowser {
 		dataSetViewer.setName("Data Set Viewer");
 
 		librariesPane.add(dataSetViewer);
-		librariesPane.revalidate();	// Necessary for dataSetViewer names to be rendered;  not sure why.
+		librariesPane.revalidate(); // Necessary for dataSetViewer names to be rendered; not sure why.
 
 		addPane(librariesPane, 0f);
 		addPane(associationsPane, 0f);
 		addPane(browsePane, 1f);
 
 		// The following must happen AFTER each Widget is added to the WidgetStack.
-		associationsPane.setActions();	
+		associationsPane.setActions();
 		Widget.setHelpAction(librariesPane, VueResources.getString("dockWindow.Datasources.libraryPane.helpText"));
-		// dockWindow.addButton is not a localized string in this context;  it's just a property that is later resolved.
+		// dockWindow.addButton is not a localized string in this context; it's just a
+		// property that is later resolved.
 		Widget.setMiscAction(librariesPane, new MiscActionMouseListener(), "dockWindow.addButton");
 		Widget.setRefreshAction(browsePane, new MouseAdapter() {
 			public void mousePressed(MouseEvent event) {
@@ -68,8 +67,7 @@ public class DSBrowser extends ContentBrowser {
 		refreshMenuActions();
 	}
 
-	public DataSetViewer getDataSetViewer()
-	{
+	public DataSetViewer getDataSetViewer() {
 		return dataSetViewer;
 	}
 
@@ -80,23 +78,21 @@ public class DSBrowser extends ContentBrowser {
 		dataSetViewer = null;
 	}
 
-
 	public DataSource addDataset() {
-		XmlDataSource	ds = new XmlDataSource("", null);
+		XmlDataSource ds = new XmlDataSource("", null);
 
 		try {
-			String			xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>8</ui><field><key>matrix</key><title>Import as Matrix Data</title><description>Read as Matrix Data</description><default>false</default><mandatory>true</mandatory><maxChars></maxChars><ui>3</ui></field></field></configuration>";
-			String			name = ds.getDisplayName();
-			String			address = ds.getAddress();
-
+			String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>8</ui><field><key>matrix</key><title>Import as Matrix Data</title><description>Read as Matrix Data</description><default>false</default><mandatory>true</mandatory><maxChars></maxChars><ui>3</ui></field></field></configuration>";
+			String name = ds.getDisplayName();
+			String address = ds.getAddress();
 
 			xml = xml.replaceFirst("DEFAULT_NAME", (name != null ? name : ""));
 			xml = xml.replaceFirst("DEFAULT_ADDRESS", (address != null ? address : ""));
 
-			edu.tufts.vue.ui.ConfigurationUI cui =
-						new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+			edu.tufts.vue.ui.ConfigurationUI cui = new edu.tufts.vue.ui.ConfigurationUI(
+					new java.io.ByteArrayInputStream(xml.getBytes()));
 
-			cui.setPreferredSize(new Dimension(350, (int)cui.getPreferredSize().getHeight()));
+			cui.setPreferredSize(new Dimension(350, (int) cui.getPreferredSize().getHeight()));
 
 			if (VueUtil.option(this,
 					cui,
@@ -104,19 +100,20 @@ public class DSBrowser extends ContentBrowser {
 					javax.swing.JOptionPane.DEFAULT_OPTION,
 					javax.swing.JOptionPane.PLAIN_MESSAGE,
 					new Object[] {
-						VueResources.getString("optiondialog.configuration.continue"), VueResources.getString("optiondialog.configuration.cancel")
+							VueResources.getString("optiondialog.configuration.continue"),
+							VueResources.getString("optiondialog.configuration.cancel")
 					},
 					VueResources.getString("optiondialog.configuration.continue")) == 1) {
 				// Cancelled
 				ds = null;
 			} else {
-				java.util.Properties	p = cui.getProperties();
-				BrowseDataSource		bds = (BrowseDataSource)ds;
+				java.util.Properties p = cui.getProperties();
+				BrowseDataSource bds = (BrowseDataSource) ds;
 
 				bds.setDisplayName(p.getProperty("name"));
 				bds.setAddress(p.getProperty("address"));
-				ds.setMatrixField(p.getProperty("matrix"));								
-				
+				ds.setMatrixField(p.getProperty("matrix"));
+
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -125,17 +122,14 @@ public class DSBrowser extends ContentBrowser {
 		return ds;
 	}
 
-
-	
 	class MiscActionMouseListener extends MouseAdapter {
 		public void mouseClicked(MouseEvent event) {
 			addLibraryAction.actionPerformed(null);
 		}
 	}
 
-
 	protected void refreshMenuActions() {
-		boolean		datasetSelected = (dataSetViewer.dataSourceList.getSelectedValue() != null);
+		boolean datasetSelected = (dataSetViewer.dataSourceList.getSelectedValue() != null);
 
 		reloadLibraryAction.setEnabled(datasetSelected);
 		removeLibraryAction.setEnabled(datasetSelected);
@@ -143,17 +137,18 @@ public class DSBrowser extends ContentBrowser {
 
 		Widget.setMenuActions(librariesPane,
 				new Action[] {
-			addLibraryAction,
-			null,
-			editLibraryAction,
-			reloadLibraryAction,
-			removeLibraryAction
-		});
+						addLibraryAction,
+						null,
+						editLibraryAction,
+						reloadLibraryAction,
+						removeLibraryAction
+				});
 	}
 
+	public AbstractAction addLibraryAction = new AbstractAction(
+			VueResources.getString("datasourcehandler.adddataset")) {
+		public static final long serialVersionUID = 1;
 
-	public AbstractAction addLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.adddataset")) {
-		public static final long	serialVersionUID = 1;
 		public void actionPerformed(ActionEvent event) {
 			DataSource ds = addDataset();
 
@@ -174,27 +169,30 @@ public class DSBrowser extends ContentBrowser {
 		}
 	};
 
+	public AbstractAction editLibraryAction = new AbstractAction(
+			VueResources.getString("datasourcehandler.aboutthisdataset")) {
+		public static final long serialVersionUID = 1;
 
-	public AbstractAction editLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.aboutthisdataset")) {
-		public static final long	serialVersionUID = 1;
 		public void actionPerformed(ActionEvent event) {
-			DataSource ds = (DataSource)DataSetViewer.dataSourceList.getSelectedValue();
+			DataSource ds = (DataSource) DataSetViewer.dataSourceList.getSelectedValue();
 
 			dataSetViewer.displayEditOrInfo(ds);
 		}
 	};
 
+	public AbstractAction reloadLibraryAction = new AbstractAction(
+			VueResources.getString("datasourcehandler.reloaddataset")) {
+		public static final long serialVersionUID = 1;
 
-	public AbstractAction reloadLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.reloaddataset")) {
-		public static final long	serialVersionUID = 1;
 		public void actionPerformed(ActionEvent event) {
 			dataSetViewer.refreshBrowser();
 		}
 	};
 
+	public AbstractAction removeLibraryAction = new AbstractAction(
+			VueResources.getString("datasourcehandler.deletedataset")) {
+		public static final long serialVersionUID = 1;
 
-	public AbstractAction removeLibraryAction = new AbstractAction(VueResources.getString("datasourcehandler.deletedataset")) {
-		public static final long	serialVersionUID = 1;
 		public void actionPerformed(ActionEvent event) {
 			Object obj = DataSetViewer.dataSourceList.getSelectedValue();
 
@@ -203,7 +201,8 @@ public class DSBrowser extends ContentBrowser {
 				String displayName = ds.getDisplayName();
 
 				if (VueUtil.confirm(VUE.getDialogParent(),
-						String.format(Locale.getDefault(), VueResources.getString("datasource.dialog.message"), displayName),
+						String.format(Locale.getDefault(), VueResources.getString("datasource.dialog.message"),
+								displayName),
 						VueResources.getString("dataset.dialog.title"),
 						javax.swing.JOptionPane.OK_CANCEL_OPTION) == javax.swing.JOptionPane.YES_OPTION) {
 					DataSetViewer.dataSourceList.getModelContents().removeElement(ds);

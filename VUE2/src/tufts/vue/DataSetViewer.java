@@ -39,15 +39,14 @@ import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
 import tufts.vue.gui.WidgetStack;
 
-
 public class DataSetViewer extends ContentViewer {
-	public static final long			serialVersionUID = 1;
+	public static final long serialVersionUID = 1;
 	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSetViewer.class);
 
-	protected DSBrowser					DSB = null;
-	protected static DataSourceList		dataSourceList = null;
-	private static Object				activeDataSource = null;
-	protected JPopupMenu				contextMenu = null;
+	protected DSBrowser DSB = null;
+	protected static DataSourceList dataSourceList = null;
+	private static Object activeDataSource = null;
+	protected JPopupMenu contextMenu = null;
 
 	public DataSetViewer(DSBrowser dsb) {
 		DSB = dsb;
@@ -63,9 +62,9 @@ public class DataSetViewer extends ContentViewer {
 			initUI();
 		}
 
-//		editInfoDockWindow.setLocation(DSB.dockWindow.getX() + DSB.dockWindow.getWidth(), DSB.dockWindow.getY());
+		// editInfoDockWindow.setLocation(DSB.dockWindow.getX() +
+		// DSB.dockWindow.getWidth(), DSB.dockWindow.getY());
 	}
-
 
 	public void finalize() {
 		DSB = null;
@@ -73,19 +72,20 @@ public class DataSetViewer extends ContentViewer {
 		dataSourceList = null;
 	}
 
-
 	protected void loadDataSets() {
-		File file = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
+		File file = new File(VueUtil.getDefaultUserFolder().getAbsolutePath() + File.separatorChar
+				+ VueResources.getString("save.datasources"));
 
 		if (!file.exists()) {
-			if (DEBUG.DR) System.out.println("Loading Datasets (does not exist: " + file + ")");
+			if (DEBUG.DR)
+				System.out.println("Loading Datasets (does not exist: " + file + ")");
 		} else {
 			try {
-				SaveDataSourceViewer		dataSourceViewer = unMarshallMap(file);
-				Vector<BrowseDataSource>	dataSources = dataSourceViewer.getSaveDataSources();
+				SaveDataSourceViewer dataSourceViewer = unMarshallMap(file);
+				Vector<BrowseDataSource> dataSources = dataSourceViewer.getSaveDataSources();
 
 				while (!dataSources.isEmpty()) {
-					BrowseDataSource	ds = (BrowseDataSource)dataSources.remove(0);
+					BrowseDataSource ds = (BrowseDataSource) dataSources.remove(0);
 
 					// Only show XML data sources (this includes CSV files).
 					if (ds.getTypeName().equals(XmlDataSource.TYPE_NAME)) {
@@ -94,33 +94,34 @@ public class DataSetViewer extends ContentViewer {
 				}
 
 				// select the first new data set, if any
-				DefaultListModel	model = dataSourceList.getModelContents();
+				DefaultListModel model = dataSourceList.getModelContents();
 
-//				if (activeDataSource == null && model.size() > 0)
-//					setActiveDataSource((DataSource)model.getElementAt(0));
+				// if (activeDataSource == null && model.size() > 0)
+				// setActiveDataSource((DataSource)model.getElementAt(0));
 			} catch (Exception ex) {
 				Log.error("Loading Datasets: ", ex);
 			}
 		}
 	}
 
-
 	private void addListeners() {
 		dataSourceList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				if (DEBUG.KEYS || DEBUG.EVENTS) Log.debug("valueChanged: " + e);
+				if (DEBUG.KEYS || DEBUG.EVENTS)
+					Log.debug("valueChanged: " + e);
 
-				Object obj = ((JList)e.getSource()).getSelectedValue();
+				Object obj = ((JList) e.getSource()).getSelectedValue();
 
-				if (obj !=null) {
+				if (obj != null) {
 					if (obj instanceof tufts.vue.DataSource) {
-						DataSource ds = (DataSource)obj;
+						DataSource ds = (DataSource) obj;
 						setActiveDataSource(ds);
 						refreshEditInfo(ds);
 					} else {
-						obj = dataSourceList.getModelContents().getElementAt(((JList)e.getSource()).getSelectedIndex() - 1);
+						obj = dataSourceList.getModelContents()
+								.getElementAt(((JList) e.getSource()).getSelectedIndex() - 1);
 						if (obj instanceof tufts.vue.DataSource) {
-							DataSource ds = (DataSource)obj;
+							DataSource ds = (DataSource) obj;
 							setActiveDataSource(ds);
 							refreshEditInfo(ds);
 						}
@@ -133,14 +134,14 @@ public class DataSetViewer extends ContentViewer {
 
 		dataSourceList.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent event) {
-				int			index = dataSourceList.locationToIndex(event.getPoint());
-				DataSource	ds = (DataSource)dataSourceList.getModel().getElementAt(index);
+				int index = dataSourceList.locationToIndex(event.getPoint());
+				DataSource ds = (DataSource) dataSourceList.getModel().getElementAt(index);
 
 				if (event.getClickCount() == 2) {
-						displayEditOrInfo(ds);
+					displayEditOrInfo(ds);
 				} else {
 					if (event.getButton() == MouseEvent.BUTTON3) {
-//						lastMouseClick = e.getPoint();
+						// lastMouseClick = e.getPoint();
 
 						setActiveDataSource(ds);
 						displayContextMenu(event);
@@ -150,10 +151,9 @@ public class DataSetViewer extends ContentViewer {
 		});
 	}
 
-
-	public void setActiveDataSource(final DataSource ds)
-	{
-		if (DEBUG.Enabled) Log.debug("setActiveDataSource: " + ds);
+	public void setActiveDataSource(final DataSource ds) {
+		if (DEBUG.Enabled)
+			Log.debug("setActiveDataSource: " + ds);
 
 		if (activeDataSource != ds) {
 			activeDataSource = ds;
@@ -164,9 +164,7 @@ public class DataSetViewer extends ContentViewer {
 		displayInBrowsePane(produceViewer(browserDS), true);
 	}
 
-
-	void refreshBrowser()
-	{
+	void refreshBrowser() {
 		if (browserDS == null || browserDS.isLoading())
 			return;
 
@@ -176,11 +174,11 @@ public class DataSetViewer extends ContentViewer {
 		displayInBrowsePane(produceViewer(browserDS), false);
 	}
 
-	protected void displayInBrowsePane(JComponent viewer, boolean priority)
-	{
-		if (DEBUG.Enabled) Log.debug("displayInBrowsePane: " + browserDS + "; " + GUI.name(viewer));
+	protected void displayInBrowsePane(JComponent viewer, boolean priority) {
+		if (DEBUG.Enabled)
+			Log.debug("displayInBrowsePane: " + browserDS + "; " + GUI.name(viewer));
 
-		String title = VueResources.getString("button.browse.label")+": " + browserDS.getDisplayName();
+		String title = VueResources.getString("button.browse.label") + ": " + browserDS.getDisplayName();
 		if (browserDS.getCount() > 0)
 			title += " (" + browserDS.getCount() + ")";
 		Widget.setTitle(DSB.browsePane, title);
@@ -195,16 +193,12 @@ public class DataSetViewer extends ContentViewer {
 		DSB.refreshMenuActions();
 	}
 
-
 	protected void displayContextMenu(MouseEvent event) {
 		getPopup(event).show(event.getComponent(), event.getX(), event.getY());
 	}
 
-
-	protected JPopupMenu getPopup(MouseEvent e) 
-	{
-		if (contextMenu == null)
-		{
+	protected JPopupMenu getPopup(MouseEvent e) {
+		if (contextMenu == null) {
 			contextMenu = new JPopupMenu();
 
 			contextMenu.add(DSB.editLibraryAction);
@@ -216,16 +210,14 @@ public class DataSetViewer extends ContentViewer {
 		return contextMenu;
 	}
 
-
 	protected void repaintList() {
 		dataSourceList.repaint(); // so change in loaded status will be visible
 	}
 
-
-	public static DataSourceList getDataSetList()
-	{
+	public static DataSourceList getDataSetList() {
 		return dataSourceList;
 	}
+
 	public static void saveDataSetViewer() {
 		if (dataSourceList == null) {
 			System.err.println("DataSetViewer: No dataSourceList to save.");
@@ -233,53 +225,67 @@ public class DataSetViewer extends ContentViewer {
 			int size = dataSourceList.getModel().getSize();
 			Vector dataSources = new Vector();
 
-			if (DEBUG.DR) Log.debug("saveDataSetViewer: found " + size + " dataSets: scanning for local's to save...");
+			if (DEBUG.DR)
+				Log.debug("saveDataSetViewer: found " + size + " dataSets: scanning for local's to save...");
 
-			for (int i = 0; i<size; i++) {
+			for (int i = 0; i < size; i++) {
 				Object item = dataSourceList.getModel().getElementAt(i);
 
-				if (DEBUG.DR) System.err.print("\tsaveDataSetViewer: item " + i + " is " + tufts.Util.tag(item) + "[" + item + "]...");
+				if (DEBUG.DR)
+					System.err.print(
+							"\tsaveDataSetViewer: item " + i + " is " + tufts.Util.tag(item) + "[" + item + "]...");
 
 				if (item instanceof DataSource) {
-					dataSources.add((DataSource)item);
+					dataSources.add((DataSource) item);
 
-					if (DEBUG.DR) System.err.println("saving");
+					if (DEBUG.DR)
+						System.err.println("saving");
 				} else {
-					if (DEBUG.DR) System.err.println("skipping");
+					if (DEBUG.DR)
+						System.err.println("skipping");
 				}
 			}
 
-			// For backwards compatability, "default" data source like My Computer and Saved Content are also saved to this XML file.
-			// These data sources are displayed in DataSourceViewer, not DataSetViewer, so get them from there.
-			if (DataSourceViewer.dataSourceList !=null)
-			{
-					size = DataSourceViewer.dataSourceList.getModel().getSize();
+			// For backwards compatability, "default" data source like My Computer and Saved
+			// Content are also saved to this XML file.
+			// These data sources are displayed in DataSourceViewer, not DataSetViewer, so
+			// get them from there.
+			if (DataSourceViewer.dataSourceList != null) {
+				size = DataSourceViewer.dataSourceList.getModel().getSize();
 
-			for (int i = 0; i<size; i++) {
-				Object item = DataSourceViewer.dataSourceList.getModel().getElementAt(i);
+				for (int i = 0; i < size; i++) {
+					Object item = DataSourceViewer.dataSourceList.getModel().getElementAt(i);
 
-				if (DEBUG.DR) System.err.print("\tsaveDataSetViewer: item " + i + " is " + tufts.Util.tag(item) + "[" + item + "]...");
+					if (DEBUG.DR)
+						System.err.print(
+								"\tsaveDataSetViewer: item " + i + " is " + tufts.Util.tag(item) + "[" + item + "]...");
 
-				if (item instanceof DataSource) {
-					dataSources.add((DataSource)item);
+					if (item instanceof DataSource) {
+						dataSources.add((DataSource) item);
 
-					if (DEBUG.DR) System.err.println("saving");
-				} else {
-					if (DEBUG.DR) System.err.println("skipping");
+						if (DEBUG.DR)
+							System.err.println("saving");
+					} else {
+						if (DEBUG.DR)
+							System.err.println("skipping");
+					}
 				}
-			}
 			}
 			try {
-				if (DEBUG.DR) Log.debug("saveDataSetViewer: creating new SaveDataSourceViewer");
+				if (DEBUG.DR)
+					Log.debug("saveDataSetViewer: creating new SaveDataSourceViewer");
 
-				File file = new File(VueUtil.getDefaultUserFolder().getAbsolutePath() + File.separatorChar + VueResources.getString("save.datasources"));
-				SaveDataSourceViewer sViewer= new SaveDataSourceViewer(dataSources);
+				File file = new File(VueUtil.getDefaultUserFolder().getAbsolutePath() + File.separatorChar
+						+ VueResources.getString("save.datasources"));
+				SaveDataSourceViewer sViewer = new SaveDataSourceViewer(dataSources);
 
-				if (DEBUG.DR) Log.debug("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + file);
+				if (DEBUG.DR)
+					Log.debug("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + file);
 
-				marshallMap(file,sViewer);
+				marshallMap(file, sViewer);
 
-				if (DEBUG.DR) Log.debug("saveDataSourceViewer: saved");
+				if (DEBUG.DR)
+					Log.debug("saveDataSourceViewer: saved");
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
@@ -291,28 +297,29 @@ public class DataSetViewer extends ContentViewer {
 	private Object loadedDataSource;
 
 	public void displayEditOrInfo(DataSource ds) {
-		if (DEBUG.DR) Log.debug("DISPLAY " + Util.tags(ds));
+		if (DEBUG.DR)
+			Log.debug("DISPLAY " + Util.tags(ds));
 		if (!editInfoDockWindow.isVisible())
 			positionEditInfoWindow();
 		refreshEditInfo(ds, true);
 		editInfoDockWindow.setWidth(500);
 		editInfoDockWindow.setVisible(true);
 		editInfoDockWindow.raise();
-		
+
 	}
 
 	static void initUI() {
 		editInfoDockWindow = buildConfigWindow();
 	}
 
-	private void positionEditInfoWindow()
-	{
+	private void positionEditInfoWindow() {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 		if ((DSB.dockWindow.getX() + DSB.dockWindow.getWidth() + editInfoDockWindow.getWidth()) < screenSize.getWidth())
 			editInfoDockWindow.setLocation(DSB.dockWindow.getX() + DSB.dockWindow.getWidth(), DSB.dockWindow.getY());
 		else
-			editInfoDockWindow.setLocation(DSB.dockWindow.getX() - editInfoDockWindow.getWidth(), DSB.dockWindow.getY());
+			editInfoDockWindow.setLocation(DSB.dockWindow.getX() - editInfoDockWindow.getWidth(),
+					DSB.dockWindow.getY());
 	}
 
 	private void refreshEditInfo(tufts.vue.DataSource ds) {
@@ -323,19 +330,21 @@ public class DataSetViewer extends ContentViewer {
 		if (ds == loadedDataSource)
 			return;
 
-		if (DEBUG.DR && DEBUG.META) Log.debug("refresh " + Util.tags(ds));
+		if (DEBUG.DR && DEBUG.META)
+			Log.debug("refresh " + Util.tags(ds));
 
 		if (force || editInfoDockWindow.isVisible()) {
 
-			if (DEBUG.DR) Log.debug("REFRESH " + Util.tags(ds));
+			if (DEBUG.DR)
+				Log.debug("REFRESH " + Util.tags(ds));
 
 			editInfoStack.removeAll();
 
 			final String name;
 			if (DEBUG.Enabled)
-				name = VueResources.getString("optiondialog.configuration.message")+": " + ds.getClass().getName();
+				name = VueResources.getString("optiondialog.configuration.message") + ": " + ds.getClass().getName();
 			else
-				name = VueResources.getString("optiondialog.configuration.message")+": " + ds.getTypeName();
+				name = VueResources.getString("optiondialog.configuration.message") + ": " + ds.getTypeName();
 
 			editInfoStack.addPane(name, new EditLibraryPanel(this, ds), 1f);
 
@@ -345,8 +354,8 @@ public class DataSetViewer extends ContentViewer {
 
 	private void doLoad(Object dataSource, String name) {
 		editInfoStack.setTitleItem(name);
-		//editInfoDockWindow.invalidate();
-		//editInfoDockWindow.repaint();
+		// editInfoDockWindow.invalidate();
+		// editInfoDockWindow.repaint();
 		loadedDataSource = dataSource;
 	}
 
@@ -364,13 +373,13 @@ public class DataSetViewer extends ContentViewer {
 		final DockWindow dw = GUI.createDockWindow(VueResources.getString("dockWindow.dataset.title"));
 
 		editInfoStack = new WidgetStack();
-		//editInfoStack.addPane("startup", new javax.swing.JLabel("config init"));
-		editInfoStack.setMinimumSize(new Dimension(300,300));
+		// editInfoStack.addPane("startup", new javax.swing.JLabel("config init"));
+		editInfoStack.setMinimumSize(new Dimension(300, 300));
 		dw.setContent(editInfoStack);
 
 		if (DEBUG.Enabled) {
-			//editInfoStack.setMinimumSize(new Dimension(400,600));
-			dw.setSize(500,800);
+			// editInfoStack.setMinimumSize(new Dimension(400,600));
+			dw.setSize(500, 800);
 		} else {
 			dw.setWidth(300);
 			dw.setHeight(500);

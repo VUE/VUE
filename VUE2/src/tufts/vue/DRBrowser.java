@@ -33,7 +33,7 @@ import javax.swing.border.*;
  * browseable data sources are selected.
  *
  * This code, along with DataSourceViewer, DataSourceList, and
- * DataSourceListCellRenderer, are due for collective refactoring.  It
+ * DataSourceListCellRenderer, are due for collective refactoring. It
  * would be best to do away with the JList / renderer impl, which adds
  * much complexity, and doesn't get us much: we're unlikely to ever
  * have so many data sources that the GUI performance gain of not
@@ -46,65 +46,66 @@ import javax.swing.border.*;
  * spinner wanted to draw the next image.)
  *
  * Also, it would be very handy to have a single interface or class
- * that abstracts BOTH types of data-sources: OSID's (edu.tufts.vue.dsm.DataSource),
+ * that abstracts BOTH types of data-sources: OSID's
+ * (edu.tufts.vue.dsm.DataSource),
  * and browseable VUE ("old-style") data sources (tufts.vue.DataSource).
  * We'd probably need a delegating impl tho to handle that.
  *
- * @version $Revision: 1.88 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $ 
+ * @version $Revision: 1.88 $ / $Date: 2010-02-03 19:17:41 $ / $Author: mike $
  */
-public class DRBrowser extends ContentBrowser
-{
-	public static final long	serialVersionUID = 1;
+public class DRBrowser extends ContentBrowser {
+    public static final long serialVersionUID = 1;
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DRBrowser.class);
 
     public static final Object SEARCH_EDITOR = "search_editor_layout_constraint";
     public static final Object SEARCH_RESULT = "search_result_layout_constraint";
 
     final JComponent searchPane = new Widget(VueResources.getString("action.search")) {
-            private Component	editor,
-            					result;
+        private Component editor,
+                result;
 
-            {
-                setOpaque(false);
+        {
+            setOpaque(false);
 
-                // This is to keep the content window from coming to the front when the
-                // data sources have loaded and the searchPane is expanded.
-                Widget.setLoading(this, true);
+            // This is to keep the content window from coming to the front when the
+            // data sources have loaded and the searchPane is expanded.
+            Widget.setLoading(this, true);
+        }
+
+        protected void addImpl(Component c, Object constraints, int idx) {
+            if (DEBUG.DR)
+                out("SEARCH-WIDGET addImpl: " + GUI.name(c) + " " + constraints + " idx=" + idx);
+
+            JComponent jc = null;
+
+            if (c instanceof JComponent)
+                jc = (JComponent) c;
+            if (constraints == SEARCH_EDITOR) {
+                if (editor != null)
+                    remove(editor);
+
+                editor = c;
+                constraints = BorderLayout.NORTH;
+
+                if (jc != null)
+                    jc.setBorder(GUI.WidgetInsetBorder);
+            } else if (constraints == SEARCH_RESULT) {
+                // this method of setting this is a crazy hack for now, but
+                // it's perfect for allowing us to try different layouts
+                resultsPane.removeAll();
+                resultsPane.add(jc);
+                resultsPane.setHidden(false);
+                resultsPane.validate();
+
+                return;
+            } else {
+                tufts.Util.printStackTrace("illegal search pane constraints: " + constraints);
             }
 
-            protected void addImpl(Component c, Object constraints, int idx) {
-                if (DEBUG.DR) out("SEARCH-WIDGET addImpl: " + GUI.name(c) + " " + constraints + " idx=" + idx);
-
-                JComponent jc = null;
-
-                if (c instanceof JComponent)
-                    jc = (JComponent) c;
-                if (constraints == SEARCH_EDITOR) {
-                    if (editor != null)
-                        remove(editor);
-
-                    editor = c;
-                    constraints = BorderLayout.NORTH;
-
-                    if (jc != null)
-                        jc.setBorder(GUI.WidgetInsetBorder);
-                } else if (constraints == SEARCH_RESULT) {
-                    // this method of setting this is a crazy hack for now, but
-                    // it's perfect for allowing us to try different layouts
-                    resultsPane.removeAll();
-                    resultsPane.add(jc);
-                    resultsPane.setHidden(false);
-                    resultsPane.validate();
-
-                    return;
-                } else {
-                    tufts.Util.printStackTrace("illegal search pane constraints: " + constraints);
-                }
-
-                super.addImpl(c, constraints, idx);
-                revalidate();
-            }
-        };
+            super.addImpl(c, constraints, idx);
+            revalidate();
+        }
+    };
 
     final JPanel librariesPane = new Widget(VueResources.getString("drbrowser.resources"));
     final Widget browsePane = new Widget(VueResources.getString("button.browse.label"));
@@ -117,63 +118,65 @@ public class DRBrowser extends ContentBrowser
 
     private DataSourceViewer DSV;
 
-    public DRBrowser(boolean delayedLoading, DockWindow resourceDock)
-    {
-    	super("DRBrowser");
+    public DRBrowser(boolean delayedLoading, DockWindow resourceDock) {
+        super("DRBrowser");
 
         setName(VueResources.getString("dockWindow.contentPanel.resources.title"));
 
-        if (DEBUG.DR || DEBUG.INIT) out("Creating DRBrowser");
+        if (DEBUG.DR || DEBUG.INIT)
+            out("Creating DRBrowser");
 
         dockWindow = resourceDock;
 
-        //-----------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------
         // Resources
-        //-----------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------
 
         if (delayedLoading) {
-            
+
             final String LoadingMessage = VueResources.getString("dockWindow.Resources.loading.label");
 
             if (Util.isMacLeopardOrLater()) {
-                // todo: StatusLabel was made public just for us here: move to tufts.gui as a util class
-                // (and make the params named via sub-constructors -- e.g., StatusLabel.Spin(msg)
+                // todo: StatusLabel was made public just for us here: move to tufts.gui as a
+                // util class
+                // (and make the params named via sub-constructors -- e.g.,
+                // StatusLabel.Spin(msg)
                 loadingComponent = new DataSourceViewer.StatusLabel(LoadingMessage, true, true);
-                loadingComponent.setBorder(GUI.makeSpace(12,0,12,0));
+                loadingComponent.setBorder(GUI.makeSpace(12, 0, 12, 0));
             } else {
                 loadingLabel = new JLabel(LoadingMessage, SwingConstants.CENTER);
                 loadingLabel.setMinimumSize(new Dimension(150, 80));
-                loadingLabel.setBorder(GUI.makeSpace(16,0,16,0));
+                loadingLabel.setBorder(GUI.makeSpace(16, 0, 16, 0));
                 GUI.apply(GUI.StatusFace, loadingLabel);
                 loadingComponent = loadingLabel;
             }
 
             librariesPane.add(loadingComponent);
-            
-         } else {
-             loadDataSourceViewer();
-         }
 
-        //-----------------------------------------------------------------------------
+        } else {
+            loadDataSourceViewer();
+        }
+
+        // -----------------------------------------------------------------------------
         // Search
-        //-----------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------
 
         searchPane.setBackground(Color.white);
         JLabel please = new JLabel(VueResources.getString("jlabel.searchableresource"), JLabel.CENTER);
         GUI.apply(GUI.StatusFace, please);
         searchPane.add(please, SEARCH_EDITOR);
 
-        //-----------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------
         // Browse
-        //-----------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------
 
         browsePane.setBackground(Color.white);
         browsePane.setExpanded(false);
         browsePane.setLayout(new BorderLayout());
 
-        //-----------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------
         // Results
-        //-----------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------
 
         resultsPane.setTitleHidden(true);
         resultsPane.setHidden(true);
@@ -184,13 +187,11 @@ public class DRBrowser extends ContentBrowser
         addPane(resultsPane, 0f);
     }
 
-    public DataSourceViewer getDataSourceViewer()
-    {
-    	return DSV;
+    public DataSourceViewer getDataSourceViewer() {
+        return DSV;
     }
-    
-    public void loadDataSourceViewer()
-    {
+
+    public void loadDataSourceViewer() {
         Log.debug("loading the DataSourceViewer...");
 
         try {
@@ -211,14 +212,16 @@ public class DRBrowser extends ContentBrowser
             loadingLabel.setText(e.toString());
         }
 
-        // Done loading, so Content window should now come to front when searchPane is expanded.
+        // Done loading, so Content window should now come to front when searchPane is
+        // expanded.
         Widget.setLoading(searchPane, false);
 
-        if (DEBUG.DR || DEBUG.Enabled) out("done loading DataSourceViewer");
+        if (DEBUG.DR || DEBUG.Enabled)
+            out("done loading DataSourceViewer");
     }
 
     private static void out(String s) {
-        //System.out.println("DRBrowser: " + s);
+        // System.out.println("DRBrowser: " + s);
         Log.info(s);
     }
 }

@@ -15,36 +15,34 @@
 
 package tufts.vue;
 
-
 import java.io.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-
 /**
-* ColorButtonEditor
-*
-* This class provides a color property editor button to pick a 
-* color
-*
-*
-* @author csb
-* @version 1.0
-**/
+ * ColorButtonEditor
+ *
+ * This class provides a color property editor button to pick a
+ * color
+ *
+ *
+ * @author csb
+ * @version 1.0
+ **/
 public class ColorButtonEditor extends JButton implements ActionListener {
 
-	
 	static final String kDefaultName = "Color";
 	static final String kDefaultTitle = "Choose Color";
-	
+
 	/** The currently selected palette item--if any **/
 	private Color mColor = Color.black;
-		
+
 	private String mTitle = VueResources.getString("dialog.selectcolor.title");
-	
+
 	private String mName = "color";
+
 	/**
 	 * Constructor
 	 *
@@ -52,48 +50,41 @@ public class ColorButtonEditor extends JButton implements ActionListener {
 	 *
 	 **/
 	public ColorButtonEditor() {
-		this( Color.black);
+		this(Color.black);
 	}
-	
-	public ColorButtonEditor( Color pColor) {
-		this( pColor, null);
-	}
-	
 
-	public ColorButtonEditor( Color pColor, String pName) {
-		this( pColor, pName, kDefaultTitle);
+	public ColorButtonEditor(Color pColor) {
+		this(pColor, null);
 	}
-	
-	public ColorButtonEditor( Color pColor, String pName, String pTitle) {
+
+	public ColorButtonEditor(Color pColor, String pName) {
+		this(pColor, pName, kDefaultTitle);
+	}
+
+	public ColorButtonEditor(Color pColor, String pName, String pTitle) {
 		super();
 		mColor = pColor;
-		setBackground( pColor);
+		setBackground(pColor);
 		mName = pName;
 		mTitle = pTitle;
-		addActionListener( this);
+		addActionListener(this);
 	}
-	
-	
-	
-	public void setColor( Color pColor) {
+
+	public void setColor(Color pColor) {
 		mColor = pColor;
 		mColor = pColor;
-		this.setBackground( pColor);
+		this.setBackground(pColor);
 		repaint();
 	}
-	
-	
-	
+
 	/**
-	 * setValue 
+	 * setValue
 	 * Hook for PropertyEditor
 	 **/
-	public void setValue( Object pValue) {
-		if( pValue instanceof Color) 
-			setColor( (Color) pValue);
+	public void setValue(Object pValue) {
+		if (pValue instanceof Color)
+			setColor((Color) pValue);
 	}
-	
-
 
 	/**
 	 * fireColorChanged
@@ -101,32 +92,32 @@ public class ColorButtonEditor extends JButton implements ActionListener {
 	 *
 	 * @param Color the new color
 	 **/
-	 protected void fireColorChanged( Color oldCOlor, Color newColor) {
-	 	// tell someone
-	 }
-	
+	protected void fireColorChanged(Color oldCOlor, Color newColor) {
+		// tell someone
+	}
+
 	/**
 	 * actionPerformed
 	 * This method handles teh button press action and opens
-	 * up a color picker dialog.  
+	 * up a color picker dialog.
 	 *
 	 **/
-	public void actionPerformed( ActionEvent pEvent) {
-	
+	public void actionPerformed(ActionEvent pEvent) {
+
 		Color newColor = null;
 		Color oldColor = mColor;
-		//try {
-			
-			newColor = JColorChooser.showDialog( this, mTitle, mColor );
-			if( (newColor != null) && ( mColor.equals( newColor) ) ) {
-				setColor( newColor);
-				fireColorChanged( oldColor,  newColor);
-				
-				}
-		//} catch (HeadlessException e) {
-		
-		//}
-		
+		// try {
+
+		newColor = JColorChooser.showDialog(this, mTitle, mColor);
+		if ((newColor != null) && (mColor.equals(newColor))) {
+			setColor(newColor);
+			fireColorChanged(oldColor, newColor);
+
+		}
+		// } catch (HeadlessException e) {
+
+		// }
+
 	}
 
 	/**
@@ -134,24 +125,17 @@ public class ColorButtonEditor extends JButton implements ActionListener {
 	 *
 	 * Override if drawing boring button without image
 	 **/
-	public void paint( Graphics pGraphics) {
-		
-		if( false ) {
+	public void paint(Graphics pGraphics) {
+
+		if (false) {
 			Rectangle bounds = this.getBounds();
 			Color old = pGraphics.getColor();
-			pGraphics.setColor( mColor);
-			pGraphics.fillRect( 0, 0, (int) bounds.getWidth(), (int) bounds.getHeight());
-			pGraphics.setColor( old);
-			}
-		else {
-			super.paint( pGraphics);
-			}
+			pGraphics.setColor(mColor);
+			pGraphics.fillRect(0, 0, (int) bounds.getWidth(), (int) bounds.getHeight());
+			pGraphics.setColor(old);
+		} else {
+			super.paint(pGraphics);
+		}
 	}
-	
-}  // end of class
 
-
-
-
-
-
+} // end of class

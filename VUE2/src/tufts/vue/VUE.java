@@ -538,6 +538,7 @@ public class VUE
         ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
         @Override
         protected void onChange(ActiveEvent<LWMap> e, final LWMap nowActive) {
+            Log.info("Onchange of Active Instance Reached");
             if (nowActive != null) {
                 ActivePathwayHandler.setActive(e, nowActive.getActivePathway());
                 setMapActionsEnabled(true);
@@ -551,6 +552,7 @@ public class VUE
     };
 
     private static void setMapActionsEnabled(boolean enable) {
+        Log.info("Reached setMapActionsEnabled.");
         //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);    	
         VueMenuBar.RootMenuBar.saveAction.setEnabled(enable);
         VueMenuBar.RootMenuBar.saveAsAction.setEnabled(enable);
@@ -1026,9 +1028,11 @@ public class VUE
         Log.info("Current Working Directory: " + getSystemProperty("user.dir"));
 
         String host = System.getenv("HOST");
+
         if (host == null) host = System.getenv("HOSTNAME");
         if (host == null) host = System.getenv("COMPUTERNAME");
         if (host == null) host = System.getenv("USERDOMAIN");
+        
         Log.info("User/host: " + getSystemProperty("user.name") + "@" + host);
         
         if (VueUtil.isMacPlatform()) {
@@ -2707,6 +2711,7 @@ public class VUE
         toRightDW = preShown[nextLayout];
         
         toRightDW.setUpperRightCorner(screen.width, top);
+
         if (squeezeDown)
             toRightDW.setHeight(toRightDW.getHeight() / 2);
         DockWindow curDW = null;
@@ -2807,6 +2812,7 @@ public class VUE
                         // Util.printStackTrace("addNotify");
                         //AbstractButton jumpLeft = (AbstractButton) divider.getComponent(0);
                         
+                       
                         AbstractButton jumpRight = (AbstractButton) divider.getComponent(1);
                         //System.err.println("child0 " + jumpLeft);
                         //System.err.println("child1 " + jumpRight);

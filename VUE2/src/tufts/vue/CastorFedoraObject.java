@@ -37,61 +37,67 @@ public class CastorFedoraObject {
     FedoraObject object;
     FedoraObjectAssetType fedoraObjectAssetType;
     String displayName;
-    
+
     public CastorFedoraObject() {
-         try {
+        try {
             this.castorDR = new CastorDR();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
-    
+
     public CastorFedoraObject(FedoraObject object) {
         try {
             this.pid = object.getId().getIdString();
             this.displayName = object.getDisplayName();
             this.castorDR = new CastorDR(object.getDR());
-            this.fedoraType = ((FedoraObjectAssetType)object.getAssetType()).getType();
-        } catch(Exception ex) {
+            this.fedoraType = ((FedoraObjectAssetType) object.getAssetType()).getType();
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
-    
+
     public FedoraObject getFedoraObject() {
-        try  {
+        try {
             dr = castorDR.getDR();
-            fedoraObjectAssetType =  dr.createFedoraObjectAssetType(fedoraType);
-            object = new FedoraObject(dr,pid,displayName,fedoraObjectAssetType);
+            fedoraObjectAssetType = dr.createFedoraObjectAssetType(fedoraType);
+            object = new FedoraObject(dr, pid, displayName, fedoraObjectAssetType);
             return object;
-            } catch(Exception ex) {
-                ex.printStackTrace();
-                throw new RuntimeException(ex);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
     }
-    
+
     public void setPid(String pid) {
-        this.pid  = pid;
+        this.pid = pid;
     }
+
     public String getPid() {
         return this.pid;
     }
-    
+
     public void setFedoraType(String fedoraType) {
         this.fedoraType = fedoraType;
     }
+
     public String getFedoraType() {
         return this.fedoraType;
     }
-    public void setCastorDR(CastorDR castorDR)  {
+
+    public void setCastorDR(CastorDR castorDR) {
         this.castorDR = castorDR;
     }
+
     public CastorDR getCastorDR() {
         return this.castorDR;
     }
+
     public void setdisplayName(String displayName) {
         this.displayName = displayName;
     }
-    public String getDisplayName(){
+
+    public String getDisplayName() {
         return this.displayName;
     }
 }

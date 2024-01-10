@@ -33,40 +33,41 @@ public class ActiveEvent<T> {
         this.active = newActive;
     }
 
-//     public boolean hasSource(Object o) {
-//         if (source == o)
-//             return true;
-//         else if (source instanceof ActiveEvent)
-//             return ((ActiveEvent)source).hasSource(o);
-//         else
-//             return false;
-//     }
+    // public boolean hasSource(Object o) {
+    // if (source == o)
+    // return true;
+    // else if (source instanceof ActiveEvent)
+    // return ((ActiveEvent)source).hasSource(o);
+    // else
+    // return false;
+    // }
 
-//     public boolean hasSourceOfType(Class clazz) {
-//         if (clazz.isInstance(source))
-//             return true;
-//         else if (source instanceof ActiveEvent)
-//             return ((ActiveEvent)source).hasSourceOfType(clazz);
-//         else
-//             return false;
-//     }
+    // public boolean hasSourceOfType(Class clazz) {
+    // if (clazz.isInstance(source))
+    // return true;
+    // else if (source instanceof ActiveEvent)
+    // return ((ActiveEvent)source).hasSourceOfType(clazz);
+    // else
+    // return false;
+    // }
 
     /**
-
+     * 
      * @return true if this represents some kind of (unknown) change event *on the
-     * active item*, and thus listeners may want to refresh any state they determine
-     * from the state of the active instance itself.  In this case, that active instance
-     * has NOT changed. So this returns true if oldActive == active.
-     
+     *         active item*, and thus listeners may want to refresh any state they
+     *         determine
+     *         from the state of the active instance itself. In this case, that
+     *         active instance
+     *         has NOT changed. So this returns true if oldActive == active.
+     * 
      */
     public boolean isRefresh() {
         // This may seem counterintuitive; see above method comment.
         return active == oldActive;
     }
-    
 
     public String toString() {
         return "ActiveEvent<" + type.getName() + ">[src=" + source + "; active=" + active + "]";
     }
-    
+
 }

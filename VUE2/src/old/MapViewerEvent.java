@@ -18,21 +18,19 @@ package tufts.vue;
 /**
  * Broadcast events for the active map viewer.
  *
- * @version $Revision: 1.1 $ / $Date: 2008-06-19 03:46:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.1 $ / $Date: 2008-06-19 03:46:58 $ / $Author: sfraize $
  */
 
-public class MapViewerEvent extends EventRaiser<java.awt.Component>
-{
+public class MapViewerEvent extends EventRaiser<java.awt.Component> {
     public static final int DISPLAYED = 1;
     public static final int HIDDEN = 2;
     public static final int PAN = 4;
     public static final int ZOOM = 8;
     public static final int FOCUSED = 16;
-    
+
     public final int id;
-    
-    public MapViewerEvent(MapViewer mapViewer, int id)
-    {
+
+    public MapViewerEvent(MapViewer mapViewer, int id) {
         super(mapViewer, MapViewer.Listener.class);
         this.id = id;
     }
@@ -40,32 +38,32 @@ public class MapViewerEvent extends EventRaiser<java.awt.Component>
     public int getID() {
         return id;
     }
-    
+
     public MapViewer getMapViewer() {
         return (MapViewer) getSource();
     }
 
     public boolean isActivationEvent() {
-        return (id & (DISPLAYED|FOCUSED)) != 0;
+        return (id & (DISPLAYED | FOCUSED)) != 0;
     }
 
-    public void dispatch(java.awt.Component listener)
-    {
-        ((MapViewer.Listener)listener).mapViewerEventRaised(this);
+    public void dispatch(java.awt.Component listener) {
+        ((MapViewer.Listener) listener).mapViewerEventRaised(this);
     }
 
-    public String toString()
-    {
+    public String toString() {
         String name = null;
-        if (id == DISPLAYED)    name = "DISPLAYED";
-        else if (id == HIDDEN)  name = "HIDDEN   ";
-        else if (id == PAN)     name = "PAN      ";
-        else if (id == ZOOM)    name = "ZOOM     ";
-        else if (id == FOCUSED) name = "FOCUSED  ";
+        if (id == DISPLAYED)
+            name = "DISPLAYED";
+        else if (id == HIDDEN)
+            name = "HIDDEN   ";
+        else if (id == PAN)
+            name = "PAN      ";
+        else if (id == ZOOM)
+            name = "ZOOM     ";
+        else if (id == FOCUSED)
+            name = "FOCUSED  ";
         return "MapViewerEvent[" + name + " " + getSource() + "]";
     }
-    
-    
+
 }
-
-

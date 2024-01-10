@@ -13,7 +13,6 @@
  * permissions and limitations under the License.
  */
 
-
 /*
  * DataSourceException.java
  *
@@ -24,23 +23,24 @@ package tufts.vue;
 
 /**
  *
- * @author  akumar03
+ * @author akumar03
  *
- * A class to handle exceptions generated during creating and handling of DataSources
+ *         A class to handle exceptions generated during creating and handling
+ *         of DataSources
  */
 public class DataSourceException extends RuntimeException {
     public static final String CREATE_MSG = "Can't create DataSource";
-    
+
     public DataSourceException() {
         super();
     }
-    
+
     public DataSourceException(String msg) {
         super(msg);
     }
-    
+
     public DataSourceException(String msg, Throwable cause) {
         super(msg, cause);
     }
-    
+
 }

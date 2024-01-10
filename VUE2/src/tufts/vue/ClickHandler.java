@@ -16,8 +16,8 @@
 package tufts.vue;
 
 /** this is obsoleted & unused */
-public interface ClickHandler
-{
+public interface ClickHandler {
     public boolean handleSingleClick(MapMouseEvent e);
+
     public boolean handleDoubleClick(MapMouseEvent e);
 }

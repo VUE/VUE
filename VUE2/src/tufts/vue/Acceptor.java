@@ -21,6 +21,6 @@ package tufts.vue;
  */
 public interface Acceptor<T> {
 
-    /** @return true if the given object is considered acceptable  */
+    /** @return true if the given object is considered acceptable */
     public boolean accept(T o);
 }

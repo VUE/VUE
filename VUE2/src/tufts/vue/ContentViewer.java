@@ -39,39 +39,35 @@ import tufts.Util;
 import tufts.vue.gui.GUI;
 
 public abstract class ContentViewer extends JPanel {
-	public static final long	serialVersionUID = 1;
+	public static final long serialVersionUID = 1;
 	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ContentViewer.class);
 
-	protected static int				vCount = 0;
-	protected static final JLabel		StatusLabel = new JLabel(VueResources.getString("addLibrary.loading.label"), JLabel.CENTER);
-	protected static final JComponent	Status;
+	protected static int vCount = 0;
+	protected static final JLabel StatusLabel = new JLabel(VueResources.getString("addLibrary.loading.label"),
+			JLabel.CENTER);
+	protected static final JComponent Status;
 
-	protected BrowseDataSource			browserDS = null;
+	protected BrowseDataSource browserDS = null;
 
 	public ContentViewer() {
 		super();
 	}
 
-
 	public ContentViewer(LayoutManager layout) {
 		super(layout);
 	}
-
 
 	public ContentViewer(boolean isDoubleBuffered) {
 		super(isDoubleBuffered);
 	}
 
-
 	public ContentViewer(LayoutManager layout, boolean isDoubleBuffered) {
 		super(layout, isDoubleBuffered);
 	}
 
-
 	public void finalize() {
 		browserDS = null;
 	}
-
 
 	static {
 		GUI.apply(GUI.StatusFace, StatusLabel);
@@ -83,11 +79,12 @@ public abstract class ContentViewer extends JPanel {
 		if (false && Util.isMacLeopard()) {
 			bar.putClientProperty("JProgressBar.style", "circular");
 			bar.setBorder(BorderFactory.createLineBorder(Color.darkGray));
-			//bar.putClientProperty("JComponent.sizeVariant", "small"); // no effect
-			//bar.setString("Loading...");// no effect on mac
-			//bar.setStringPainted(true); // no effect on mac
+			// bar.putClientProperty("JComponent.sizeVariant", "small"); // no effect
+			// bar.setString("Loading...");// no effect on mac
+			// bar.setStringPainted(true); // no effect on mac
 		} else {
-			if (DEBUG.BOXES) bar.setBorder(BorderFactory.createLineBorder(Color.green));
+			if (DEBUG.BOXES)
+				bar.setBorder(BorderFactory.createLineBorder(Color.green));
 			bar.setBackground(Color.red);
 			bar.setEnabled(false); // don't make so garish (mostly for mac)
 		}
@@ -95,7 +92,8 @@ public abstract class ContentViewer extends JPanel {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-		if (DEBUG.BOXES) StatusLabel.setBorder(BorderFactory.createLineBorder(Color.blue, 1));
+		if (DEBUG.BOXES)
+			StatusLabel.setBorder(BorderFactory.createLineBorder(Color.blue, 1));
 
 		panel.add(StatusLabel);
 		panel.add(Box.createVerticalStrut(5));
@@ -104,47 +102,43 @@ public abstract class ContentViewer extends JPanel {
 		Status = panel;
 	}
 
-
 	protected abstract void displayInBrowsePane(JComponent viewer, boolean priority);
-
 
 	protected abstract void repaintList();
 
-
 	// Overridden in DataSourceViewer -- not needed in DataSetViewer
-	public void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {}
-
+	public void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {
+	}
 
 	// Overridden in DataSetViewer -- not needed in DataSourceViewer
-	public void setActiveDataSource(final tufts.vue.DataSource ds) {}
-
+	public void setActiveDataSource(final tufts.vue.DataSource ds) {
+	}
 
 	tufts.vue.DataSource getBrowsedDataSource() {
 		return browserDS;
 	}
 
-
 	protected JComponent produceViewer(final tufts.vue.BrowseDataSource ds) {
 		return produceViewer(ds, false);
 	}
 
-
 	protected JComponent produceViewer(final tufts.vue.BrowseDataSource ds, final boolean caching) {
 
 		/**
-		There is a weird problem in the latest Java 1.6 code on
-		all the Sun JVMs running in the browser where this test fails even though it should not.
-		*/
-		if (!SwingUtilities.isEventDispatchThread())		
-		{
-			//TODO: KIND OF LIKE WHAT WAS THE POINT OF THIS ?
+		 * There is a weird problem in the latest Java 1.6 code on
+		 * all the Sun JVMs running in the browser where this test fails even though it
+		 * should not.
+		 */
+		if (!SwingUtilities.isEventDispatchThread()) {
+			// TODO: KIND OF LIKE WHAT WAS THE POINT OF THIS ?
 			// if (VUE.isApplet())
-			// 	System.out.println("not threadsafe except for AWT");
-		//	else
-				throw new Error("not threadsafe except for AWT");
+			// System.out.println("not threadsafe except for AWT");
+			// else
+			throw new Error("not threadsafe except for AWT");
 		}
 
-		if (DEBUG.DR) Log.debug("produceViewer: " + ds);
+		if (DEBUG.DR)
+			Log.debug("produceViewer: " + ds);
 
 		final JComponent viewer = ds.getResourceViewer();
 
@@ -155,8 +149,8 @@ public abstract class ContentViewer extends JPanel {
 
 		if (ds.isLoading()) {
 			// could up priority any time we come back through
-			//ds.getLoadThread().setPriority(Thread.MAX_PRIORITY);
-			//ds.getLoadThread().setPriority(Thread.NORM_PRIORITY);
+			// ds.getLoadThread().setPriority(Thread.MAX_PRIORITY);
+			// ds.getLoadThread().setPriority(Thread.NORM_PRIORITY);
 			return Status;
 		}
 
@@ -165,32 +159,32 @@ public abstract class ContentViewer extends JPanel {
 			s += "; " + ds.getAddressName();
 		final String name = s + "]";
 
-		final Thread buildViewerThread =
-			new Thread(String.format("VBLD-%02d %s", vCount++, name)) {
-				{
-					setDaemon(true);
-					if (caching)
-						setPriority(Thread.currentThread().getPriority() - 1);
+		final Thread buildViewerThread = new Thread(String.format("VBLD-%02d %s", vCount++, name)) {
+			{
+				setDaemon(true);
+				if (caching)
+					setPriority(Thread.currentThread().getPriority() - 1);
+			}
+
+			@Override
+			public void run() {
+
+				if (DEBUG.DR)
+					Log.debug("kicked off");
+
+				final JComponent newViewer = buildViewer(ds);
+
+				if (isInterrupted()) {
+					if (DEBUG.DR && newViewer != null)
+						Log.debug("produced; but not needed: aborting");
+					return;
 				}
 
-				@Override
-				public void run() {
+				Log.info("produced " + GUI.name(newViewer));
 
-					if (DEBUG.DR)Log.debug("kicked off");
-
-					final JComponent newViewer = buildViewer(ds);
-
-					if (isInterrupted()) {
-						if (DEBUG.DR && newViewer != null)
-							Log.debug("produced; but not needed: aborting");
-						return;
-					}
-
-					Log.info("produced " + GUI.name(newViewer));
-
-					GUI.invokeAfterAWT(new AWTAcceptViewerTask(ds, this, newViewer, name));
-				}
-			};
+				GUI.invokeAfterAWT(new AWTAcceptViewerTask(ds, this, newViewer, name));
+			}
+		};
 
 		ds.setLoadThread(buildViewerThread);
 
@@ -199,18 +193,20 @@ public abstract class ContentViewer extends JPanel {
 		return Status;
 	}
 
-
 	/**
-	*
-	* @return either the successfully created viewer, or an as informative as possible
-	* error report panel should we encounter any exceptions.  The idea is that this
-	* method is guaranteed not to return null: always something meaninful to display.
-	* With one exception: if the thread this is running on has it's interrupted status
-	* set, it may return null.
-	*
-	*/
-	protected JComponent buildViewer(final tufts.vue.BrowseDataSource ds)
-	{
+	 *
+	 * @return either the successfully created viewer, or an as informative as
+	 *         possible
+	 *         error report panel should we encounter any exceptions. The idea is
+	 *         that this
+	 *         method is guaranteed not to return null: always something meaninful
+	 *         to display.
+	 *         With one exception: if the thread this is running on has it's
+	 *         interrupted status
+	 *         set, it may return null.
+	 *
+	 */
+	protected JComponent buildViewer(final tufts.vue.BrowseDataSource ds) {
 		final String address = ds.getAddress();
 
 		JComponent viewer = null;
@@ -223,7 +219,8 @@ public abstract class ContentViewer extends JPanel {
 		}
 
 		if (Thread.currentThread().isInterrupted()) {
-			if (DEBUG.DR) Log.debug("built; but not needed: aborting");
+			if (DEBUG.DR)
+				Log.debug("built; but not needed: aborting");
 			return null;
 		}
 
@@ -251,7 +248,8 @@ public abstract class ContentViewer extends JPanel {
 
 			String a = address;
 			if (a != null) {
-				//if (a.length() == 0 || Character.isWhitespace(a.charAt(0)) || Character.isWhitespace(a.charAt(a.length()-1)))
+				// if (a.length() == 0 || Character.isWhitespace(a.charAt(0)) ||
+				// Character.isWhitespace(a.charAt(a.length()-1)))
 				a = '[' + a + ']';
 			}
 
@@ -261,8 +259,8 @@ public abstract class ContentViewer extends JPanel {
 				txt += "\n\nDataSource: " + ds.getClass().getName();
 
 			txt += "\n\nThis could be a problem with the configuration for this "
-				+ ds.getTypeName()
-				+ ", with the local network connection, or with a remote server.";
+					+ ds.getTypeName()
+					+ ", with the local network connection, or with a remote server.";
 
 			if (DEBUG.Enabled)
 				txt += "\n\n" + Thread.currentThread();
@@ -273,18 +271,19 @@ public abstract class ContentViewer extends JPanel {
 		return viewer;
 	}
 
-
-	public static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer) {
+	public static void marshallMap(File file, SaveDataSourceViewer dataSourceViewer) {
 		Marshaller marshaller = null;
 
 		try {
 			FileWriter writer = new FileWriter(file);
 			marshaller = new Marshaller(writer);
 			marshaller.setMapping(tufts.vue.action.ActionUtil.getDefaultMapping());
-			if (DEBUG.DR) Log.debug("marshallMap: marshalling " + dataSourceViewer + " to " + file + "...");
+			if (DEBUG.DR)
+				Log.debug("marshallMap: marshalling " + dataSourceViewer + " to " + file + "...");
 			marshaller.setNoNamespaceSchemaLocation("none");
 			marshaller.marshal(dataSourceViewer);
-			if (DEBUG.DR) Log.debug("marshallMap: done marshalling.");
+			if (DEBUG.DR)
+				Log.debug("marshallMap: done marshalling.");
 			writer.flush();
 			writer.close();
 		} catch (Throwable t) {
@@ -292,21 +291,18 @@ public abstract class ContentViewer extends JPanel {
 			System.err.println("DataSourceViewer.marshallMap " + t.getMessage());
 		}
 	}
-	
 
 	public SaveDataSourceViewer unMarshallMap(File file)
-	throws java.io.IOException,
+			throws java.io.IOException,
 			org.exolab.castor.xml.MarshalException,
 			org.exolab.castor.xml.ValidationException,
-			org.exolab.castor.mapping.MappingException
-	{
+			org.exolab.castor.mapping.MappingException {
 		Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
 		FileReader reader = new FileReader(file);
 		SaveDataSourceViewer sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
 		reader.close();
 		return sviewer;
 	}
-
 
 	protected static String statusName(tufts.vue.BrowseDataSource ds) {
 		String s = ds.getAddressName();
@@ -319,7 +315,6 @@ public abstract class ContentViewer extends JPanel {
 
 		return s;
 	}
-
 
 	protected String prettyException(Throwable t) {
 		String txt;
@@ -335,9 +330,9 @@ public abstract class ContentViewer extends JPanel {
 		return txt;
 	}
 
-
 	protected static final class ErrorText extends JTextArea {
-		public static final long	serialVersionUID = 1;
+		public static final long serialVersionUID = 1;
+
 		ErrorText(String txt) {
 			super(txt);
 			setEditable(false);
@@ -345,11 +340,10 @@ public abstract class ContentViewer extends JPanel {
 			setWrapStyleWord(true);
 			setBorder(GUI.WidgetInsetBorder3);
 			GUI.apply(GUI.StatusFace, this);
-			//setOpaque(false);
-			//GUI.apply(GUI.ErrorFace, this);
+			// setOpaque(false);
+			// GUI.apply(GUI.ErrorFace, this);
 		}
 	}
-
 
 	protected class AWTAcceptViewerTask implements Runnable {
 		final tufts.vue.BrowseDataSource ds;
@@ -366,14 +360,16 @@ public abstract class ContentViewer extends JPanel {
 
 		public void run() {
 			if (serviceThread.isInterrupted()) {
-				// never possible?  we're now synchronous in AWT
-				Log.warn(name + "; in AWT; but viewer no longer needed: aborting result for " + serviceThread, new Throwable("FYI"));
+				// never possible? we're now synchronous in AWT
+				Log.warn(name + "; in AWT; but viewer no longer needed: aborting result for " + serviceThread,
+						new Throwable("FYI"));
 				return;
 			}
 
 			VUE.diagPush(name);
 
-			if (DEBUG.Enabled) Log.debug("accepting viewer & setting into VueDataSource");
+			if (DEBUG.Enabled)
+				Log.debug("accepting viewer & setting into VueDataSource");
 
 			ds.setViewer(newViewer); // important to do this in AWT; it's why we have this task
 
@@ -386,23 +382,23 @@ public abstract class ContentViewer extends JPanel {
 			repaintList(); // so change in loaded status will be visible
 
 			if (browserDS == ds) { // important to check this in AWT;
-				if (DEBUG.Enabled) Log.debug("currently displayed data-source wants this viewer; displaying");
+				if (DEBUG.Enabled)
+					Log.debug("currently displayed data-source wants this viewer; displaying");
 				displayInBrowsePane(newViewer, false); // important to do this in AWT;
-			}
-			else
-				if (DEBUG.DR) Log.debug("display: skipping; user looking at something else");
+			} else if (DEBUG.DR)
+				Log.debug("display: skipping; user looking at something else");
 
 			// this would always fallback-interrupt our own serviceThread but by now it
 			// has already exited is waiting to die, as the last thing it does is add
-			// this task to the AWT event queue.  There should be no code in the run
-			// after the invoke.  We check for isAlive in setLoadThread just in case,
+			// this task to the AWT event queue. There should be no code in the run
+			// after the invoke. We check for isAlive in setLoadThread just in case,
 			// before we fallback-interrupt.
 
 			// important to do both the get/set in AWT:
 			if (ds.getLoadThread() == serviceThread)
-				ds.setLoadThread(null); 
+				ds.setLoadThread(null);
 
-			VUE.diagPop(); 
+			VUE.diagPop();
 		}
 	}
 }

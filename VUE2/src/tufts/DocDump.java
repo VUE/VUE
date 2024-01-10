@@ -45,51 +45,52 @@ public class DocDump {
   public static void dump(Document doc) {
     dumpLoop((Node) doc, "");
   }
+
   public static void dump(Node node) {
     dumpLoop(node, "");
   }
 
   private static void dumpLoop(Node node, String indent) {
     switch (node.getNodeType()) {
-    case Node.ATTRIBUTE_NODE:
-      dumpAttributeNode((Attr) node, indent);
-      break;
-    case Node.CDATA_SECTION_NODE:
-      dumpCDATASectionNode((CDATASection) node, indent);
-      break;
-    case Node.COMMENT_NODE:
-      dumpCommentNode((Comment) node, indent);
-      break;
-    case Node.DOCUMENT_NODE:
-      dumpDocument((Document) node, indent);
-      break;
-    case Node.DOCUMENT_FRAGMENT_NODE:
-      dumpDocumentFragment((DocumentFragment) node, indent);
-      break;
-    case Node.DOCUMENT_TYPE_NODE:
-      dumpDocumentType((DocumentType) node, indent);
-      break;
-    case Node.ELEMENT_NODE:
-      dumpElement((Element) node, indent);
-      break;
-    case Node.ENTITY_NODE:
-      dumpEntityNode((Entity) node, indent);
-      break;
-    case Node.ENTITY_REFERENCE_NODE:
-      dumpEntityReferenceNode((EntityReference) node, indent);
-      break;
-    case Node.NOTATION_NODE:
-      dumpNotationNode((Notation) node, indent);
-      break;
-    case Node.PROCESSING_INSTRUCTION_NODE:
-      dumpProcessingInstructionNode((ProcessingInstruction) node, indent);
-      break;
-    case Node.TEXT_NODE:
-      dumpTextNode((Text) node, indent);
-      break;
-    default:
-      System.out.println(indent + "Unknown node");
-      break;
+      case Node.ATTRIBUTE_NODE:
+        dumpAttributeNode((Attr) node, indent);
+        break;
+      case Node.CDATA_SECTION_NODE:
+        dumpCDATASectionNode((CDATASection) node, indent);
+        break;
+      case Node.COMMENT_NODE:
+        dumpCommentNode((Comment) node, indent);
+        break;
+      case Node.DOCUMENT_NODE:
+        dumpDocument((Document) node, indent);
+        break;
+      case Node.DOCUMENT_FRAGMENT_NODE:
+        dumpDocumentFragment((DocumentFragment) node, indent);
+        break;
+      case Node.DOCUMENT_TYPE_NODE:
+        dumpDocumentType((DocumentType) node, indent);
+        break;
+      case Node.ELEMENT_NODE:
+        dumpElement((Element) node, indent);
+        break;
+      case Node.ENTITY_NODE:
+        dumpEntityNode((Entity) node, indent);
+        break;
+      case Node.ENTITY_REFERENCE_NODE:
+        dumpEntityReferenceNode((EntityReference) node, indent);
+        break;
+      case Node.NOTATION_NODE:
+        dumpNotationNode((Notation) node, indent);
+        break;
+      case Node.PROCESSING_INSTRUCTION_NODE:
+        dumpProcessingInstructionNode((ProcessingInstruction) node, indent);
+        break;
+      case Node.TEXT_NODE:
+        dumpTextNode((Text) node, indent);
+        break;
+      default:
+        System.out.println(indent + "Unknown node");
+        break;
     }
 
     NodeList list = node.getChildNodes();
@@ -100,7 +101,7 @@ public class DocDump {
   /* Display the contents of a ATTRIBUTE_NODE */
   private static void dumpAttributeNode(Attr node, String indent) {
     System.out.println(indent + "ATTRIBUTE " + node.getName() + "="
-                       + Util.tags(node.getValue()));
+        + Util.tags(node.getValue()));
   }
 
   /* Display the contents of a CDATA_SECTION_NODE */
