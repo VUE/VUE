@@ -70,7 +70,7 @@ public class VueDragTree extends JTree
 //     protected static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
 //     protected static final ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
 
-    private final java.util.List<Resource> mResources = new ArrayList();
+    private final java.util.List<Resource> mResources = new ArrayList<>();
 
     public VueDragTree(Iterable<Resource> iterable, String treeName) {
         if (DEBUG.DR) Log.debug("NEW: " + treeName + "; " + Util.tags(iterable));

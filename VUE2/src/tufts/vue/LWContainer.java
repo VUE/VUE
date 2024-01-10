@@ -92,7 +92,7 @@ public abstract class LWContainer extends LWComponent
     {
         if (mXMLRestoreUnderway) {
             if (mChildren == NO_CHILDREN)
-                mChildren = new ArrayList();
+                mChildren = new ArrayList<>();
             return mChildren;
         } else
             return mChildren;
@@ -196,7 +196,7 @@ public abstract class LWContainer extends LWComponent
         
         notify(LWKey.HierarchyChanging);
 
-        final List<LWComponent> reparenting = new ArrayList();
+        final List<LWComponent> reparenting = new ArrayList<>();
         for (LWComponent c : possibleChildren) {
             if (c.getParent() == this)
                 reparenting.add(c);
@@ -499,7 +499,7 @@ public abstract class LWContainer extends LWComponent
         //    c.setFont(getFont());
 
         if (mChildren == NO_CHILDREN)
-            mChildren = new ArrayList();
+            mChildren = new ArrayList<>();
         
         if (context.getClass() == Integer.class) {
             // if context is an Integer, it means a specific index to add at 
@@ -669,7 +669,7 @@ public abstract class LWContainer extends LWComponent
         
         notify(LWKey.HierarchyChanging);
 
-        ArrayList removedChildren = new ArrayList();
+        ArrayList<LWComponent> removedChildren = new ArrayList<>();
         for (LWComponent c : iterable) {
             if (c.getParent() == this) {
                 //c.notifyHierarchyChanging();

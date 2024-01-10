@@ -100,7 +100,7 @@ class Slides {
 
     private static List<LWComponent> getContentToCopy(LWComponent node) {
 
-        final List<LWComponent> content = new ArrayList();
+        final List<LWComponent> content = new ArrayList<>();
         node.getAllDescendents(ChildKind.PROPER, content);
 
         // remove any image that's a node icon, as it'll be
@@ -159,7 +159,7 @@ class Slides {
         final LWNode title = NodeModeTool.buildTextNode(entry.node.getDisplayLabel());
         final MasterSlide master = entry.pathway.getMasterSlide();
         final CopyContext cc = new CopyContext(false);
-        final List<LWComponent> added = new ArrayList();
+        final List<LWComponent> added = new ArrayList<>();
 
         title.setStyle(master.getTitleStyle());
         
@@ -178,10 +178,10 @@ class Slides {
         slide.applyStyle(title);
         added.add(title);
 
-        //final List<LWImage> images = new ArrayList();
+        //final List<LWImage> images = new ArrayList<>();
         //final Map<LWImage,LWComponent> imageLabels = new HashMap();
-        final List<TitledImage> images = new ArrayList();
-        final List<LWComponent> text = new ArrayList();
+        final List<TitledImage> images = new ArrayList<>();
+        final List<LWComponent> text = new ArrayList<>();
 
         for (LWComponent c : getContentToCopy(entry.node)) {
 
@@ -460,7 +460,7 @@ class Slides {
         }
 
         if (type == Sync.ALL || type == Sync.TO_SLIDE) {
-            List<LWComponent> added = new ArrayList();
+            List<LWComponent> added = new ArrayList<>();
             for (Resource r : nodeUnique) {
                 final LWComponent newNode;
                 // TODO: merge this code into something common with buildPathwaySlide

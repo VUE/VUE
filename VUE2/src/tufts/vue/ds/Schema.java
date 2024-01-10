@@ -61,15 +61,15 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     private final Map<String,Field> mFields = new HashMap();
     //private final Map<String,Field> mFields = new LinkedHashMap();
     /** Ordered list of column's in this Schema -- same contents as mFields */
-    private final List<Field> mFieldList = new ArrayList();
+    private final List<Field> mFieldList = new ArrayList<>();
 
-    private final Collection<Field> mPersistFields = new ArrayList();
+    private final Collection<Field> mPersistFields = new ArrayList<>();
     private boolean mXMLRestoreUnderway;
         
     private Field mKeyField;
     private Field mEncodingField;
 
-    private final List<DataRow> mRows = new ArrayList();
+    private final List<DataRow> mRows = new ArrayList<>();
 
     //private Object mSource;
     private Resource mResource;
@@ -103,7 +103,7 @@ public class Schema implements tufts.vue.XMLUnmarshalListener {
     //private static final Map<String,Schema> SchemaMap = new java.util.concurrent.ConcurrentHashMap();
 
     ///** contains "empty" (no data) schemas, which are retained as handles to be replaced if actual data schemas arrive */
-    //private static final Collection<Schema> SchemaHandles = Collections.synchronizedList(new ArrayList());
+    //private static final Collection<Schema> SchemaHandles = Collections.synchronizedList(new ArrayList<>());
     private static final Map<Resource,Schema> _SchemaByResource = Collections.synchronizedMap(new HashMap());
     private static final Map<String,Schema> _SchemaByDSGUID = Collections.synchronizedMap(new HashMap());
     

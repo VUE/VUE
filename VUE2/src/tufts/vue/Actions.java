@@ -200,25 +200,7 @@ public class Actions implements VueConstants
         	return null;
 		
     }
-      /*     
-    public static final VueAction ZoteroAction =
-    	new VueAction("Import Zotero collection") {
-		public void act() 
-		{			
-			VueFileChooser chooser = VueFileChooser.getVueFileChooser();
-			File zoteroFile = null;
-										
-	        int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
-	        if (option == VueFileChooser.APPROVE_OPTION) 
-	        {
-	            zoteroFile = chooser.getSelectedFile();
-	           
-				edu.tufts.vue.zotero.ZoteroAction.importZotero(zoteroFile);
-	        }
 
-		}
-    };
-*/
     public static final VueAction SpeakerNotes1 =
     	new VueAction(VueResources.local("menu.file.exporthandout.speakernotes1")) {
 		public void act() 
@@ -771,11 +753,11 @@ public class Actions implements VueConstants
     //-------------------------------------------------------
 
     
-    private static final List<LWComponent> ScratchBuffer = new ArrayList();
+    private static final List<LWComponent> ScratchBuffer = new ArrayList<>();
     private static LWComponent StyleBuffer; // this holds the style copied by "Copy Style"
     
     private static final LWComponent.CopyContext CopyContext = new LWComponent.CopyContext(new LWComponent.LinkPatcher(), true);
-    private static final List<LWComponent> DupeList = new ArrayList(); // cache for dupe'd items
+    private static final List<LWComponent> DupeList = new ArrayList<>(); // cache for dupe'd items
     
     private static final int CopyOffset = 10;
     
@@ -1009,8 +991,8 @@ public class Actions implements VueConstants
                 // When pasting content from one slide to another slide, keep the relative x/y
                 // position of the content from the old slide
                 
-                //final List<LWComponent> pasteToOldLocations = new ArrayList();
-                final List<LWComponent> pasteToNewLocations = new ArrayList();
+                //final List<LWComponent> pasteToOldLocations = new ArrayList<>();
+                final List<LWComponent> pasteToNewLocations = new ArrayList<>();
                 for (LWComponent c : pasted) {
                     final LWContainer oldParent = c.getClientData(LWKey.OLD_PARENT);
                     if (oldParent instanceof LWSlide && oldParent != newParent) {
@@ -1091,7 +1073,7 @@ public class Actions implements VueConstants
                 // the selection will now only contain the top levels in the
                 // the hierarchy of what's selected.
 
-                final Collection toDelete = new ArrayList();
+                final Collection<LWComponent> toDelete = new ArrayList<>();
 
                 for (LWComponent c : s) {
                     if (canEdit(c))
@@ -1322,48 +1304,6 @@ public class Actions implements VueConstants
               }*/                                                                  	
         }
         }
-    };
-    
-    public static final VueAction SaveCopyToZotero = new VueAction(VueResources.getString("zotero.saveCopy"))
-    {
-   	    
-      	public void act()
-      	{    	if (VUE.askSaveIfModified(VUE.getActiveMap())) {
-      	      netscape.javascript.JSObject win = (netscape.javascript.JSObject) netscape.javascript.JSObject.getWindow(VueApplet.getInstance());
-      	      String[] arguments = { VUE.getActiveMap().getFile().getAbsolutePath(),VUE.getActiveMap().getDisplayLabel() };
-      	      win.call("doImportMap", arguments);
-      	     // System.out.println("JS CALLED");
-      		}
-      	}
-    };
-    
-    public static final LWCAction AddResourceToZotero = new LWCAction(VueResources.local("zotero.addResource")) {
-    	public void act(LWComponent c)
-    	{
-    		Resource r = c.getResource();
-    		if (r !=null)
-    		{
-    			String spec = r.getSpec();
-    			
-    			
-    			if (spec.startsWith("http") || spec.startsWith("https"))
-    			{
-    				//import from url
-    				netscape.javascript.JSObject win = (netscape.javascript.JSObject) netscape.javascript.JSObject.getWindow(VueApplet.getInstance());
-  	      	      String[] arguments = { spec };
-  	      	      win.call("doImportUrl", arguments);
-
-    			}
-    			else
-    			{
-    				//import from file..
-    				netscape.javascript.JSObject win = (netscape.javascript.JSObject) netscape.javascript.JSObject.getWindow(VueApplet.getInstance());
-  	      	      String[] arguments = { spec, r.getTitle() };
-  	      	      win.call("doImportFile", arguments);
-
-    			}
-    		}
-    	}
     };
     public static final LWCAction AddURLAction = new LWCAction(VueResources.local("mapViewer.componentMenu.addURL.label")) {
             public void act(LWComponent c) 
@@ -1946,7 +1886,7 @@ public class Actions implements VueConstants
 
             private void degroup(Iterable<LWComponent> iterable, Collection toSelect)
             {
-                final List<LWComponent> removing = new ArrayList();
+                final List<LWComponent> removing = new ArrayList<>();
                 
                 for (LWComponent c : iterable) {
                     if (c.getParent() instanceof LWGroup) {
@@ -2352,7 +2292,7 @@ public class Actions implements VueConstants
             center.setClientData(tufts.vue.ds.DataAction.ClusterTimeKey, currentActionTime);
             
             final LWContainer commonParent = center.getParent();
-            final List<LWComponent> toReparent = new ArrayList();
+            final List<LWComponent> toReparent = new ArrayList<>();
 
             // this is important both to remove any linked that may be our descendents, as
             // well as grab any linked that are currently children of something else
@@ -2963,7 +2903,7 @@ public class Actions implements VueConstants
 //                     final Collection<LWComponent> linked = center.getLinked();
                     
 // //                     final LWContainer commonParent = center.getParent();
-// //                     final List<LWComponent> toReparent = new ArrayList();
+// //                     final List<LWComponent> toReparent = new ArrayList<>();
 // //                     // this is important both to remove any linked that may be our descendents, as
 // //                     // well as grab any linked that are currently children of something else
 // //                     // (unfortunately, this will also grab them out of other layers if they were there,

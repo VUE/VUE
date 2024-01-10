@@ -390,7 +390,7 @@ public class MapTabbedPane extends JTabbedPane//extends DnDTabbedPane
 
     public java.util.Collection<LWMap> getAllMapsBag() {
         int tabs = getTabCount();
-        ArrayList<LWMap> list = new ArrayList();
+        ArrayList<LWMap> list = new ArrayList<>();
         for(int i= 0;i< tabs;i++){
             LWMap m = getMapAt(i);
             list.add(m);

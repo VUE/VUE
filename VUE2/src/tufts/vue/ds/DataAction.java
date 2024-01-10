@@ -73,8 +73,8 @@ public final class DataAction
                 toPush.add(c);
         }
 
-        final List<LWComponent> unpositioned = new ArrayList();
-        final List<LWComponent> pushers = new ArrayList();
+        final List<LWComponent> unpositioned = new ArrayList<>();
+        final List<LWComponent> pushers = new ArrayList<>();
                 
         for (LWComponent node : nodes) {
                     
@@ -232,7 +232,7 @@ public final class DataAction
         List<LWLink> links = Collections.EMPTY_LIST;
         
         if (linkTargets.size() > 0) {
-            links = new ArrayList();
+            links = new ArrayList<>();
             for (LWComponent newNode : nodes) {
                 links.addAll(makeLinks(linkTargets, newNode, field, targetsUsed));
             }
@@ -279,7 +279,7 @@ public final class DataAction
         // the methods for identifying the type of "row" (MetaMap) it is to MetaMap itself
         // (instead of LWComponent)
 
-        final List<LWComponent> nodes = new ArrayList();
+        final List<LWComponent> nodes = new ArrayList<>();
 
         for (String value : onMapRowData.getValues(dragField.getName())) {
             //-----------------------------------------------------------------------------
@@ -704,7 +704,7 @@ public final class DataAction
             Log.info("auto-applied row-style to " + schema + ": " + schema.getRowNodeStyle());
         }
         
-        final java.util.List<LWComponent> nodes = new ArrayList();
+        final java.util.List<LWComponent> nodes = new ArrayList<>();
 
         // TODO: findField should find case-independed values -- wasn't our key hack supposed to handle that?
 

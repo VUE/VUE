@@ -233,7 +233,7 @@ public final class Relation {
         final Schema rowSchema = rowData.getSchema();
 
         //final Set<String> valuesSeen = new HashSet(); // to detect dups
-        //final List<Relation> results = new ArrayList();
+        //final List<Relation> results = new ArrayList<>();
         final Map<String,Relation> results = new HashMap();
         
         if (DEBUG.SCHEMA || DEBUG.WORK) {

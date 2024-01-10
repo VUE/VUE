@@ -62,7 +62,7 @@ public class LWTraversal {
     
     protected final PickContext pc;
     
-    private final List<LWComponent> pickCache = new ArrayList();
+    private final List<LWComponent> pickCache = new ArrayList<>();
     private boolean iteratingPickCache;
     
     /** Note: if preOrder is true, a node can be visited if accept(node) is true, even if acceptTraversal(node) is false */
@@ -109,7 +109,7 @@ public class LWTraversal {
                     // is a descendent of another node that also has a slide icon.
                     
                     if (DEBUG.PICK && DEBUG.WORK) Log.debug("allocating tmp pick cache for " + c);
-                    curCache = new ArrayList(); 
+                    curCache = new ArrayList<>();
                 } else {
                     curCache = pickCache;
                 }

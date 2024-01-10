@@ -736,15 +736,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 			return false;
 		}
     	  URLConnection conn = url.toURL().openConnection();
-    	  InputStream in = new BufferedInputStream(conn.getInputStream());
-    	  try {
-    	    return (in.read() == 'J' &&
-    	            in.read() == 'F' &&
-    	            in.read() == 'I' &&
-    	            in.read() == 'F');
-    	  } finally {
-    	    try { in.close(); } catch (IOException ignore) {}
-    	  }
+        try (InputStream in = new BufferedInputStream(conn.getInputStream())) {
+            return (in.read() == 'J' &&
+                    in.read() == 'F' &&
+                    in.read() == 'I' &&
+                    in.read() == 'F');
+        }
     	}
     
     public boolean isGifFile(String s)  {
