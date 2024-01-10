@@ -5,375 +5,351 @@ package org.osid.registry;
  * is a separate Provider.  RepositoryManagers are the top-level object in the
  * O.K.I. Repository OSID.  Providers have several attributes.
  * </p>
- * 
+ *
  * @author Massachusetts Institute of Technology
  */
-public interface Provider
-extends java.io.Serializable
-{
-	/**
-	*/
-	public org.osid.shared.Id getProviderId()
-	throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateProviderId(org.osid.shared.Id providerId)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	 */
-	public String getOsidService()
-		throws org.osid.registry.RegistryException;
+public interface Provider extends java.io.Serializable {
+  /**
+   */
+  public org.osid.shared.Id getProviderId()
+    throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public void updateOsidService(String osidService)
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public void updateProviderId(org.osid.shared.Id providerId)
+    throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public int getOsidMajorVersion()
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public String getOsidService() throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public void updateOsidMajorVersion(int majorVersion)
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public void updateOsidService(String osidService)
+    throws org.osid.registry.RegistryException;
 
-	/**
-	*/
-	public int getOsidMinorVersion()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateOsidMinorVersion(int minorVersion)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	 */
-	public String getOsidLoadKey()
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public int getOsidMajorVersion() throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public void updateOsidLoadKey(String osidLoadKey)
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public void updateOsidMajorVersion(int majorVersion)
+    throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public String getDisplayName()
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public int getOsidMinorVersion() throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public void updateDisplayName(String displayName)
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public void updateOsidMinorVersion(int minorVersion)
+    throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public String getDescription()
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public String getOsidLoadKey() throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public void updateDescription(String description)
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public void updateOsidLoadKey(String osidLoadKey)
+    throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public String[] getKeywords()
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public String getDisplayName() throws org.osid.registry.RegistryException;
 
-	/**
-	 */
-	public void addKeyword(String keyword)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void removeKeyword(String keyword)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String[] getCategories()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void addCategory(String category)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void removeCategory(String category)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public org.osid.shared.Type[] getCategoryTypes()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void addCategoryType(org.osid.shared.Type categoryType)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void removeCategoryType(org.osid.shared.Type categoryType)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getCreator()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateCreator(String creator)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	 */
-	public String getPublisher()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	 */
-	public void updatePublisher(String publisher)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getPublisherURL()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updatePublisherURL(String publisherURL)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public int getProviderMajorVersion()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateProviderMajorVersion(int majorVersion)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public int getProviderMinorVersion()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateProviderMinorVersion(int minorVersion)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getReleaseDate()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateReleaseDate(String releaseDate)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getContactName()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateContactName(String contactName)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getContactPhone()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateContactPhone(String contactPhone)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getContactEMail()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateContactEMail(String contactEMail)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getLicenseAgreement()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateLicenseAgreement(String licenseAgreement)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String[] getRights()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void addRight(String right)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void removeRight(String right)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public org.osid.shared.Type[] getRightTypes()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void addRightType(org.osid.shared.Type rightType)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void removeRightType(org.osid.shared.Type rightType)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public String[] getConfigurationKeys()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void addConfigurationKey(String configurationKey)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void removeConfigurationKey(String configurationKey)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public String[] getConfigurationValues()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void addConfigurationValue(String configurationValue)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void removeConfigurationValue(String configurationValue)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public java.util.Map[] getConfigurationMaps()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void addConfigurationMap(java.util.Map configurationMap)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-		*/
-	public void removeConfigurationMap(java.util.Map configurationMap)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getReadme()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateReadme(String readme)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getImplementationLanguage()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateImplementationLanguage(String implementationLanguage)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public boolean isSourceAvailable()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateSourceAvailable(boolean sourceAvailable)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public org.osid.shared.Id getRepositoryId()
-		throws org.osid.registry.RegistryException;
-		
-	/**
-	*/
-	public void updateRepositoryId(org.osid.shared.Id repositoryId)
-		throws org.osid.registry.RegistryException;
-		
-	/**
-	*/
-	public String getRepositoryImage()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateRepositoryImage(String repositoryImage)
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public String getRegistrationDate()
-		throws org.osid.registry.RegistryException;
-	
-	/**
-	*/
-	public void updateRegistrationDate(String registrationDate)
-		throws org.osid.registry.RegistryException;	
-	
-	public String[] getFilenames()
-		throws org.osid.registry.RegistryException;
+  /**
+   */
+  public void updateDisplayName(String displayName)
+    throws org.osid.registry.RegistryException;
 
-	public void addFilename(String filename,
-							String fileDisplayName)
-		throws org.osid.registry.RegistryException;
-		
-	public void removeFilename(String filename)
-		throws org.osid.registry.RegistryException;
-		
-	public String[] getFileDisplayNames()
-		throws org.osid.registry.RegistryException;	
-	/**
+  /**
+   */
+  public String getDescription() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateDescription(String description)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String[] getKeywords() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void addKeyword(String keyword)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void removeKeyword(String keyword)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String[] getCategories() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void addCategory(String category)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void removeCategory(String category)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public org.osid.shared.Type[] getCategoryTypes()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void addCategoryType(org.osid.shared.Type categoryType)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void removeCategoryType(org.osid.shared.Type categoryType)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getCreator() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateCreator(String creator)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getPublisher() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updatePublisher(String publisher)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getPublisherURL() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updatePublisherURL(String publisherURL)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public int getProviderMajorVersion()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateProviderMajorVersion(int majorVersion)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public int getProviderMinorVersion()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateProviderMinorVersion(int minorVersion)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getReleaseDate() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateReleaseDate(String releaseDate)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getContactName() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateContactName(String contactName)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getContactPhone() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateContactPhone(String contactPhone)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getContactEMail() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateContactEMail(String contactEMail)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getLicenseAgreement()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateLicenseAgreement(String licenseAgreement)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String[] getRights() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void addRight(String right) throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void removeRight(String right)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public org.osid.shared.Type[] getRightTypes()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void addRightType(org.osid.shared.Type rightType)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void removeRightType(org.osid.shared.Type rightType)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String[] getConfigurationKeys()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void addConfigurationKey(String configurationKey)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void removeConfigurationKey(String configurationKey)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String[] getConfigurationValues()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void addConfigurationValue(String configurationValue)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void removeConfigurationValue(String configurationValue)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public java.util.Map[] getConfigurationMaps()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void addConfigurationMap(java.util.Map configurationMap)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void removeConfigurationMap(java.util.Map configurationMap)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getReadme() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateReadme(String readme)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getImplementationLanguage()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateImplementationLanguage(String implementationLanguage)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public boolean isSourceAvailable() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateSourceAvailable(boolean sourceAvailable)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public org.osid.shared.Id getRepositoryId()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateRepositoryId(org.osid.shared.Id repositoryId)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getRepositoryImage() throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateRepositoryImage(String repositoryImage)
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public String getRegistrationDate()
+    throws org.osid.registry.RegistryException;
+
+  /**
+   */
+  public void updateRegistrationDate(String registrationDate)
+    throws org.osid.registry.RegistryException;
+
+  public String[] getFilenames() throws org.osid.registry.RegistryException;
+
+  public void addFilename(String filename, String fileDisplayName)
+    throws org.osid.registry.RegistryException;
+
+  public void removeFilename(String filename)
+    throws org.osid.registry.RegistryException;
+
+  public String[] getFileDisplayNames()
+    throws org.osid.registry.RegistryException;
+  /**
 		<p>MIT O.K.I&#46; SID Implementation License.
 	 <p>	<b>Copyright and license statement:</b>
 	 </p>  <p>	Copyright &copy; 2003 Massachusetts Institute of

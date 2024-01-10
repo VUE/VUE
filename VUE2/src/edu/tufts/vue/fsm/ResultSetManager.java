@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -19,23 +19,22 @@ package edu.tufts.vue.fsm;
  a user.
  */
 
-public interface ResultSetManager
-{
-	public java.awt.Image getPreview(org.osid.shared.Id assetId);
+public interface ResultSetManager {
+  public java.awt.Image getPreview(org.osid.shared.Id assetId);
 
-	public org.osid.repository.AssetIterator getAssets();
-	
-	public org.osid.repository.AssetIterator getAssets(String foreignIdString);
-	
-	public org.osid.repository.AssetIterator getAsset(int i);
+  public org.osid.repository.AssetIterator getAssets();
 
-	public String getExceptionMessage(int index);
-	
-	public void addAsset(org.osid.repository.Asset asset);
-	
-	public boolean isComplete();
+  public org.osid.repository.AssetIterator getAssets(String foreignIdString);
 
-	public void removeAsset(org.osid.repository.Asset assetId);
-	
-	public void clearResults();
+  public org.osid.repository.AssetIterator getAsset(int i);
+
+  public String getExceptionMessage(int index);
+
+  public void addAsset(org.osid.repository.Asset asset);
+
+  public boolean isComplete();
+
+  public void removeAsset(org.osid.repository.Asset assetId);
+
+  public void clearResults();
 }

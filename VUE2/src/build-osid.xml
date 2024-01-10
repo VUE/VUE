@@ -20,8 +20,8 @@
   
   <!--  ==================== Compilation Control Options ==================== -->
 <!--
-  These properties control option settings on the Javac compiler when it
-  is invoked using the <javac> task.
+  These properties control option settings on the javac nowarn="on" compiler when it
+  is invoked using the <javac nowarn="on"> task.
 
   compile.debug        Should compilation include the debug option?
   compile.deprecation  Should compilation include the deprecation option?
@@ -64,7 +64,7 @@
    </path>
   
   <target name="fedora22.compile" >
-     <javac srcdir="${src}"
+     <javac nowarn="on" srcdir="${src}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -106,7 +106,7 @@
   </path>
   
   <target name="fedora20.compile" >
-     <javac srcdir="${src}"
+     <javac nowarn="on" srcdir="${src}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -134,7 +134,7 @@
   <property name="favorites.src" value="${src}/edu/tufts/osidimpl/repository/favorites"/>
   <property name="favorites.jar" value="favorites.jar"/>
   <target name="favorites.compile" >
-     <javac srcdir="${src}"
+     <javac nowarn="on" srcdir="${src}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -157,7 +157,7 @@
       <!--END Favorits related tasks-->
  <!--Artifact related tasks --> 
     <target name="artifact.compile" >
-        <javac srcdir="${src}"
+        <javac nowarn="on" srcdir="${src}"
             destdir="${build.class}"
             debug="${compile.debug}"
             deprecation="${compile.deprecation}"
@@ -191,7 +191,7 @@
 
 	<!--Sakai related tasks --> 
 	    <target name="sakai.compile" >
-	        <javac srcdir="${src}"
+	        <javac nowarn="on" srcdir="${src}"
 	            destdir="${build.class}"
 	            debug="${compile.debug}"
 	            deprecation="${compile.deprecation}"

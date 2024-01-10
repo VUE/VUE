@@ -2,31 +2,31 @@
  *  Copyright (c) 2002-2003, The Joust Project
  *  All rights reserved.
  *
- *  Redistribution and use in source and binary forms, with or without 
- *  modification, are permitted provided that the following conditions 
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
  *  are met:
  *
- *  - Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- *  - Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
- *    distribution. 
- *  - Neither the name of the Joust Project nor the names of its 
- *    contributors may be used to endorse or promote products derived 
- *    from this software without specific prior written permission. 
+ *  - Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  - Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *  - Neither the name of the Joust Project nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
  *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  *  File created by keith @ Mar 26, 2003
@@ -35,6 +35,38 @@
 
 package edu.tufts.vue.collab.im;
 
+import edu.tufts.vue.collab.im.security.SecureSession;
+import edu.tufts.vue.collab.im.security.SecureSessionException;
+import edu.tufts.vue.layout.TabularLayout;
+import edu.tufts.vue.metadata.MetadataList;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.StringTokenizer;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import net.kano.joscar.BinaryTools;
 import net.kano.joscar.ByteBlock;
 import net.kano.joscar.OscarTools;
@@ -91,37 +123,6 @@ import net.kano.joscar.snaccmd.icbm.RvCommand;
 import net.kano.joscar.snaccmd.icbm.RvResponse;
 import net.kano.joscar.snaccmd.icbm.SendImIcbm;
 import net.kano.joscar.snaccmd.rooms.RoomInfoReq;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.geom.Rectangle2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
-import java.util.StringTokenizer;
-
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-
 import tufts.Util;
 import tufts.vue.Actions;
 import tufts.vue.DEBUG;
@@ -131,74 +132,80 @@ import tufts.vue.LWNode;
 import tufts.vue.LWSelection;
 import tufts.vue.LayoutAction;
 import tufts.vue.MapDropTarget;
+import tufts.vue.NodeTool.NodeModeTool;
 import tufts.vue.VUE;
 import tufts.vue.VueResources;
 import tufts.vue.VueUtil;
-import tufts.vue.NodeTool.NodeModeTool;
-import edu.tufts.vue.collab.im.security.SecureSession;
-import edu.tufts.vue.collab.im.security.SecureSessionException;
-import edu.tufts.vue.layout.TabularLayout;
-import edu.tufts.vue.metadata.MetadataList;
 
 public abstract class BasicConn extends AbstractFlapConn {
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(BasicConn.class);
-    protected final ByteBlock cookie;
-    protected boolean sentClientReady = false;
 
-    protected int[] snacFamilies = null;
-    protected SnacFamilyInfo[] snacFamilyInfos;
-    protected RateLimitingQueueMgr rateMgr = new RateLimitingQueueMgr();
-    public RvProcessor rvProcessor = new RvProcessor(snacProcessor);
-    protected RvProcessorListener rvListener = new RvProcessorListener() {
-        public void handleNewSession(NewRvSessionEvent event) {
-            System.out.println("new RV session: " + event.getSession());
+  private static final org.apache.log4j.Logger Log =
+    org.apache.log4j.Logger.getLogger(BasicConn.class);
+  protected final ByteBlock cookie;
+  protected boolean sentClientReady = false;
 
-            event.getSession().addListener(rvSessionListener);
+  protected int[] snacFamilies = null;
+  protected SnacFamilyInfo[] snacFamilyInfos;
+  protected RateLimitingQueueMgr rateMgr = new RateLimitingQueueMgr();
+  public RvProcessor rvProcessor = new RvProcessor(snacProcessor);
+  protected RvProcessorListener rvListener = new RvProcessorListener() {
+    public void handleNewSession(NewRvSessionEvent event) {
+      System.out.println("new RV session: " + event.getSession());
+
+      event.getSession().addListener(rvSessionListener);
+    }
+  };
+  public Map trillianEncSessions = new HashMap();
+
+  public RvSessionListener rvSessionListener = new RvSessionListener() {
+    public void handleRv(RecvRvEvent event) {
+      RvCommand cmd = event.getRvCommand();
+
+      RvSession session = event.getRvSession();
+      SnacCommand snaccmd = event.getSnacCommand();
+      if (!(snaccmd instanceof RecvRvIcbm)) return;
+      RecvRvIcbm icbm = (RecvRvIcbm) snaccmd;
+      System.out.println("got rendezvous on session <" + session + ">");
+      System.out.println("- command: " + cmd);
+
+      if (cmd instanceof FileSendReqRvCmd) {
+        FileSendReqRvCmd rv = (FileSendReqRvCmd) cmd;
+
+        RvConnectionInfo connInfo = rv.getConnInfo();
+        InetAddress ip = connInfo.getExternalIP();
+        int port = connInfo.getPort();
+
+        if (ip != null && port != -1) {
+          System.out.println("starting ft thread..");
+          long cookie = icbm.getIcbmMessageId();
+          new RecvFileThread(
+            tester,
+            ip,
+            port,
+            session,
+            cookie,
+            connInfo.isEncrypted()
+          )
+            .start();
         }
-    };
-    public Map trillianEncSessions = new HashMap();
-
-    public RvSessionListener rvSessionListener = new RvSessionListener() {
-        public void handleRv(RecvRvEvent event) {
-            RvCommand cmd = event.getRvCommand();
-
-            RvSession session = event.getRvSession();
-            SnacCommand snaccmd = event.getSnacCommand();
-            if (!(snaccmd instanceof RecvRvIcbm)) return;
-            RecvRvIcbm icbm = (RecvRvIcbm) snaccmd;
-            System.out.println("got rendezvous on session <" + session + ">");
-            System.out.println("- command: " + cmd);
-
-            if (cmd instanceof FileSendReqRvCmd) {
-                FileSendReqRvCmd rv = (FileSendReqRvCmd) cmd;
-
-                RvConnectionInfo connInfo = rv.getConnInfo();
-                InetAddress ip = connInfo.getExternalIP();
-                int port = connInfo.getPort();
-
-                if (ip != null && port != -1) {
-                    System.out.println("starting ft thread..");
-                    long cookie = icbm.getIcbmMessageId();
-                    new RecvFileThread(tester, ip, port, session, cookie,
-                            connInfo.isEncrypted()).start();
-                }
-
-            } else if (cmd instanceof AbstractTrillianCryptRvCmd) {
-                String key = OscarTools.normalize(session.getScreenname());
-                TrillianEncSession encSession = (TrillianEncSession)
-                        trillianEncSessions.get(key);
-                if (encSession == null) {
-                    encSession = new TrillianEncSession(session);
-                    trillianEncSessions.put(key, encSession);
-                }
-                encSession.handleRv(event);
-            } else if (cmd instanceof DirectIMReqRvCmd) {
-                if (((DirectIMReqRvCmd) cmd).getRequestType()
-                        == AbstractRequestRvCmd.REQTYPE_INITIALREQUEST) {
-                    new DirectIMSession(tester.getScreenname(), session, event);
-                }
-            } else if (cmd instanceof SendBuddyIconRvCmd) {
-                /*
+      } else if (cmd instanceof AbstractTrillianCryptRvCmd) {
+        String key = OscarTools.normalize(session.getScreenname());
+        TrillianEncSession encSession =
+          (TrillianEncSession) trillianEncSessions.get(key);
+        if (encSession == null) {
+          encSession = new TrillianEncSession(session);
+          trillianEncSessions.put(key, encSession);
+        }
+        encSession.handleRv(event);
+      } else if (cmd instanceof DirectIMReqRvCmd) {
+        if (
+          ((DirectIMReqRvCmd) cmd).getRequestType() ==
+          AbstractRequestRvCmd.REQTYPE_INITIALREQUEST
+        ) {
+          new DirectIMSession(tester.getScreenname(), session, event);
+        }
+      } else if (cmd instanceof SendBuddyIconRvCmd) {
+        /*
                 SendBuddyIconRvCmd iconCmd = (SendBuddyIconRvCmd) cmd;
                 ByteBlock iconData = iconCmd.getIconData();
                 if (iconData != null) {
@@ -218,352 +225,382 @@ public abstract class BasicConn extends AbstractFlapConn {
                     }
                 }
                 */
-            } else if (cmd instanceof SendBuddyListRvCmd) {
-                session.sendResponse(RvResponse.CODE_NOT_ACCEPTING);
-            } else if (cmd instanceof GetFileReqRvCmd) {
-                if (((GetFileReqRvCmd) cmd).getCode() != -1) {
-                    new HostGetFileThread(session, event).start();
-                }
-            } else if (cmd instanceof AddinsReqRvCmd) {
-                session.sendRv(cmd);
-            } else if (cmd instanceof ChatInvitationRvCmd) {
-                ChatInvitationRvCmd circ = (ChatInvitationRvCmd) cmd;
-
-                ByteBlock securityInfo = circ.getSecurityInfo();
-                if (securityInfo != null) {
-                    String sn = icbm.getSender().getScreenname();
-                    String cookie = circ.getRoomInfo().getCookie();
-                    String roomName = OscarTools.getRoomNameFromCookie(cookie);
-                    try {
-                        SecureSession secureSession = tester.getSecureSession();
-                        secureSession.setChatKey(roomName,
-                                secureSession.extractChatKey(sn, securityInfo));
-                    } catch (SecureSessionException e) {
-                        e.printStackTrace();
-                    }
-                }
-                tester.request(new RoomInfoReq(circ.getRoomInfo()));
-            }
+      } else if (cmd instanceof SendBuddyListRvCmd) {
+        session.sendResponse(RvResponse.CODE_NOT_ACCEPTING);
+      } else if (cmd instanceof GetFileReqRvCmd) {
+        if (((GetFileReqRvCmd) cmd).getCode() != -1) {
+          new HostGetFileThread(session, event).start();
         }
-        public void handleSnacResponse(RvSnacResponseEvent event) {
-            System.out.println("got SNAC response for <"
-                    + event.getRvSession() + ">: "
-                    + event.getSnacCommand());
+      } else if (cmd instanceof AddinsReqRvCmd) {
+        session.sendRv(cmd);
+      } else if (cmd instanceof ChatInvitationRvCmd) {
+        ChatInvitationRvCmd circ = (ChatInvitationRvCmd) cmd;
+
+        ByteBlock securityInfo = circ.getSecurityInfo();
+        if (securityInfo != null) {
+          String sn = icbm.getSender().getScreenname();
+          String cookie = circ.getRoomInfo().getCookie();
+          String roomName = OscarTools.getRoomNameFromCookie(cookie);
+          try {
+            SecureSession secureSession = tester.getSecureSession();
+            secureSession.setChatKey(
+              roomName,
+              secureSession.extractChatKey(sn, securityInfo)
+            );
+          } catch (SecureSessionException e) {
+            e.printStackTrace();
+          }
         }
-    };
-
-    { // init
-        snacProcessor.setSnacQueueManager(rateMgr);
-        rvProcessor.registerRvCmdFactory(new DefaultRvCommandFactory());
-        rvProcessor.addListener(rvListener);
+        tester.request(new RoomInfoReq(circ.getRoomInfo()));
+      }
     }
 
-    public BasicConn(VUEAim tester, ByteBlock cookie) {
-        super(tester);
-        this.cookie = cookie;
+    public void handleSnacResponse(RvSnacResponseEvent event) {
+      System.out.println(
+        "got SNAC response for <" +
+        event.getRvSession() +
+        ">: " +
+        event.getSnacCommand()
+      );
     }
+  };
 
-    public BasicConn(String host, int port, VUEAim tester,
-            ByteBlock cookie) {
-        super(host, port, tester);
-        this.cookie = cookie;
+  { // init
+    snacProcessor.setSnacQueueManager(rateMgr);
+    rvProcessor.registerRvCmdFactory(new DefaultRvCommandFactory());
+    rvProcessor.addListener(rvListener);
+  }
+
+  public BasicConn(VUEAim tester, ByteBlock cookie) {
+    super(tester);
+    this.cookie = cookie;
+  }
+
+  public BasicConn(String host, int port, VUEAim tester, ByteBlock cookie) {
+    super(host, port, tester);
+    this.cookie = cookie;
+  }
+
+  public BasicConn(InetAddress ip, int port, VUEAim tester, ByteBlock cookie) {
+    super(ip, port, tester);
+    this.cookie = cookie;
+  }
+
+  protected DateFormat dateFormat = DateFormat.getDateTimeInstance(
+    DateFormat.SHORT,
+    DateFormat.SHORT
+  );
+
+  protected PrintWriter imLogger = null;
+
+  private static Properties senders = new Properties();
+  private static HashMap<String, Boolean> approvedSenders = new HashMap<
+    String,
+    Boolean
+  >();
+
+  protected void handleFlapPacket(FlapPacketEvent e) {
+    FlapCommand cmd = e.getFlapCommand();
+
+    if (cmd instanceof LoginFlapCmd) {
+      getFlapProcessor().sendFlap(new LoginFlapCmd(cookie));
+    } else {
+      System.out.println(
+        "got FLAP command on channel 0x" +
+        Integer.toHexString(e.getFlapPacket().getChannel()) +
+        ": " +
+        cmd
+      );
     }
+  }
 
-    public BasicConn(InetAddress ip, int port, VUEAim tester,
-            ByteBlock cookie) {
-        super(ip, port, tester);
-        this.cookie = cookie;
+  protected void resetApprovedContributors() {
+    if (this.approvedSenders != null) {
+      approvedSenders.clear();
     }
+  }
 
-    protected DateFormat dateFormat
-            = DateFormat.getDateTimeInstance(DateFormat.SHORT,
-                    DateFormat.SHORT);
+  protected synchronized void handleSnacPacket(SnacPacketEvent e) {
+    SnacPacket packet = e.getSnacPacket();
+    System.out.println(
+      "got snac packet type " +
+      Integer.toHexString(packet.getFamily()) +
+      "/" +
+      Integer.toHexString(packet.getCommand()) +
+      ": " +
+      e.getSnacCommand()
+    );
 
-    protected PrintWriter imLogger = null;
-   
-   
-    private static Properties senders = new Properties();
-    private static HashMap<String,Boolean> approvedSenders = new HashMap<String,Boolean>();
-    protected void handleFlapPacket(FlapPacketEvent e) {
-        FlapCommand cmd = e.getFlapCommand();
+    SnacCommand cmd = e.getSnacCommand();
+    if (cmd instanceof ServerReadyCmd) {
+      ServerReadyCmd src = (ServerReadyCmd) cmd;
 
-        if (cmd instanceof LoginFlapCmd) {
-            getFlapProcessor().sendFlap(new LoginFlapCmd(cookie));
+      setSnacFamilies(src.getSnacFamilies());
+
+      SnacFamilyInfo[] familyInfos =
+        SnacFamilyInfoFactory.getDefaultFamilyInfos(src.getSnacFamilies());
+
+      setSnacFamilyInfos(familyInfos);
+
+      tester.registerSnacFamilies(this);
+
+      request(new ClientVersionsCmd(familyInfos));
+      request(new RateInfoRequest());
+    } else if (cmd instanceof RecvImIcbm) {
+      RecvImIcbm icbm = (RecvImIcbm) cmd;
+
+      String sn = icbm.getSenderInfo().getScreenname();
+      InstantMessage message = icbm.getMessage();
+      String msg = null;
+      if (message.isEncrypted()) {
+        ByteBlock encData = message.getEncryptedData();
+        System.out.println("got [" + encData.getLength() + "]");
+
+        SecureSession secureSession = tester.getSecureSession();
+        if (secureSession.hasCert(sn)) {
+          try {
+            msg = secureSession.decodeEncryptedIM(sn, encData);
+          } catch (SecureSessionException e1) {
+            e1.printStackTrace();
+          }
         } else {
-            System.out.println("got FLAP command on channel 0x"
-                    + Integer.toHexString(e.getFlapPacket().getChannel())
-                    + ": " + cmd);
+          System.out.println(
+            sn +
+            " tried sending an encrypted " +
+            "message, but I don't have his/her certificate " +
+            " - try typing 'getcertinfo " +
+            sn +
+            "'"
+          );
         }
-    }
+      } else {
+        msg = OscarTools.stripHtml(message.getMessage());
+        //                OldIconHashInfo iconInfo = icbm.getIconInfo();
+        //
+        //                if (iconInfo != null) {
+        //                    System.out.println("(" + sn
+        //                            + " has a buddy icon: " + iconInfo + ")");
+        //                }
 
-    protected void resetApprovedContributors()
-    {
-    	if (this.approvedSenders !=null)
-    	{
-    		approvedSenders.clear();
-    	}
-    }
-    protected synchronized void handleSnacPacket(SnacPacketEvent e) {
-        SnacPacket packet = e.getSnacPacket();
-        System.out.println("got snac packet type "
-                + Integer.toHexString(packet.getFamily()) + "/"
-                + Integer.toHexString(packet.getCommand()) + ": "
-                + e.getSnacCommand());
+        //  sendRequest(new SnacRequest(new SendImIcbm(sn, msg), null));
+      }
+      String str =
+        dateFormat.format(new Date()) + " IM from " + sn + ": " + msg;
+      if (imLogger != null) {
+        imLogger.println(str);
+      }
 
-        SnacCommand cmd = e.getSnacCommand();
-        if (cmd instanceof ServerReadyCmd) {
-            ServerReadyCmd src = (ServerReadyCmd) cmd;
+      if (msg != null) {
+        String encFlag = (message.isEncrypted() ? "**ENCRYPTED** " : "");
+        System.out.println(encFlag + "*" + sn + "* " + msg);
+      }
 
-            setSnacFamilies(src.getSnacFamilies());
+      if (tester.requireApproval) {
+        Boolean b = this.approvedSenders.get(sn);
 
-            SnacFamilyInfo[] familyInfos = SnacFamilyInfoFactory
-                    .getDefaultFamilyInfos(src.getSnacFamilies());
+        if (b == null) {
+          //get approval
+          int value = tufts.vue.VueUtil.confirm(
+            VUE.getApplicationFrame(),
+            VueResources.getMessageString(
+              "im.approve.message",
+              new Object[] { sn }
+            ),
+            VueResources.getString("im.approve.title")
+          );
 
-            setSnacFamilyInfos(familyInfos);
+          if (value == JOptionPane.YES_OPTION) {
+            approvedSenders.put(sn, new Boolean(true));
+          } else if (value == JOptionPane.NO_OPTION) {
+            approvedSenders.put(sn, new Boolean(false));
+            return;
+          }
+        } else if (b.booleanValue() == false) return;
+        //else do nothing.
+      }
 
-            tester.registerSnacFamilies(this);
+      if (!tester.ignoreIMs) {
+        LWNode newNode = NodeModeTool.createNewNode(
+          VueUtil.formatLines(OscarTools.stripHtml(msg), 30)
+        );
+        MetadataList mlist = new MetadataList();
+        mlist.add("submitted by", sn);
+        mlist.add("timestamp", now().toString());
 
-            request(new ClientVersionsCmd(familyInfos));
-            request(new RateInfoRequest());
+        if (msg.indexOf("?") > -1) mlist.add(
+          "Type of Sentence",
+          "question"
+        ); else if (msg.indexOf("!") > -1) mlist.add(
+          "Type of Sentence",
+          "exclamation"
+        ); else mlist.add("Type of Sentence", "statement");
+        newNode.setMetadataList(mlist);
 
-        } else if (cmd instanceof RecvImIcbm) {
-            RecvImIcbm icbm = (RecvImIcbm) cmd;
+        String c = senders.getProperty(sn);
+        Color color = null;
+        if (c == null) {
+          color = randomColor();
+          senders.setProperty(
+            sn,
+            color.getRed() + "," + color.getGreen() + "," + color.getBlue()
+          );
+        } else {
+          StringTokenizer tokens = new StringTokenizer(c, ",");
 
-            String sn = icbm.getSenderInfo().getScreenname();
-            InstantMessage message = icbm.getMessage();
-            String msg = null;
-            if (message.isEncrypted()) {
-                ByteBlock encData = message.getEncryptedData();
-                System.out.println("got [" + encData.getLength() + "]");
+          color =
+            new Color(
+              Integer.parseInt((String) tokens.nextElement()),
+              Integer.parseInt((String) tokens.nextElement()),
+              Integer.parseInt((String) tokens.nextElement())
+            );
+        }
+        if (tester.assignColors) newNode.setFillColor(color);
 
-                SecureSession secureSession = tester.getSecureSession();
-                if (secureSession.hasCert(sn)) {
-                    try {
-                        msg = secureSession.decodeEncryptedIM(sn, encData);
-                    } catch (SecureSessionException e1) {
-                        e1.printStackTrace();
-                    }
-                } else {
-                    System.out.println(sn + " tried sending an encrypted "
-                            + "message, but I don't have his/her certificate "
-                            + " - try typing 'getcertinfo " + sn + "'");
-                }
+        if (tester.forceNodeWidth) {
+          newNode.setAutoSized(false);
+          newNode.setFrame(
+            newNode.getX(),
+            newNode.getY(),
+            200,
+            newNode.getHeight()
+          );
+        }
 
-            } else {
-                msg = OscarTools.stripHtml(message.getMessage());
+        //            	VUE.getActiveMap().add(newNode);//
+        //getFocal().dropChild(newNode);
 
-//                OldIconHashInfo iconInfo = icbm.getIconInfo();
-//
-//                if (iconInfo != null) {
-//                    System.out.println("(" + sn
-//                            + " has a buddy icon: " + iconInfo + ")");
-//                }
+        List<LWComponent> compList = new ArrayList<LWComponent>();
 
-              //  sendRequest(new SnacRequest(new SendImIcbm(sn, msg), null));
+        //  VUE.getActiveViewer().getSelection().clear();
+        // VUE.getActiveViewer().getSelection().add(newNode);
+        Collection<LWComponent> collection = VUE
+          .getActiveMap()
+          .getActiveLayer()
+          .getAllDescendents();
+        compList.addAll(collection);
+        compList.add(newNode);
+        if (collection.size() <= 1) {
+          //if its a fresh map try not to let it go all the way off the creen
+          if (
+            !(VUE.getActiveMap().getAllDescendents().size() < 1 &&
+              VUE.getActiveViewer().getLastMousePressMapPoint().getX() + 200 >
+                VUE.getActiveViewer().getWidth())
+          ) newNode.setLocation(
+            VUE.getActiveViewer().getLastMousePressMapPoint()
+          );
+          VUE.getActiveMap().addChild(newNode);
+        } else VUE.getActiveMap().dropChild(newNode);
+
+        //VUE.getActiveViewer().getSelection().setTo(compList);
+        if (!tester.makeTables) {
+          if (compList.size() > 1) LayoutAction.search.act(
+            new LWSelection(compList),
+            !tester.keepAt100
+          );
+
+          MapDropTarget.makeRoomFor(newNode);
+          MapDropTarget.makeRoomFor(newNode);
+        } else {
+          if (compList.size() > 1) {
+            TabularLayout.setIMLayout(true);
+            LayoutAction.table.act(
+              new LWSelection(compList),
+              !tester.keepAt100
+            );
+            TabularLayout.setIMLayout(false);
+          }
+        }
+      }
+    } else if (cmd instanceof WarningNotification) {
+      WarningNotification wn = (WarningNotification) cmd;
+      MiniUserInfo warner = wn.getWarner();
+      if (warner == null) {
+        System.out.println(
+          "*** You were warned anonymously to " + wn.getNewLevel() + "%"
+        );
+      } else {
+        System.out.println(
+          "*** " +
+          warner.getScreenname() +
+          " warned you up to " +
+          wn.getNewLevel() +
+          "%"
+        );
+      }
+    } else if (cmd instanceof BuddyStatusCmd) {
+      BuddyStatusCmd bsc = (BuddyStatusCmd) cmd;
+
+      FullUserInfo info = bsc.getUserInfo();
+
+      String sn = info.getScreenname();
+
+      ExtraInfoBlock[] extraInfos = info.getExtraInfoBlocks();
+
+      if (extraInfos != null) {
+        for (int i = 0; i < extraInfos.length; i++) {
+          ExtraInfoBlock extraInfo = extraInfos[i];
+          ExtraInfoData data = extraInfo.getExtraData();
+
+          //                    if ((hashInfo.getFlags() & ExtraInfoData.FLAG_ICON_PRESENT)
+          //                            != 0) {
+          //                        System.out.println(sn +
+          //                                " has an icon! requesting it.. (excode="
+          //                                + iconInfos[i].getExtraCode() + ")");
+
+          //                        request(new IconRequest(sn, iconInfos[i]));
+          //
+          //                        break;
+          //                    }
+
+          if (extraInfo.getType() == ExtraInfoBlock.TYPE_AVAILMSG) {
+            ByteBlock msgBlock = data.getData();
+            int len = BinaryTools.getUShort(msgBlock, 0);
+            byte[] msgBytes = msgBlock.subBlock(2, len).toByteArray();
+
+            String msg;
+            try {
+              msg = new String(msgBytes, "UTF-8");
+            } catch (UnsupportedEncodingException e1) {
+              e1.printStackTrace();
+              return;
             }
-            String str = dateFormat.format(new Date()) + " IM from "
-                    + sn + ": " + msg;
-            if (imLogger != null) {
-                imLogger.println(str);
+            if (msg.length() > 0) {
+              System.out.println(
+                info.getScreenname() + " availability: " + msg
+              );
             }
-           
-            if (msg != null) {
-                String encFlag = (message.isEncrypted() ? "**ENCRYPTED** " : "");
-                System.out.println(encFlag + "*" + sn + "* " + msg);
-            }
-            
-            if (tester.requireApproval)
-            {
-            	Boolean b = this.approvedSenders.get(sn);
-            	
-            	
-            	if (b == null)
-            	{
-            		//get approval
-            		int value = tufts.vue.VueUtil.confirm(VUE.getApplicationFrame(), 
-            				VueResources.getMessageString("im.approve.message",new Object[]{sn}), 
-            				VueResources.getString("im.approve.title"));
-            		
-            		
-            	
-            		if (value == JOptionPane.YES_OPTION) {
-            			approvedSenders.put(sn, new Boolean(true));
-            		} else if (value == JOptionPane.NO_OPTION) {
-            		   approvedSenders.put(sn, new Boolean(false));
-            		   return;
-            		}
+          }
+        }
+      }
 
-            		
-            	}
-            	else if (b.booleanValue() == false)
-            		return;
-            	//else do nothing.
-            }
-            
-            if (!tester.ignoreIMs)
-            {
+      if (info.getCapabilityBlocks() != null) {
+        List known = Arrays.asList(
+          new CapabilityBlock[] {
+            CapabilityBlock.BLOCK_CHAT,
+            CapabilityBlock.BLOCK_DIRECTIM,
+            CapabilityBlock.BLOCK_FILE_GET,
+            CapabilityBlock.BLOCK_FILE_SEND,
+            CapabilityBlock.BLOCK_GAMES,
+            CapabilityBlock.BLOCK_GAMES2,
+            CapabilityBlock.BLOCK_ICON,
+            CapabilityBlock.BLOCK_SENDBUDDYLIST,
+            CapabilityBlock.BLOCK_TRILLIANCRYPT,
+            CapabilityBlock.BLOCK_VOICE,
+            CapabilityBlock.BLOCK_ADDINS,
+            CapabilityBlock.BLOCK_ICQCOMPATIBLE,
+            CapabilityBlock.BLOCK_SOMETHING,
+          }
+        );
 
-            	LWNode newNode = NodeModeTool.createNewNode(VueUtil.formatLines(OscarTools.stripHtml(msg), 30));
-            	MetadataList mlist = new MetadataList();
-            	mlist.add("submitted by", sn);
-            	mlist.add("timestamp",now().toString());
-            	
-            	if (msg.indexOf("?") > -1)
-            		mlist.add("Type of Sentence", "question");
-            	else if (msg.indexOf("!") > -1)
-            		mlist.add("Type of Sentence", "exclamation");
-            	else
-            		mlist.add("Type of Sentence", "statement");
-            	newNode.setMetadataList(mlist);
-           
-            	String c = senders.getProperty(sn);
-            	Color color = null;
-            	if (c == null)
-            	{
-            		color = randomColor();
-            		senders.setProperty(sn, color.getRed() +","+color.getGreen()+","+color.getBlue());
-            	}
-            	else
-            	{
-            		StringTokenizer tokens = new StringTokenizer(c,",");
-                
-            		color = new Color(Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()));
-             
-            	}
-            	if (tester.assignColors)
-            		newNode.setFillColor(color);
-            	
-            	if (tester.forceNodeWidth)
-            	{
-            			newNode.setAutoSized(false);                    
-                		newNode.setFrame(newNode.getX(),newNode.getY(),200,newNode.getHeight());
-                }		
-            	
-//            	VUE.getActiveMap().add(newNode);//
-            	//getFocal().dropChild(newNode);
-
-            	
-            	List<LWComponent> compList = new ArrayList<LWComponent>();
-	          
-	          //  VUE.getActiveViewer().getSelection().clear();
-	           // VUE.getActiveViewer().getSelection().add(newNode);
-	            Collection<LWComponent> collection = VUE.getActiveMap().getActiveLayer().getAllDescendents();
-	            compList.addAll(collection);
-	            compList.add(newNode);
-	            if (collection.size() <= 1)
-	            {
-	            	//if its a fresh map try not to let it go all the way off the creen
-	            	if (!(VUE.getActiveMap().getAllDescendents().size() < 1 && VUE.getActiveViewer().getLastMousePressMapPoint().getX()+200 > VUE.getActiveViewer().getWidth()))
-	            		newNode.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());
-	            	VUE.getActiveMap().addChild(newNode);
-	            }
-	            else
-	            	VUE.getActiveMap().dropChild(newNode);
-	            
-            	//VUE.getActiveViewer().getSelection().setTo(compList);
-	            if (!tester.makeTables)
-              	{	            		              	
-	              	if (compList.size() > 1)              		
-	              		LayoutAction.search.act(new LWSelection(compList),!tester.keepAt100);
-              		
-	            	MapDropTarget.makeRoomFor(newNode);
-	            	MapDropTarget.makeRoomFor(newNode);
-              	}
-              	else
-              	{   
-
-              		if (compList.size() > 1)              		              		
-              		{   
-              			TabularLayout.setIMLayout(true);
-              			LayoutAction.table.act(new LWSelection(compList),!tester.keepAt100);              		
-                  		TabularLayout.setIMLayout(false);
-              		}
-              	}
-            }
-
-        } else if (cmd instanceof WarningNotification) {
-            WarningNotification wn = (WarningNotification) cmd;
-            MiniUserInfo warner = wn.getWarner();
-            if (warner == null) {
-                System.out.println("*** You were warned anonymously to "
-                        + wn.getNewLevel() + "%");
-            } else {
-                System.out.println("*** " + warner.getScreenname()
-                        + " warned you up to " + wn.getNewLevel() + "%");
-            }
-        } else if (cmd instanceof BuddyStatusCmd) {
-            BuddyStatusCmd bsc = (BuddyStatusCmd) cmd;
-
-            FullUserInfo info = bsc.getUserInfo();
-
-            String sn = info.getScreenname();
-
-            ExtraInfoBlock[] extraInfos = info.getExtraInfoBlocks();
-
-            if (extraInfos != null) {
-                for (int i = 0; i < extraInfos.length; i++) {
-                    ExtraInfoBlock extraInfo = extraInfos[i];
-                    ExtraInfoData data = extraInfo.getExtraData();
-
-//                    if ((hashInfo.getFlags() & ExtraInfoData.FLAG_ICON_PRESENT)
-//                            != 0) {
-//                        System.out.println(sn +
-//                                " has an icon! requesting it.. (excode="
-//                                + iconInfos[i].getExtraCode() + ")");
-
-//                        request(new IconRequest(sn, iconInfos[i]));
-//
-//                        break;
-//                    }
-
-                    if (extraInfo.getType() == ExtraInfoBlock.TYPE_AVAILMSG) {
-                        ByteBlock msgBlock = data.getData();
-                        int len = BinaryTools.getUShort(msgBlock, 0);
-                        byte[] msgBytes = msgBlock.subBlock(2, len).toByteArray();
-
-                        String msg;
-                        try {
-                            msg = new String(msgBytes, "UTF-8");
-                        } catch (UnsupportedEncodingException e1) {
-                            e1.printStackTrace();
-                            return;
-                        }
-                        if (msg.length() > 0) {
-                            System.out.println(info.getScreenname()
-                                    + " availability: " + msg);
-                        }
-                    }
-                }
-            }
-
-            if (info.getCapabilityBlocks() != null) {
-                List known = Arrays.asList(new CapabilityBlock[] {
-                    CapabilityBlock.BLOCK_CHAT,
-                    CapabilityBlock.BLOCK_DIRECTIM,
-                    CapabilityBlock.BLOCK_FILE_GET,
-                    CapabilityBlock.BLOCK_FILE_SEND,
-                    CapabilityBlock.BLOCK_GAMES,
-                    CapabilityBlock.BLOCK_GAMES2,
-                    CapabilityBlock.BLOCK_ICON,
-                    CapabilityBlock.BLOCK_SENDBUDDYLIST,
-                    CapabilityBlock.BLOCK_TRILLIANCRYPT,
-                    CapabilityBlock.BLOCK_VOICE,
-                    CapabilityBlock.BLOCK_ADDINS,
-                    CapabilityBlock.BLOCK_ICQCOMPATIBLE,
-                    CapabilityBlock.BLOCK_SOMETHING,
-                });
-
-                List caps = new ArrayList(Arrays.asList(
-                        info.getCapabilityBlocks()));
-                caps.removeAll(known);
-                if (!caps.isEmpty()) {
-                    System.out.println(sn + " has " + caps.size()
-                            + " unknown caps:");
-                    for (Iterator it = caps.iterator(); it.hasNext();) {
-                        System.out.println("- " + it.next());
-                    }
-                }
-/*
+        List caps = new ArrayList(Arrays.asList(info.getCapabilityBlocks()));
+        caps.removeAll(known);
+        if (!caps.isEmpty()) {
+          System.out.println(sn + " has " + caps.size() + " unknown caps:");
+          for (Iterator it = caps.iterator(); it.hasNext();) {
+            System.out.println("- " + it.next());
+          }
+        }
+        /*
                 caps = new ArrayList(known);
                 caps.removeAll(Arrays.asList(info.getCapabilityBlocks()));
                 if (!caps.isEmpty()) {
@@ -574,114 +611,116 @@ public abstract class BasicConn extends AbstractFlapConn {
                     }
                 }
 */
-            }
-        } else if (cmd instanceof BuddyOfflineCmd) {
-            BuddyOfflineCmd boc = (BuddyOfflineCmd) cmd;
+      }
+    } else if (cmd instanceof BuddyOfflineCmd) {
+      BuddyOfflineCmd boc = (BuddyOfflineCmd) cmd;
+    } else if (cmd instanceof RateChange) {
+      RateChange rc = (RateChange) cmd;
 
-        } else if (cmd instanceof RateChange) {
-            RateChange rc = (RateChange) cmd;
-
-            System.out.println("rate change: current avg is "
-                    + rc.getRateInfo().getCurrentAvg());
-        }
+      System.out.println(
+        "rate change: current avg is " + rc.getRateInfo().getCurrentAvg()
+      );
     }
-    public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
+  }
 
-  
-    public static String now() {
-      Calendar cal = Calendar.getInstance();
-      SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-      return sdf.format(cal.getTime());
+  public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
 
+  public static String now() {
+    Calendar cal = Calendar.getInstance();
+    SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
+    return sdf.format(cal.getTime());
+  }
+
+  private static Random rand = new Random();
+
+  public Color randomColor() {
+    return (new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)));
+  }
+
+  protected void handleSnacResponse(SnacResponseEvent e) {
+    SnacPacket packet = e.getSnacPacket();
+    System.out.println(
+      "got snac response type " +
+      Integer.toHexString(packet.getFamily()) +
+      "/" +
+      Integer.toHexString(packet.getCommand()) +
+      ": " +
+      e.getSnacCommand()
+    );
+
+    SnacCommand cmd = e.getSnacCommand();
+
+    if (cmd instanceof RateInfoCmd) {
+      RateInfoCmd ric = (RateInfoCmd) cmd;
+
+      RateClassInfo[] rateClasses = ric.getRateClassInfos();
+
+      int[] classes = new int[rateClasses.length];
+      for (int i = 0; i < rateClasses.length; i++) {
+        classes[i] = rateClasses[i].getRateClass();
+        //                System.out.println("- " + rateClasses[i] + ": " + Arrays.asList(rateClasses[i].getCommands()));
+      }
+
+      request(new RateAck(classes));
     }
+  }
 
-    private static Random  rand = new Random();
-    public Color randomColor()
-    {
-        return(new Color(rand.nextInt(256), 
-                         rand.nextInt(256),
-                         rand.nextInt(256)));
+  public int[] getSnacFamilies() {
+    return snacFamilies;
+  }
+
+  protected void setSnacFamilies(int[] families) {
+    this.snacFamilies = (int[]) families.clone();
+    Arrays.sort(snacFamilies);
+  }
+
+  protected void setSnacFamilyInfos(SnacFamilyInfo[] infos) {
+    snacFamilyInfos = infos;
+  }
+
+  protected boolean supportsFamily(int family) {
+    return Arrays.binarySearch(snacFamilies, family) >= 0;
+  }
+
+  protected void clientReady() {
+    if (!sentClientReady) {
+      sentClientReady = true;
+      request(new ClientReadyCmd(snacFamilyInfos));
     }
-    
+  }
 
-    protected void handleSnacResponse(SnacResponseEvent e) {
-        SnacPacket packet = e.getSnacPacket();
-        System.out.println("got snac response type "
-                + Integer.toHexString(packet.getFamily()) + "/"
-                + Integer.toHexString(packet.getCommand()) + ": "
-                + e.getSnacCommand());
+  protected SnacRequest dispatchRequest(SnacCommand cmd) {
+    return dispatchRequest(cmd, null);
+  }
 
-        SnacCommand cmd = e.getSnacCommand();
+  protected SnacRequest dispatchRequest(
+    SnacCommand cmd,
+    SnacRequestListener listener
+  ) {
+    SnacRequest req = new SnacRequest(cmd, listener);
+    dispatchRequest(req);
+    return req;
+  }
 
-        if (cmd instanceof RateInfoCmd) {
-            RateInfoCmd ric = (RateInfoCmd) cmd;
+  protected void dispatchRequest(SnacRequest req) {
+    tester.handleRequest(req);
+  }
 
-            RateClassInfo[] rateClasses = ric.getRateClassInfos();
+  protected SnacRequest request(SnacCommand cmd, SnacRequestListener listener) {
+    SnacRequest req = new SnacRequest(cmd, listener);
 
-            int[] classes = new int[rateClasses.length];
-            for (int i = 0; i < rateClasses.length; i++) {
-                classes[i] = rateClasses[i].getRateClass();
-//                System.out.println("- " + rateClasses[i] + ": " + Arrays.asList(rateClasses[i].getCommands()));
-            }
+    handleReq(req);
 
-            request(new RateAck(classes));
-        }
+    return req;
+  }
+
+  private void handleReq(SnacRequest request) {
+    int family = request.getCommand().getFamily();
+    if (snacFamilies == null || supportsFamily(family)) {
+      // this connection supports this snac, so we'll send it here
+      sendRequest(request);
+    } else {
+      tester.handleRequest(request);
     }
-
-    public int[] getSnacFamilies() { return snacFamilies; }
-
-    protected void setSnacFamilies(int[] families) {
-        this.snacFamilies = (int[]) families.clone();
-        Arrays.sort(snacFamilies);
-    }
-
-    protected void setSnacFamilyInfos(SnacFamilyInfo[] infos) {
-        snacFamilyInfos = infos;
-    }
-
-    protected boolean supportsFamily(int family) {
-        return Arrays.binarySearch(snacFamilies, family) >= 0;
-    }
-
-    protected void clientReady() {
-        if (!sentClientReady) {
-            sentClientReady = true;
-            request(new ClientReadyCmd(snacFamilyInfos));
-        }
-    }
-
-    protected SnacRequest dispatchRequest(SnacCommand cmd) {
-        return dispatchRequest(cmd, null);
-    }
-
-    protected SnacRequest dispatchRequest(SnacCommand cmd,
-            SnacRequestListener listener) {
-        SnacRequest req = new SnacRequest(cmd, listener);
-        dispatchRequest(req);
-        return req;
-    }
-
-    protected void dispatchRequest(SnacRequest req) {
-        tester.handleRequest(req);
-    }
-
-    protected SnacRequest request(SnacCommand cmd,
-            SnacRequestListener listener) {
-        SnacRequest req = new SnacRequest(cmd, listener);
-
-        handleReq(req);
-
-        return req;
-    }
-
-    private void handleReq(SnacRequest request) {
-        int family = request.getCommand().getFamily();
-        if (snacFamilies == null || supportsFamily(family)) {
-            // this connection supports this snac, so we'll send it here
-            sendRequest(request);
-        } else {
-            tester.handleRequest(request);
-        }
-    }
-
+  }
 }

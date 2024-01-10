@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -15,137 +15,163 @@
 
 package edu.tufts.vue.compare;
 
-import tufts.vue.DEBUG;
 import java.util.*;
+import tufts.vue.DEBUG;
 
 /**
  * @author akumar03
  * @author Scott Fraize re-write 2012
  */
-public class VoteAggregate extends WeightAggregate
-{
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VoteAggregate.class);
+public class VoteAggregate extends WeightAggregate {
 
-    public static final int POSITIVE_VOTE = 1;
-    public static final int NEGATIVE_VOTE = 0;
-    
-    /** The percentage of maps that must contain this node (by merge-key) before the vote is yes */
-    private final double nodePercentMaps;
-    /** The percentage of maps that must contain this link (by endpoint merge-keys) before the vote is yes */
-    private final double linkPercentMaps;
-    
-    private final int aggregateLinkThreshold;
-    private final int aggregateNodeThreshold;
+  private static final org.apache.log4j.Logger Log =
+    org.apache.log4j.Logger.getLogger(VoteAggregate.class);
 
-    protected final int[][] linkCounts;
-    
-    public static VoteAggregate create(List<ConnectivityMatrix> matrices, double nodeThresh, double linkThresh) {
-        final IndexedCountingSet preComputed = new IndexedCountingSet();
-        for (ConnectivityMatrix matrix : matrices)
-            preComputed.addAll(matrix.keys);
-        // We pre-compute the index so the matrix aggregate will know how big
-        // of a matrix will be required to hold it all.
-        return new VoteAggregate(preComputed, matrices, nodeThresh, linkThresh);
-    }
-    
-    private VoteAggregate(IndexedCountingSet preComputed, List<ConnectivityMatrix> matrices, double nodePercent, double linkPercent) {
-        super(preComputed, matrices);
-        // WeightAggregate superclass will have merged in all the matrices to produce counts: we save them here
-        this.linkCounts = super.cx.clone();  // computeLinkVotes is about to write all over super.cx
-        this.nodePercentMaps = nodePercent;
-        this.linkPercentMaps = linkPercent;
-        final double nodeThresh = nodePercent * (double) matrices.size();
-        final double linkThresh = linkPercent * (double) matrices.size();
-        this.aggregateNodeThreshold = (int) nodeThresh;
-        this.aggregateLinkThreshold = (int) linkThresh;
-        if (DEBUG.Enabled) {
-            Log.debug(this + " nodePercent " + nodePercent + "*count(" + getCount() + ") = vote threshold: " + nodeThresh + "=" + aggregateNodeThreshold);
-            Log.debug(this + " linkPercent " + linkPercent + "*count(" + getCount() + ") = vote threshold: " + linkThresh + "=" + aggregateLinkThreshold);
-        }
-        computeLinkVotes();
-    }
-    
-    private void computeLinkVotes()
-    {
-        final int size = super.size();
+  public static final int POSITIVE_VOTE = 1;
+  public static final int NEGATIVE_VOTE = 0;
 
-        // This will collapse the connection count values (in super.cx) from their counts down to a
-        // 0 or 1, depending on if the vote passed (the count was at or over the threshold).
+  /** The percentage of maps that must contain this node (by merge-key) before the vote is yes */
+  private final double nodePercentMaps;
+  /** The percentage of maps that must contain this link (by endpoint merge-keys) before the vote is yes */
+  private final double linkPercentMaps;
 
-        // This is nice, and was in the original code, but probably not required: At best it only
-        // gives us a slightly faster truth test. E.g., how much faster can (x == 1) be than a full
-        // "vote", which is: x > 0 && x >= (final int this.aggregateLinkThreshold) ?  In both
-        // cases, we still need to hash two strings to indicies first, then do the 2d-array access.
+  private final int aggregateLinkThreshold;
+  private final int aggregateNodeThreshold;
 
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (super.cx[i][j] > 0 && super.cx[i][j] >= aggregateLinkThreshold)
-                    super.cx[i][j] = POSITIVE_VOTE;
-                else
-                    super.cx[i][j] = NEGATIVE_VOTE;
-            }
-        }
-    }
-    
-    public boolean isNodeVotedIn(Object mergeKey) {
-        return getNodeCount(mergeKey) >= aggregateNodeThreshold;
-    }
-    
-    public boolean isLinkVotedIn(Object headKey, Object tailKey) {
-        return super.getConnection(headKey, tailKey) == POSITIVE_VOTE;
-    }
-    
-    /** if the alpha [head,tail] relationship was voted yes over threshold, zero out the omega
-     * [tail,head] so we will only see this head/tail connection once */
-    public boolean testAndConsumeOppositeLinkVote(Object headKey, Object tailKey) {
-        final int ihead = super.keys.findIndex(headKey);
-        final int itail = super.keys.findIndex(tailKey);
-        if (ihead < 0 || itail < 0)
-            return false;
-        
-        if (super.cx[ihead][itail] > 0) {
-            // reverse the index order and consume the opposite direction link vote
-            super.cx[itail][ihead] = 0;
-            return true;
-        } else {
-            return false;
-        }
-    }
+  protected final int[][] linkCounts;
 
-    /**
-     * @param headKey label/merge property of head endpoint node
-     * @param tailKey label/merge property of tail endpoint node
-     * @return number of links between head and tail (based merge-keys)
-     */
-    public int getLinkCount(Object headKey, Object tailKey) {
-        final int headIndex = keys.findIndex(headKey);
-        final int tailIndex = keys.findIndex(tailKey);
-        if (headIndex >= 0 && tailIndex >= 0)
-            return linkCounts[headIndex][tailIndex];
-        else
-            return 0;
-    }
+  public static VoteAggregate create(
+    List<ConnectivityMatrix> matrices,
+    double nodeThresh,
+    double linkThresh
+  ) {
+    final IndexedCountingSet preComputed = new IndexedCountingSet();
+    for (ConnectivityMatrix matrix : matrices) preComputed.addAll(matrix.keys);
+    // We pre-compute the index so the matrix aggregate will know how big
+    // of a matrix will be required to hold it all.
+    return new VoteAggregate(preComputed, matrices, nodeThresh, linkThresh);
+  }
 
-    
-    // /*
-    //  * This method is similar to isNodeVoteAboveThreshold except it works for links
-    //  * @param label1 label/merge property of node 1
-    //  * @param label2 label/merge property of node 2
-    //  * @return true when number of links is above threshold
-    //  */
-    // public boolean isLinkVoteAboveThreshold(Object headKey, Object tailKey) {
-    //     return super.getConnection(headKey, tailKey) > 0;
-    //     // This is exactly what was already computed in computeVotes!
-    //     // final int linkCount = getLinkCount(headKey, tailKey);
-    //     // return linkCount > 0 && linkCount >= aggregateLinkThreshold;
-    // }
-    // Public void setLinkThreshold(double percentage) {
-    //     linkThreshold = percentage;
-    //     if (DEBUG.Enabled) Log.debug("linkThresh set to " + percentage, new Throwable("HERE"));
-    // }
-    // public void setNodeThreshold(double percentage) {
-    //     nodeThreshold = percentage;
-    //     if (DEBUG.Enabled) Log.debug("nodeThresh set to " + percentage, new Throwable("HERE"));
-    // }
-    // public VoteAggregate(List<ConnectivityMatrix> matrices,boolean nodeMerge) { super(matrices); }    
+  private VoteAggregate(
+    IndexedCountingSet preComputed,
+    List<ConnectivityMatrix> matrices,
+    double nodePercent,
+    double linkPercent
+  ) {
+    super(preComputed, matrices);
+    // WeightAggregate superclass will have merged in all the matrices to produce counts: we save them here
+    this.linkCounts = super.cx.clone(); // computeLinkVotes is about to write all over super.cx
+    this.nodePercentMaps = nodePercent;
+    this.linkPercentMaps = linkPercent;
+    final double nodeThresh = nodePercent * (double) matrices.size();
+    final double linkThresh = linkPercent * (double) matrices.size();
+    this.aggregateNodeThreshold = (int) nodeThresh;
+    this.aggregateLinkThreshold = (int) linkThresh;
+    if (DEBUG.Enabled) {
+      Log.debug(
+        this +
+        " nodePercent " +
+        nodePercent +
+        "*count(" +
+        getCount() +
+        ") = vote threshold: " +
+        nodeThresh +
+        "=" +
+        aggregateNodeThreshold
+      );
+      Log.debug(
+        this +
+        " linkPercent " +
+        linkPercent +
+        "*count(" +
+        getCount() +
+        ") = vote threshold: " +
+        linkThresh +
+        "=" +
+        aggregateLinkThreshold
+      );
+    }
+    computeLinkVotes();
+  }
+
+  private void computeLinkVotes() {
+    final int size = super.size();
+
+    // This will collapse the connection count values (in super.cx) from their counts down to a
+    // 0 or 1, depending on if the vote passed (the count was at or over the threshold).
+
+    // This is nice, and was in the original code, but probably not required: At best it only
+    // gives us a slightly faster truth test. E.g., how much faster can (x == 1) be than a full
+    // "vote", which is: x > 0 && x >= (final int this.aggregateLinkThreshold) ?  In both
+    // cases, we still need to hash two strings to indicies first, then do the 2d-array access.
+
+    for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
+        if (
+          super.cx[i][j] > 0 && super.cx[i][j] >= aggregateLinkThreshold
+        ) super.cx[i][j] = POSITIVE_VOTE; else super.cx[i][j] = NEGATIVE_VOTE;
+      }
+    }
+  }
+
+  public boolean isNodeVotedIn(Object mergeKey) {
+    return getNodeCount(mergeKey) >= aggregateNodeThreshold;
+  }
+
+  public boolean isLinkVotedIn(Object headKey, Object tailKey) {
+    return super.getConnection(headKey, tailKey) == POSITIVE_VOTE;
+  }
+
+  /** if the alpha [head,tail] relationship was voted yes over threshold, zero out the omega
+   * [tail,head] so we will only see this head/tail connection once */
+  public boolean testAndConsumeOppositeLinkVote(
+    Object headKey,
+    Object tailKey
+  ) {
+    final int ihead = super.keys.findIndex(headKey);
+    final int itail = super.keys.findIndex(tailKey);
+    if (ihead < 0 || itail < 0) return false;
+
+    if (super.cx[ihead][itail] > 0) {
+      // reverse the index order and consume the opposite direction link vote
+      super.cx[itail][ihead] = 0;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * @param headKey label/merge property of head endpoint node
+   * @param tailKey label/merge property of tail endpoint node
+   * @return number of links between head and tail (based merge-keys)
+   */
+  public int getLinkCount(Object headKey, Object tailKey) {
+    final int headIndex = keys.findIndex(headKey);
+    final int tailIndex = keys.findIndex(tailKey);
+    if (
+      headIndex >= 0 && tailIndex >= 0
+    ) return linkCounts[headIndex][tailIndex]; else return 0;
+  }
+  // /*
+  //  * This method is similar to isNodeVoteAboveThreshold except it works for links
+  //  * @param label1 label/merge property of node 1
+  //  * @param label2 label/merge property of node 2
+  //  * @return true when number of links is above threshold
+  //  */
+  // public boolean isLinkVoteAboveThreshold(Object headKey, Object tailKey) {
+  //     return super.getConnection(headKey, tailKey) > 0;
+  //     // This is exactly what was already computed in computeVotes!
+  //     // final int linkCount = getLinkCount(headKey, tailKey);
+  //     // return linkCount > 0 && linkCount >= aggregateLinkThreshold;
+  // }
+  // Public void setLinkThreshold(double percentage) {
+  //     linkThreshold = percentage;
+  //     if (DEBUG.Enabled) Log.debug("linkThresh set to " + percentage, new Throwable("HERE"));
+  // }
+  // public void setNodeThreshold(double percentage) {
+  //     nodeThreshold = percentage;
+  //     if (DEBUG.Enabled) Log.debug("nodeThresh set to " + percentage, new Throwable("HERE"));
+  // }
+  // public VoteAggregate(List<ConnectivityMatrix> matrices,boolean nodeMerge) { super(matrices); }
 }

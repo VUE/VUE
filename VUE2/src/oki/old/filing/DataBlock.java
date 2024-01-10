@@ -22,70 +22,60 @@ package org.okip.service.filing.impl.rfs;
  * @version $Revision: 1.1 $ / $Date: 2003-04-14 20:48:28 $
  */
 
-class DataBlock
-    implements java.io.Serializable, Cloneable
-{
-    int length;
-    boolean containsEOF = false;
-    transient int off = 0; // will always be 0 after serialization
-    transient byte[] buf;
-    
-    protected DataBlock(byte[] buf, int off, int len)
-    {
-        this.buf = buf;
-        this.off = off;
-        this.length = len;
-    }
-    protected DataBlock(byte[] buf, int len)
-    {
-        this(buf, 0, len);
-    }
-    
-    /*
-     * We manually serialize the buffer here so that if,
-     * of instance, we have a 512k buffer, yet only 3
-     * bytes of it are filled up, we only have to send the 3
-     * bytes instead of the whole buffer.
-     */
-    private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException
-    {
-        s.defaultWriteObject();
-        s.write(buf, off, length);
-    }
-    private void readObject(java.io.ObjectInputStream s)
-        throws java.io.IOException, java.lang.ClassNotFoundException
-    {
-        s.defaultReadObject();
-        buf = new byte[length];
-        s.readFully(buf);
-    }
-    public String toString()
-    {
-        String s = "DataBlock" +  Integer.toHexString(hashCode()) + "[";
-        if (buf != null) {
-            s += buf.length + "@" + Integer.toHexString(buf.hashCode());
-            if (buf.length != length)
-                s += " used="+length;
-            if (off != 0)
-                s += " off=" + off;
-            if (length <= 8)
-                s += " \"" + new String(buf, 0, length) + "\"";
-        } else
-            s += "length="+length + " off="+off;
-        if (containsEOF)
-            s += " EOF";
-        return s + "]";
-    }
+class DataBlock implements java.io.Serializable, Cloneable {
 
-    protected DataBlock copy()
-    {
-        try {
-            return (DataBlock) super.clone();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-            return null;
-        }
+  int length;
+  boolean containsEOF = false;
+  transient int off = 0; // will always be 0 after serialization
+  transient byte[] buf;
+
+  protected DataBlock(byte[] buf, int off, int len) {
+    this.buf = buf;
+    this.off = off;
+    this.length = len;
+  }
+
+  protected DataBlock(byte[] buf, int len) {
+    this(buf, 0, len);
+  }
+
+  /*
+   * We manually serialize the buffer here so that if,
+   * of instance, we have a 512k buffer, yet only 3
+   * bytes of it are filled up, we only have to send the 3
+   * bytes instead of the whole buffer.
+   */
+  private void writeObject(java.io.ObjectOutputStream s)
+    throws java.io.IOException {
+    s.defaultWriteObject();
+    s.write(buf, off, length);
+  }
+
+  private void readObject(java.io.ObjectInputStream s)
+    throws java.io.IOException, java.lang.ClassNotFoundException {
+    s.defaultReadObject();
+    buf = new byte[length];
+    s.readFully(buf);
+  }
+
+  public String toString() {
+    String s = "DataBlock" + Integer.toHexString(hashCode()) + "[";
+    if (buf != null) {
+      s += buf.length + "@" + Integer.toHexString(buf.hashCode());
+      if (buf.length != length) s += " used=" + length;
+      if (off != 0) s += " off=" + off;
+      if (length <= 8) s += " \"" + new String(buf, 0, length) + "\"";
+    } else s += "length=" + length + " off=" + off;
+    if (containsEOF) s += " EOF";
+    return s + "]";
+  }
+
+  protected DataBlock copy() {
+    try {
+      return (DataBlock) super.clone();
+    } catch (CloneNotSupportedException e) {
+      e.printStackTrace();
+      return null;
     }
+  }
 }
-

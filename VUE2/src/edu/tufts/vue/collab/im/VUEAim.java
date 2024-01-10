@@ -1,62 +1,55 @@
 package edu.tufts.vue.collab.im;
 
+import edu.tufts.vue.collab.im.*;
+import edu.tufts.vue.collab.im.security.SecureSession;
+import edu.tufts.vue.collab.im.security.SecureSessionException;
 import java.io.File;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URI;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.List;
+import java.util.Map;
 import java.util.Map;
 import java.util.Set;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.TreeMap;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import edu.tufts.vue.collab.im.*;
-import edu.tufts.vue.collab.im.security.SecureSession;
-import edu.tufts.vue.collab.im.security.SecureSessionException;
-
-import sun.net.ProgressSource.State;
-import tufts.vue.VueResources;
-import tufts.vue.VueUtil;
-
-
+import java.util.logging.Logger;
 import net.kano.joscar.ByteBlock;
 import net.kano.joscar.FileWritable;
 import net.kano.joscar.OscarTools;
@@ -117,349 +110,361 @@ import net.kano.joscar.ssiitem.PermitItem;
 import net.kano.joscar.ssiitem.PrivacyItem;
 import net.kano.joscar.ssiitem.RootItem;
 import net.kano.joscar.ssiitem.VisibilityItem;
+import sun.net.ProgressSource.State;
+import tufts.vue.VueResources;
+import tufts.vue.VueUtil;
 
 public class VUEAim {
 
-    protected LoginConn loginConn = null;
-    protected static final int DEFAULT_SERVICE_PORT = 5190;
+  protected LoginConn loginConn = null;
+  protected static final int DEFAULT_SERVICE_PORT = 5190;
 
-    protected DefaultClientFactoryList factoryList
-            = new DefaultClientFactoryList();
+  protected DefaultClientFactoryList factoryList =
+    new DefaultClientFactoryList();
 
-    protected ClientFlapConn loginFlapConn = null, mainConn = null;
-    protected ClientSnacProcessor loginSnacProcessor = null;
+  protected ClientFlapConn loginFlapConn = null, mainConn = null;
+  protected ClientSnacProcessor loginSnacProcessor = null;
 
-    protected List serviceConns = new ArrayList();
+  protected List serviceConns = new ArrayList();
 
-    protected String sn = null;
-    protected String pass = null;
-    protected boolean ignoreIMs = false;
-	protected boolean requireApproval = true;
-	protected boolean assignColors = false;
-	protected boolean forceNodeWidth = false;
-	protected boolean makeTables = false;
-	protected boolean keepAt100 =false;
-    protected BosFlapConn bosConn = null;
-    protected Set services = new HashSet();
-    protected Map chats = new HashMap();
-    private ClientConnListener connListener = null;
-    private SecureSession secureSession = SecureSession.getInstance();
+  protected String sn = null;
+  protected String pass = null;
+  protected boolean ignoreIMs = false;
+  protected boolean requireApproval = true;
+  protected boolean assignColors = false;
+  protected boolean forceNodeWidth = false;
+  protected boolean makeTables = false;
+  protected boolean keepAt100 = false;
+  protected BosFlapConn bosConn = null;
+  protected Set services = new HashSet();
+  protected Map chats = new HashMap();
+  private ClientConnListener connListener = null;
+  private SecureSession secureSession = SecureSession.getInstance();
 
-	public VUEAim(String username, String password)
-	{	
-	        ConsoleHandler handler = new ConsoleHandler();
-	        handler.setLevel(Level.OFF);
-	        Logger logger = Logger.getLogger("net.kano.joscar");
-	        logger.addHandler(handler);
-	        logger.setLevel(Level.OFF);
-	        this.sn = username;
-	        this.pass = password;	
-	}
-	
-	public void connect()
-	{
-		if (loginConn == null)
-		 loginConn = new LoginConn("login.oscar.aol.com", DEFAULT_SERVICE_PORT, this);
+  public VUEAim(String username, String password) {
+    ConsoleHandler handler = new ConsoleHandler();
+    handler.setLevel(Level.OFF);
+    Logger logger = Logger.getLogger("net.kano.joscar");
+    logger.addHandler(handler);
+    logger.setLevel(Level.OFF);
+    this.sn = username;
+    this.pass = password;
+  }
 
-		 loginConn.connect();
-	     //connected = true;
-		
-	}
-	public void disconnect()
-	{
-		if (loginConn !=null)
-		{
-			loginConn.disconnect();
-	        bosConn.disconnect();
-		
-		}
-	}
-	
-	public void addConnectionListener(ClientConnListener c)
-	{
-		connListener =c ;
-	}
-	 public void startBosConn(String server, int port, ByteBlock cookie) {
-	        bosConn = new BosFlapConn(server, port, this, cookie);
-	        
-	     //   new BosFlapConn()
-	        if (connListener !=null)
-	        bosConn.addConnListener(connListener);
-	        bosConn.connect();
-	    }
+  public void connect() {
+    if (loginConn == null) loginConn =
+      new LoginConn("login.oscar.aol.com", DEFAULT_SERVICE_PORT, this);
 
-	    public void registerSnacFamilies(BasicConn conn) {
-	        snacMgr.register(conn);
-	    }
+    loginConn.connect();
+    //connected = true;
 
-	    public void connectToService(int snacFamily, String host, ByteBlock cookie) {
-	        ServiceConn conn = new ServiceConn(host, DEFAULT_SERVICE_PORT, this,
-	                cookie, snacFamily);
+  }
 
-	        conn.connect();
-	        
-	    }
+  public void disconnect() {
+    if (loginConn != null) {
+      loginConn.disconnect();
+      bosConn.disconnect();
+    }
+  }
 
-	    public void serviceFailed(ServiceConn conn) 
-	    {
-	    	
-	    }
+  public void addConnectionListener(ClientConnListener c) {
+    connListener = c;
+  }
 
-	    public void serviceConnected(ServiceConn conn) {
-	        services.add(conn);
-	    }
+  public void startBosConn(String server, int port, ByteBlock cookie) {
+    bosConn = new BosFlapConn(server, port, this, cookie);
 
-	    public void serviceReady(ServiceConn conn) {
-	        snacMgr.dequeueSnacs(conn);
-	    }
+    //   new BosFlapConn()
+    if (connListener != null) bosConn.addConnListener(connListener);
+    bosConn.connect();
+  }
 
-	    public void serviceDied(ServiceConn conn) {
-	        services.remove(conn);
-	        snacMgr.unregister(conn);
-	    }
+  public void registerSnacFamilies(BasicConn conn) {
+    snacMgr.register(conn);
+  }
 
-	    void joinChat(int exchange, String roomname) {
-	        FullRoomInfo roomInfo
-	                = new FullRoomInfo(exchange, roomname, "us-ascii", "en");
-	        handleRequest(new SnacRequest(new JoinRoomCmd(roomInfo), null));
-	    }
+  public void connectToService(int snacFamily, String host, ByteBlock cookie) {
+    ServiceConn conn = new ServiceConn(
+      host,
+      DEFAULT_SERVICE_PORT,
+      this,
+      cookie,
+      snacFamily
+    );
 
-	    public void connectToChat(FullRoomInfo roomInfo, String host,
-	            ByteBlock cookie) {
-	        ChatConn conn = new ChatConn(host, DEFAULT_SERVICE_PORT, this, cookie,
-	                roomInfo);
+    conn.connect();
+  }
 
-	        conn.addChatListener(new MyChatConnListener());
+  public void serviceFailed(ServiceConn conn) {}
 
-	        conn.connect();
-	    }
+  public void serviceConnected(ServiceConn conn) {
+    services.add(conn);
+  }
 
-	    public ChatConn getChatConn(String name) {
-	        return (ChatConn) chats.get(OscarTools.normalize(name));
-	    }
+  public void serviceReady(ServiceConn conn) {
+    snacMgr.dequeueSnacs(conn);
+  }
 
-	    protected SnacManager snacMgr = new SnacManager(new PendingSnacListener() {
-	        public void dequeueSnacs(SnacRequest[] pending) {
-	            System.out.println("dequeuing " + pending.length + " snacs");
-	            for (int i = 0; i < pending.length; i++) {
-	                handleRequest(pending[i]);
-	            }
-	        }
-	    });
+  public void serviceDied(ServiceConn conn) {
+    services.remove(conn);
+    snacMgr.unregister(conn);
+  }
 
-	    public synchronized void handleRequest(SnacRequest request) {
-	        int family = request.getCommand().getFamily();
-	        if (snacMgr.isPending(family)) {
-	            snacMgr.addRequest(request);
-	            return;
-	        }
+  void joinChat(int exchange, String roomname) {
+    FullRoomInfo roomInfo = new FullRoomInfo(
+      exchange,
+      roomname,
+      "us-ascii",
+      "en"
+    );
+    handleRequest(new SnacRequest(new JoinRoomCmd(roomInfo), null));
+  }
 
-	        BasicConn conn = snacMgr.getConn(family);
+  public void connectToChat(
+    FullRoomInfo roomInfo,
+    String host,
+    ByteBlock cookie
+  ) {
+    ChatConn conn = new ChatConn(
+      host,
+      DEFAULT_SERVICE_PORT,
+      this,
+      cookie,
+      roomInfo
+    );
 
-	        if (conn != null) {
-	            conn.sendRequest(request);
-	        } else {
-	            // it's time to request a service
-	            if (!(request.getCommand() instanceof ServiceRequest)) {
-	                System.out.println("requesting " + Integer.toHexString(family)
-	                        + " service.");
-	                snacMgr.setPending(family, true);
-	                snacMgr.addRequest(request);
-	                request(new ServiceRequest(family));
-	            } else {
-	                System.out.println("eep! can't find a service redirector " +
-	                        "server.");
-	            }
-	        }
-	    }
+    conn.addChatListener(new MyChatConnListener());
 
-	    public SnacRequest request(SnacCommand cmd) {
-	        return request(cmd, null);
-	    }
+    conn.connect();
+  }
 
-	    private SnacRequest request(SnacCommand cmd, SnacRequestListener listener) {
-	        SnacRequest req = new SnacRequest(cmd, listener);
-	        handleRequest(req);
-	        return req;
-	    }
+  public ChatConn getChatConn(String name) {
+    return (ChatConn) chats.get(OscarTools.normalize(name));
+  }
 
-	    protected SortedMap cmdMap = new TreeMap();
+  protected SnacManager snacMgr = new SnacManager(
+    new PendingSnacListener() {
+      public void dequeueSnacs(SnacRequest[] pending) {
+        System.out.println("dequeuing " + pending.length + " snacs");
+        for (int i = 0; i < pending.length; i++) {
+          handleRequest(pending[i]);
+        }
+      }
+    }
+  );
 
-	    OldIconHashInfo oldIconInfo;
-	    File iconFile = null;
-	    { if (false) {
-	        try {
-	            ClassLoader classLoader = getClass().getClassLoader();
-	            URL iconResource = classLoader.getResource("images/beck.gif");
-	            String ext = iconResource.toExternalForm();
-	            System.out.println("ext: " + ext);
-	            URI uri = new URI(ext);
-	            iconFile = new File(uri);
-	            oldIconInfo = new OldIconHashInfo(iconFile);
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        } catch (URISyntaxException e) {
-	            e.printStackTrace();
-	        }
-	    }
-	    }
+  public synchronized void handleRequest(SnacRequest request) {
+    int family = request.getCommand().getFamily();
+    if (snacMgr.isPending(family)) {
+      snacMgr.addRequest(request);
+      return;
+    }
 
-	    protected static byte[] hashIcon(String filename) throws IOException {
-	        FileInputStream in = new FileInputStream(filename);
-	        try {
-	            byte[] block = new byte[1024];
-	            MessageDigest md;
-	            try {
-	                md = MessageDigest.getInstance("MD5");
-	            } catch (NoSuchAlgorithmException e) {
-	                e.printStackTrace();
-	                return null;
-	            }
-	            for (;;) {
-	                int count = in.read(block);
-	                if (count == -1) break;
+    BasicConn conn = snacMgr.getConn(family);
 
-	                md.update(block, 0, count);
-	            }
-	            return md.digest();
-	        } finally {
-	            in.close();
-	        }
-	    }
+    if (conn != null) {
+      conn.sendRequest(request);
+    } else {
+      // it's time to request a service
+      if (!(request.getCommand() instanceof ServiceRequest)) {
+        System.out.println(
+          "requesting " + Integer.toHexString(family) + " service."
+        );
+        snacMgr.setPending(family, true);
+        snacMgr.addRequest(request);
+        request(new ServiceRequest(family));
+      } else {
+        System.out.println("eep! can't find a service redirector " + "server.");
+      }
+    }
+  }
 
-	    private String aimexp = "the60s";
-		
-	    
+  public SnacRequest request(SnacCommand cmd) {
+    return request(cmd, null);
+  }
 
-	    public void sendIM(String nick, String text) {
-	        request(new SendImIcbm(nick, text));
-	    }
+  private SnacRequest request(SnacCommand cmd, SnacRequestListener listener) {
+    SnacRequest req = new SnacRequest(cmd, listener);
+    handleRequest(req);
+    return req;
+  }
 
-	    public SecureSession getSecureSession() { return secureSession; }
+  protected SortedMap cmdMap = new TreeMap();
 
-	    private class MyChatConnListener implements ChatConnListener {
-	        public void connFailed(ChatConn conn, Object reason) { }
+  OldIconHashInfo oldIconInfo;
+  File iconFile = null;
 
-	        public void connected(ChatConn conn) { }
+  {
+    if (false) {
+      try {
+        ClassLoader classLoader = getClass().getClassLoader();
+        URL iconResource = classLoader.getResource("images/beck.gif");
+        String ext = iconResource.toExternalForm();
+        System.out.println("ext: " + ext);
+        URI uri = new URI(ext);
+        iconFile = new File(uri);
+        oldIconInfo = new OldIconHashInfo(iconFile);
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (URISyntaxException e) {
+        e.printStackTrace();
+      }
+    }
+  }
 
-	        public void joined(ChatConn conn, FullUserInfo[] members) {
-	            String name = conn.getRoomInfo().getName();
-	            chats.put(OscarTools.normalize(name), conn);
+  protected static byte[] hashIcon(String filename) throws IOException {
+    FileInputStream in = new FileInputStream(filename);
+    try {
+      byte[] block = new byte[1024];
+      MessageDigest md;
+      try {
+        md = MessageDigest.getInstance("MD5");
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+        return null;
+      }
+      for (;;) {
+        int count = in.read(block);
+        if (count == -1) break;
 
-	            System.out.println("*** Joined "
-	                    + conn.getRoomInfo().getRoomName() + ", members:");
-	            for (int i = 0; i < members.length; i++) {
-	                System.out.println("  " + members[i].getScreenname());
-	            }
-	        }
+        md.update(block, 0, count);
+      }
+      return md.digest();
+    } finally {
+      in.close();
+    }
+  }
 
-	        public void left(ChatConn conn, Object reason) {
-	            String name = conn.getRoomInfo().getName();
-	            chats.remove(OscarTools.normalize(name));
+  private String aimexp = "the60s";
 
-	            System.out.println("*** Left "
-	                    + conn.getRoomInfo().getRoomName());
-	        }
+  public void sendIM(String nick, String text) {
+    request(new SendImIcbm(nick, text));
+  }
 
-	        public void usersJoined(ChatConn conn, FullUserInfo[] members) {
-	            for (int i = 0; i < members.length; i++) {
-	                System.out.println("*** " + members[i].getScreenname()
-	                        + " joined " + conn.getRoomInfo().getRoomName());
-	            }
-	        }
+  public SecureSession getSecureSession() {
+    return secureSession;
+  }
 
-	        public void usersLeft(ChatConn conn, FullUserInfo[] members) {
-	            for (int i = 0; i < members.length; i++) {
-	                System.out.println("*** " + members[i].getScreenname()
-	                        + " left " + conn.getRoomInfo().getRoomName());
-	            }
-	        }
+  private class MyChatConnListener implements ChatConnListener {
 
-	        public void gotMsg(ChatConn conn, FullUserInfo sender,
-	                ChatMsg msg) {
-	            String msgStr = msg.getMessage();
-	            String ct = msg.getContentType();
-	            if (msgStr == null && ct.equals("application/pkcs7-mime")) {
-	                ByteBlock msgData = msg.getMessageData();
+    public void connFailed(ChatConn conn, Object reason) {}
 
-	                try {
-	                    msgStr = secureSession.parseChatMessage(conn.getRoomName(),
-	                            sender.getScreenname(), msgData);
-	                } catch (SecureSessionException e) {
-	                    e.printStackTrace();
-	                }
-	            }
-	            //System.out.println("<" + sender.getScreenname()
-	              //      + ":#" + conn.getRoomInfo().getRoomName() + "> "
-	                //    + );
-	         
-	            
-	        }
+    public void connected(ChatConn conn) {}
 
+    public void joined(ChatConn conn, FullUserInfo[] members) {
+      String name = conn.getRoomInfo().getName();
+      chats.put(OscarTools.normalize(name), conn);
 
-	    }
+      System.out.println(
+        "*** Joined " + conn.getRoomInfo().getRoomName() + ", members:"
+      );
+      for (int i = 0; i < members.length; i++) {
+        System.out.println("  " + members[i].getScreenname());
+      }
+    }
 
-		public String getScreenname() {
-			return this.sn;
-		}
+    public void left(ChatConn conn, Object reason) {
+      String name = conn.getRoomInfo().getName();
+      chats.remove(OscarTools.normalize(name));
 
-		public void loginFailed(String reason) {
-			String message = VueResources.getString("im.login.error.message") + " : " + reason;
-	    	VueUtil.alert(message, VueResources.getString("im.login.error.title"));
-			
-		}
+      System.out.println("*** Left " + conn.getRoomInfo().getRoomName());
+    }
 
-		public String getPassword() {
-			return this.pass;
-		}
+    public void usersJoined(ChatConn conn, FullUserInfo[] members) {
+      for (int i = 0; i < members.length; i++) {
+        System.out.println(
+          "*** " +
+          members[i].getScreenname() +
+          " joined " +
+          conn.getRoomInfo().getRoomName()
+        );
+      }
+    }
 
-		public void setScreennameFormat(String screenname) {
-			 sn = screenname;
-			
-		}
+    public void usersLeft(ChatConn conn, FullUserInfo[] members) {
+      for (int i = 0; i < members.length; i++) {
+        System.out.println(
+          "*** " +
+          members[i].getScreenname() +
+          " left " +
+          conn.getRoomInfo().getRoomName()
+        );
+      }
+    }
 
-		public boolean isConnected() {
-			if (bosConn !=null)
-			{
+    public void gotMsg(ChatConn conn, FullUserInfo sender, ChatMsg msg) {
+      String msgStr = msg.getMessage();
+      String ct = msg.getContentType();
+      if (msgStr == null && ct.equals("application/pkcs7-mime")) {
+        ByteBlock msgData = msg.getMessageData();
 
-				return bosConn.getState().toString().equals(State.CONNECTED.toString());
-			}
-			else
-				return false;
-		}
+        try {
+          msgStr =
+            secureSession.parseChatMessage(
+              conn.getRoomName(),
+              sender.getScreenname(),
+              msgData
+            );
+        } catch (SecureSessionException e) {
+          e.printStackTrace();
+        }
+      }
+      //System.out.println("<" + sender.getScreenname()
+      //      + ":#" + conn.getRoomInfo().getRoomName() + "> "
+      //    + );
 
-		public void ignoreIMs(boolean b) {
-			ignoreIMs = b;
-			
-		}
+    }
+  }
 
-		public void requireApprovalToCollaborate(boolean b) {
-			requireApproval = b;
-			
-		}
+  public String getScreenname() {
+    return this.sn;
+  }
 
-		public void resetApprovalList() {
-			bosConn.resetApprovedContributors();
-			
-		}
+  public void loginFailed(String reason) {
+    String message =
+      VueResources.getString("im.login.error.message") + " : " + reason;
+    VueUtil.alert(message, VueResources.getString("im.login.error.title"));
+  }
 
-		public void assignColorsToContributors(boolean selected) {
-			assignColors = selected;
-			
-		}
+  public String getPassword() {
+    return this.pass;
+  }
 
-		public void forceUniformNodeWidth(boolean selected) {
-			forceNodeWidth = selected;
-			
-		}
+  public void setScreennameFormat(String screenname) {
+    sn = screenname;
+  }
 
-		public void forceNodesIntoTable(boolean selected) {
-			makeTables = selected;
-			
-		}
-		
-		public void keepMapAtOneToOne(boolean selected) {
-			keepAt100 = selected;
-			
-		}
+  public boolean isConnected() {
+    if (bosConn != null) {
+      return bosConn.getState().toString().equals(State.CONNECTED.toString());
+    } else return false;
+  }
+
+  public void ignoreIMs(boolean b) {
+    ignoreIMs = b;
+  }
+
+  public void requireApprovalToCollaborate(boolean b) {
+    requireApproval = b;
+  }
+
+  public void resetApprovalList() {
+    bosConn.resetApprovedContributors();
+  }
+
+  public void assignColorsToContributors(boolean selected) {
+    assignColors = selected;
+  }
+
+  public void forceUniformNodeWidth(boolean selected) {
+    forceNodeWidth = selected;
+  }
+
+  public void forceNodesIntoTable(boolean selected) {
+    makeTables = selected;
+  }
+
+  public void keepMapAtOneToOne(boolean selected) {
+    keepAt100 = selected;
+  }
 }

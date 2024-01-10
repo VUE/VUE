@@ -241,10 +241,10 @@ public class GUI
                                                  "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW" });
         */
 
-        isMacAqua = Util.isMacPlatform() && !FORCE_WINDOWS_LAF && !VUE.isApplet();
+        isMacAqua = Util.isMacPlatform() && !FORCE_WINDOWS_LAF ;
 
         isMacAquaBrushedMetal =
-            isMacAqua && !VUE.isApplet() &&
+            isMacAqua  &&
             VUE.isSystemPropertyTrue("apple.awt.brushMetalLook");
 
         ToolbarColor = initToolbarColor();
@@ -264,7 +264,7 @@ public class GUI
         if (false)
             installUIDefaults();
 
-        if (VUE.isApplet() || Util.isUnixPlatform())
+        if  (Util.isUnixPlatform())
         {
            try {
                  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -275,7 +275,7 @@ public class GUI
                }
 
         }
-        else if (Util.isMacPlatform() && !VUE.isApplet()) {
+        else if (Util.isMacPlatform() ) {
 
             if (!SKIP_CUSTOM_LAF) {
 
@@ -324,10 +324,6 @@ public class GUI
             //if (FORCE_WINDOWS_LAF && Util.isWindowsPlatform())
             if (Util.isWindowsPlatform() && !SKIP_WIN_NATIVE_LAF)
                 setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-            else if (Util.isMacPlatform() && VUE.isApplet())
-            {
-            	/////Load up some JLooks stuff here.
-            }
             else {
                 if (!SKIP_CUSTOM_LAF)
                     installMetalTheme();
@@ -336,7 +332,7 @@ public class GUI
 
         UIManager.put("FileChooser.filesOfTypeLabelText","Format:");
 
-        if (!VUE.isApplet())
+      
         	javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
         
         if (Util.getJavaVersion() < 1.5f)
@@ -870,7 +866,7 @@ public class GUI
         if (ext == Resource.EXTENSION_HTTP)
             ext = "htm";
 
-        if (Util.isMacPlatform() && !VUE.isApplet()) {
+        if (Util.isMacPlatform() ) {
 
             if (false && Util.isMacLeopard() && Util.getJavaVersion() > 1.5) {
                 ; // ShellFolder/FileSystemView method still doesn't work
@@ -1113,7 +1109,7 @@ public class GUI
         // always stay on top of their parent, but not on top of other windows,
         // including "grandparents".)
         
-    	if ((Util.isUnixPlatform() && Util.getJavaVersion() >= 1.5f ) || VUE.isApplet()	)
+    	if ((Util.isUnixPlatform() && Util.getJavaVersion() >= 1.5f ))
     	{
     		//There are a bunch of focus problems on Unix, hopefully this clears it up.
     		return new DockWindow(title,VUE.getRootWindow(),null,asToolbar,showCloseButton);

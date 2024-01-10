@@ -28,12 +28,10 @@
 package edu.tufts.vue.compare.ui;
 
 import java.awt.Color;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
 import tufts.vue.VueResources;
-        
 
 /*
  * Colors.java
@@ -43,13 +41,13 @@ import tufts.vue.VueResources;
  * @author dhelle01
  */
 public class Colors {
-    
-    public static final int DEFAULT_INTERVAL_COUNT = 6;
-    
-    private List<Color> colors;
-    private String name;  
-    
-   /* public static final Colors one = new Colors("BuGn #5",
+
+  public static final int DEFAULT_INTERVAL_COUNT = 6;
+
+  private List<Color> colors;
+  private String name;
+
+  /* public static final Colors one = new Colors("BuGn #5",
                                                 new Color(237,248,251),
                                                 new Color(178,226,226),
                                                 new Color(102,194,164),
@@ -91,58 +89,54 @@ public class Colors {
                                                 new Color(136,86,167),
                                                 new Color(129,15,124));
     */
-    
-    public static final Colors one = new Colors(5,6,1);
-    public static final Colors two = new Colors(5,6,2);
-    public static final Colors three = new Colors(5,6,3);
-    public static final Colors four = new Colors(5,6,4);
-    public static final Colors five = new Colors(5,6,5);
-    public static final Colors six = new Colors(5,6,6);
-    
-    public Colors(int intervals,int numColors,int scheme)
-    {
-        
-        //System.out.println("merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme);
-        name = VueResources.getString("merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme);
-        
-        colors = new ArrayList();
-        
-        //System.out.println("merge.weight.colors." + intervals + "." + numColors + "." + scheme);
-        Color[] arr = VueResources.getColorArray("merge.weight.colors." + intervals + "." + numColors + "." + scheme);
-        
-        for(int i=0;i<intervals;i++)
-        {
-            colors.add(arr[i]);
-        }
+
+  public static final Colors one = new Colors(5, 6, 1);
+  public static final Colors two = new Colors(5, 6, 2);
+  public static final Colors three = new Colors(5, 6, 3);
+  public static final Colors four = new Colors(5, 6, 4);
+  public static final Colors five = new Colors(5, 6, 5);
+  public static final Colors six = new Colors(5, 6, 6);
+
+  public Colors(int intervals, int numColors, int scheme) {
+    //System.out.println("merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme);
+    name =
+      VueResources.getString(
+        "merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme
+      );
+
+    colors = new ArrayList();
+
+    //System.out.println("merge.weight.colors." + intervals + "." + numColors + "." + scheme);
+    Color[] arr = VueResources.getColorArray(
+      "merge.weight.colors." + intervals + "." + numColors + "." + scheme
+    );
+
+    for (int i = 0; i < intervals; i++) {
+      colors.add(arr[i]);
     }
-    
-    public Colors(String name,List<Color> colors)
-    {
-       this.colors = colors;
-       this.name = name;
-    }
-    
-    public Colors(String name,Color... colors)
-    {
-       this.colors = Arrays.asList(colors);
-       this.name = name;
-    }
-    
-    public List<Color> getColors()
-    {
-       return colors;
-    }
-    
-    public String getName()
-    {
-       return name;
-    }
-    
-    public static int getIntervalCount()
-    {
-        // next line has to wait for static and/or ColorsManager setting
-        //return colors.size();
-        return DEFAULT_INTERVAL_COUNT;
-    }
-    
+  }
+
+  public Colors(String name, List<Color> colors) {
+    this.colors = colors;
+    this.name = name;
+  }
+
+  public Colors(String name, Color... colors) {
+    this.colors = Arrays.asList(colors);
+    this.name = name;
+  }
+
+  public List<Color> getColors() {
+    return colors;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public static int getIntervalCount() {
+    // next line has to wait for static and/or ColorsManager setting
+    //return colors.size();
+    return DEFAULT_INTERVAL_COUNT;
+  }
 }

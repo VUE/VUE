@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -16,7 +16,7 @@
 /*
  * MapFilterModelEvent.java
  * MapFilterModelEvent is generated when a Key is added or deleted from MapFilterModel.
- * It stores the MapFilterModel that generated the event, the Key and integer to 
+ * It stores the MapFilterModel that generated the event, the Key and integer to
  * identify addition or deletion
  * Created on March 2, 2004, 9:40 PM
  */
@@ -28,28 +28,30 @@ package tufts.vue.filter;
  * @author  akumar03
  */
 public class MapFilterModelEvent {
-    
-    public static int KEY_ADDED = 0;
-    public static int KEY_DELETED = 1;
-    
-    Key key = null;
-    MapFilterModel model = null;
-    int action;
-    /** Creates a new instance of MapFilterModelEvent */
-    public MapFilterModelEvent(MapFilterModel model,Key key,int action) {
-        this.key = key;
-        this.action = action;
-        this.model = model;
-    }
 
-    public Key getKey() {
-        return this.key;
-    }
-    public int getAction(){
-        return action;
-    }
-    
-    public MapFilterModel getMapFilterModel() {
-        return this.model;
-    }
+  public static int KEY_ADDED = 0;
+  public static int KEY_DELETED = 1;
+
+  Key key = null;
+  MapFilterModel model = null;
+  int action;
+
+  /** Creates a new instance of MapFilterModelEvent */
+  public MapFilterModelEvent(MapFilterModel model, Key key, int action) {
+    this.key = key;
+    this.action = action;
+    this.model = model;
+  }
+
+  public Key getKey() {
+    return this.key;
+  }
+
+  public int getAction() {
+    return action;
+  }
+
+  public MapFilterModel getMapFilterModel() {
+    return this.model;
+  }
 }

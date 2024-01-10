@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -14,6 +14,9 @@
  */
 package edu.tufts.vue.preferences.implementations;
 
+import edu.tufts.vue.preferences.VuePrefEvent;
+import edu.tufts.vue.preferences.VuePrefListener;
+import edu.tufts.vue.preferences.generics.BasePref;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -24,244 +27,257 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Iterator;
 import java.util.prefs.Preferences;
-
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-
 import tufts.vue.VueResources;
-import edu.tufts.vue.preferences.VuePrefEvent;
-import edu.tufts.vue.preferences.VuePrefListener;
-import edu.tufts.vue.preferences.generics.BasePref;
 
-public class MetadataSchemaPreference extends BasePref implements ItemListener
-{
-	private String category;
-	private String name;
-	private String description;
+public class MetadataSchemaPreference extends BasePref implements ItemListener {
 
-	private Object previousVraValue = null;
-	private Object previousDublinCoreValue = null;
+  private String category;
+  private String name;
+  private String description;
 
-	private JCheckBox dublinCoreCheckbox = new JCheckBox();		
-	private JCheckBox vraCheckbox = new JCheckBox();
+  private Object previousVraValue = null;
+  private Object previousDublinCoreValue = null;
 
-	private String dublinCoreName = "dublinCore";
-	private String vraName = "vra";
+  private JCheckBox dublinCoreCheckbox = new JCheckBox();
+  private JCheckBox vraCheckbox = new JCheckBox();
 
-	private boolean dublinCoreDefault = true;
-	private boolean vraDefault = false;
-	private boolean defaultValue = true;
+  private String dublinCoreName = "dublinCore";
+  private String vraName = "vra";
 
-	private static final MetadataSchemaPreference metadataSchemaPrefernece = new MetadataSchemaPreference();
+  private boolean dublinCoreDefault = true;
+  private boolean vraDefault = false;
+  private boolean defaultValue = true;
 
-	public static MetadataSchemaPreference getInstance() {
-		return metadataSchemaPrefernece;
-	}
+  private static final MetadataSchemaPreference metadataSchemaPrefernece =
+    new MetadataSchemaPreference();
 
-	private MetadataSchemaPreference() {
-		this.category=edu.tufts.vue.preferences.PreferenceConstants.METADATA_CATEGORY;
-		//this.key = "showNodeIcons";
-		this.name = VueResources.getString("preferences.metadataschema.title");
-		if (tufts.Util.isWindowsPlatform())
-			this.description = VueResources.getString("preferences.metadataschema.descriptionwin");
-		else
-			this.description = VueResources.getString("preferences.metadataschema.description");
-		this.defaultValue = true;
+  public static MetadataSchemaPreference getInstance() {
+    return metadataSchemaPrefernece;
+  }
 
-		edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);
-	}
+  private MetadataSchemaPreference() {
+    this.category =
+      edu.tufts.vue.preferences.PreferenceConstants.METADATA_CATEGORY;
+    //this.key = "showNodeIcons";
+    this.name = VueResources.getString("preferences.metadataschema.title");
+    if (tufts.Util.isWindowsPlatform()) this.description =
+      VueResources.getString(
+        "preferences.metadataschema.descriptionwin"
+      ); else this.description =
+      VueResources.getString("preferences.metadataschema.description");
+    this.defaultValue = true;
 
-	public JComponent getPreferenceUI() {
-		JPanel panel = new JPanel();
-		panel.setMinimumSize(new Dimension(420,400));
-		panel.setMaximumSize(new Dimension(420,400));
-		panel.setBackground(Color.WHITE);
-		GridBagLayout gbl = new GridBagLayout();
-		panel.setLayout(gbl);
+    edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);
+  }
 
-		JLabel titleLabel = new JLabel(getTitle());
-		Font f2 = titleLabel.getFont();
-		Font f = titleLabel.getFont().deriveFont(Font.BOLD);
-		titleLabel.setFont(f);
+  public JComponent getPreferenceUI() {
+    JPanel panel = new JPanel();
+    panel.setMinimumSize(new Dimension(420, 400));
+    panel.setMaximumSize(new Dimension(420, 400));
+    panel.setBackground(Color.WHITE);
+    GridBagLayout gbl = new GridBagLayout();
+    panel.setLayout(gbl);
 
-		JTextArea descTextArea = new JTextArea(getDescription());
-		descTextArea.setFont(f2);
-		descTextArea.setColumns(30);
-		descTextArea.setLineWrap(true);
-		descTextArea.setWrapStyleWord(true);
-		descTextArea.setEditable(false);
+    JLabel titleLabel = new JLabel(getTitle());
+    Font f2 = titleLabel.getFont();
+    Font f = titleLabel.getFont().deriveFont(Font.BOLD);
+    titleLabel.setFont(f);
 
-		dublinCoreCheckbox.setBackground(Color.WHITE);
-		vraCheckbox.setBackground(Color.WHITE);
+    JTextArea descTextArea = new JTextArea(getDescription());
+    descTextArea.setFont(f2);
+    descTextArea.setColumns(30);
+    descTextArea.setLineWrap(true);
+    descTextArea.setWrapStyleWord(true);
+    descTextArea.setEditable(false);
 
-		dublinCoreCheckbox.setText(VueResources.getString("jlabel.dublincore"));
-		vraCheckbox.setText(VueResources.getString("jlabel.vra"));
+    dublinCoreCheckbox.setBackground(Color.WHITE);
+    vraCheckbox.setBackground(Color.WHITE);
 
-		GridBagConstraints gbConstraints = new GridBagConstraints();
+    dublinCoreCheckbox.setText(VueResources.getString("jlabel.dublincore"));
+    vraCheckbox.setText(VueResources.getString("jlabel.vra"));
 
-		gbConstraints.gridx = 0;
-		gbConstraints.gridy = 0;
-		gbConstraints.gridwidth = 1;
-		gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-		gbConstraints.anchor = GridBagConstraints.FIRST_LINE_START;
-		gbConstraints.weightx = 1;
-		gbConstraints.weighty = 0;
-		gbConstraints.insets = new Insets(15, 10, 0, 10);
-		panel.add(titleLabel, gbConstraints);
+    GridBagConstraints gbConstraints = new GridBagConstraints();
 
-		gbConstraints.gridy = 1;
-		panel.add(descTextArea, gbConstraints);
+    gbConstraints.gridx = 0;
+    gbConstraints.gridy = 0;
+    gbConstraints.gridwidth = 1;
+    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+    gbConstraints.anchor = GridBagConstraints.FIRST_LINE_START;
+    gbConstraints.weightx = 1;
+    gbConstraints.weighty = 0;
+    gbConstraints.insets = new Insets(15, 10, 0, 10);
+    panel.add(titleLabel, gbConstraints);
 
-		gbConstraints.gridy = 2;
-		gbConstraints.insets = new Insets(15, 30, 0, 10);
-		panel.add(dublinCoreCheckbox,gbConstraints);
+    gbConstraints.gridy = 1;
+    panel.add(descTextArea, gbConstraints);
 
-		gbConstraints.gridy = 3;
-		gbConstraints.fill=GridBagConstraints.REMAINDER;
-		gbConstraints.weighty = 1;
-		gbConstraints.insets = new Insets(10, 30, 0, 10);
-		panel.add(vraCheckbox,gbConstraints);
+    gbConstraints.gridy = 2;
+    gbConstraints.insets = new Insets(15, 30, 0, 10);
+    panel.add(dublinCoreCheckbox, gbConstraints);
 
-		dublinCoreCheckbox.addItemListener(this);
-		vraCheckbox.addItemListener(this);
+    gbConstraints.gridy = 3;
+    gbConstraints.fill = GridBagConstraints.REMAINDER;
+    gbConstraints.weighty = 1;
+    gbConstraints.insets = new Insets(10, 30, 0, 10);
+    panel.add(vraCheckbox, gbConstraints);
 
-		dublinCoreCheckbox.setSelected(((Boolean)getValue(dublinCoreName)).booleanValue());
-		vraCheckbox.setSelected(((Boolean)getValue(vraName)).booleanValue());
+    dublinCoreCheckbox.addItemListener(this);
+    vraCheckbox.addItemListener(this);
 
-		return panel;
-	}
+    dublinCoreCheckbox.setSelected(
+      ((Boolean) getValue(dublinCoreName)).booleanValue()
+    );
+    vraCheckbox.setSelected(((Boolean) getValue(vraName)).booleanValue());
 
-	public boolean getDublinCoreValue() {
-		return ((Boolean)getValue(dublinCoreName)).booleanValue();				
-	}
+    return panel;
+  }
 
-	public boolean getVRAValue() {
-		return ((Boolean)getValue(vraName)).booleanValue();
-	}
+  public boolean getDublinCoreValue() {
+    return ((Boolean) getValue(dublinCoreName)).booleanValue();
+  }
 
-	public void itemStateChanged(ItemEvent e) {
-		JCheckBox box = (JCheckBox)e.getSource();
-		//Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		//p.putBoolean(getPrefName(), box.isSelected());
-		if (box.equals(dublinCoreCheckbox)) {
-			setValue(dublinCoreName,Boolean.valueOf(box.isSelected()));
+  public boolean getVRAValue() {
+    return ((Boolean) getValue(vraName)).booleanValue();
+  }
 
-			edu.tufts.vue.metadata.CategoryModel cats = tufts.vue.VUE.getCategoryModel();
+  public void itemStateChanged(ItemEvent e) {
+    JCheckBox box = (JCheckBox) e.getSource();
+    //Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+    //p.putBoolean(getPrefName(), box.isSelected());
+    if (box.equals(dublinCoreCheckbox)) {
+      setValue(dublinCoreName, Boolean.valueOf(box.isSelected()));
 
-			if(box.isSelected()) {
+      edu.tufts.vue.metadata.CategoryModel cats =
+        tufts.vue.VUE.getCategoryModel();
 
-				cats.loadDefaultVUEOntology(edu.tufts.vue.metadata.CategoryModel.DUBLIN_CORE);
-			} else {
-				cats.removeDefaultOntology(edu.tufts.vue.metadata.CategoryModel.DUBLIN_CORE);
-			}
-		}
-		else if (box.equals(vraCheckbox)) {
-			setValue(vraName,Boolean.valueOf(box.isSelected()));
+      if (box.isSelected()) {
+        cats.loadDefaultVUEOntology(
+          edu.tufts.vue.metadata.CategoryModel.DUBLIN_CORE
+        );
+      } else {
+        cats.removeDefaultOntology(
+          edu.tufts.vue.metadata.CategoryModel.DUBLIN_CORE
+        );
+      }
+    } else if (box.equals(vraCheckbox)) {
+      setValue(vraName, Boolean.valueOf(box.isSelected()));
 
-			edu.tufts.vue.metadata.CategoryModel cats = tufts.vue.VUE.getCategoryModel();
+      edu.tufts.vue.metadata.CategoryModel cats =
+        tufts.vue.VUE.getCategoryModel();
 
-			if(box.isSelected()) {
-				cats.loadDefaultVUEOntology(edu.tufts.vue.metadata.CategoryModel.VRA);
-			} else {
-				cats.removeDefaultOntology(edu.tufts.vue.metadata.CategoryModel.VRA);
-			}
-		}
-	}
+      if (box.isSelected()) {
+        cats.loadDefaultVUEOntology(edu.tufts.vue.metadata.CategoryModel.VRA);
+      } else {
+        cats.removeDefaultOntology(edu.tufts.vue.metadata.CategoryModel.VRA);
+      }
+    }
+  }
 
-	public JCheckBox getCheckBox() {
-		return dublinCoreCheckbox;
-	}
-	
-	public void setValue(String prefName, Object b) {
-		if (prefName.equals(dublinCoreName))
-			previousDublinCoreValue = Boolean.valueOf(dublinCoreCheckbox.isSelected());
-		else if (prefName.equals(vraName))
-			previousVraValue = Boolean.valueOf(vraCheckbox.isSelected());
+  public JCheckBox getCheckBox() {
+    return dublinCoreCheckbox;
+  }
 
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		p.putBoolean(getPrefName(prefName), ((Boolean)b).booleanValue());
-		_fireVuePrefEvent(prefName);
-	}
+  public void setValue(String prefName, Object b) {
+    if (prefName.equals(dublinCoreName)) previousDublinCoreValue =
+      Boolean.valueOf(dublinCoreCheckbox.isSelected()); else if (
+      prefName.equals(vraName)
+    ) previousVraValue = Boolean.valueOf(vraCheckbox.isSelected());
 
-	public Object getValue(String prefName) {
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(prefName), ((Boolean)getDefaultValue(prefName)).booleanValue()));
-		return b;
-	}
+    Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+    p.putBoolean(getPrefName(prefName), ((Boolean) b).booleanValue());
+    _fireVuePrefEvent(prefName);
+  }
 
-	public Object getPreviousValue(String prefName) {
-		if (prefName.equals(dublinCoreName))
-			return (previousDublinCoreValue == null) ? getDefaultValue(prefName) : previousDublinCoreValue;
-		else if (prefName.equals(vraName))
-			return (previousVraValue == null) ? getDefaultValue(prefName) : previousVraValue;
-		else
-			return new Boolean(true);
-	}
+  public Object getValue(String prefName) {
+    Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+    Boolean b = Boolean.valueOf(
+      p.getBoolean(
+        getPrefName(prefName),
+        ((Boolean) getDefaultValue(prefName)).booleanValue()
+      )
+    );
+    return b;
+  }
 
-	public Object getDefaultValue(String prefName) {
-		if (prefName.equals(dublinCoreName))
-			return dublinCoreDefault;
-		else if (prefName.equals(vraName))
-			return vraDefault;		
-		else
-			return new Boolean(true);
-	}
-	
-	protected synchronized void _fireVuePrefEvent(String prefName) {
-		VuePrefEvent event = new VuePrefEvent(this,getPreviousValue(prefName),getValue());
+  public Object getPreviousValue(String prefName) {
+    if (prefName.equals(dublinCoreName)) return (
+        previousDublinCoreValue == null
+      )
+      ? getDefaultValue(prefName)
+      : previousDublinCoreValue; else if (prefName.equals(vraName)) return (
+        previousVraValue == null
+      )
+      ? getDefaultValue(prefName)
+      : previousVraValue; else return new Boolean(true);
+  }
 
-		Iterator listeners = _listeners.iterator();
+  public Object getDefaultValue(String prefName) {
+    if (prefName.equals(dublinCoreName)) return dublinCoreDefault; else if (
+      prefName.equals(vraName)
+    ) return vraDefault; else return new Boolean(true);
+  }
 
-		while(listeners.hasNext()) {
-			((VuePrefListener)listeners.next()).preferenceChanged(event);
-		}
-	}
+  protected synchronized void _fireVuePrefEvent(String prefName) {
+    VuePrefEvent event = new VuePrefEvent(
+      this,
+      getPreviousValue(prefName),
+      getValue()
+    );
 
-	public String getDescription() { 
-		return description;
-	}
+    Iterator listeners = _listeners.iterator();
 
-	public String getMessage() {
-		return name;
-	}
+    while (listeners.hasNext()) {
+      ((VuePrefListener) listeners.next()).preferenceChanged(event);
+    }
+  }
 
-	public String getTitle() {
-		return name;
-	}
+  public String getDescription() {
+    return description;
+  }
 
-	public String getCategoryKey() { 
-		return category;
-	}
+  public String getMessage() {
+    return name;
+  }
 
-	public String getPrefName(String key) {
-		return category + "." + key;
-	}
+  public String getTitle() {
+    return name;
+  }
 
-	public Object getDefaultValue() {
-		// TODO Auto-generated method stub
-		return new Boolean("true");
-	}
+  public String getCategoryKey() {
+    return category;
+  }
 
-	public String getPrefName() {
-		// TODO Auto-generated method stub
-		return "";
-	}
+  public String getPrefName(String key) {
+    return category + "." + key;
+  }
 
-	public Object getValue() {
-		// TODO Auto-generated method stub
-		return new Boolean("true");
-	}
+  public Object getDefaultValue() {
+    // TODO Auto-generated method stub
+    return new Boolean("true");
+  }
 
-	public void setValue(Object i) {
-		// TODO Auto-generated method stub
-		
-	}
+  public String getPrefName() {
+    // TODO Auto-generated method stub
+    return "";
+  }
 
-	public Object getPreviousValue() {
-		// TODO Auto-generated method stub
-		return null;
-	}	
+  public Object getValue() {
+    // TODO Auto-generated method stub
+    return new Boolean("true");
+  }
+
+  public void setValue(Object i) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public Object getPreviousValue() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

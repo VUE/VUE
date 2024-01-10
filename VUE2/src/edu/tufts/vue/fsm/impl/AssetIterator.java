@@ -1,34 +1,29 @@
 package edu.tufts.vue.fsm.impl;
 
-public class AssetIterator
-implements org.osid.repository.AssetIterator
-{
-    private java.util.Vector vector = new java.util.Vector();
-    private int i = 0;
+public class AssetIterator implements org.osid.repository.AssetIterator {
 
-    public AssetIterator(java.util.Vector vector)
-    throws org.osid.repository.RepositoryException
-    {
-        this.vector = vector;
-    }
+  private java.util.Vector vector = new java.util.Vector();
+  private int i = 0;
 
-    public boolean hasNextAsset()
-    throws org.osid.repository.RepositoryException
-    {
-        return (i < vector.size());
-    }
+  public AssetIterator(java.util.Vector vector)
+    throws org.osid.repository.RepositoryException {
+    this.vector = vector;
+  }
 
-    public org.osid.repository.Asset nextAsset()
-    throws org.osid.repository.RepositoryException
-    {
-        if (i >= vector.size())
-        {
-            throw new org.osid.repository.RepositoryException(
-                org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
-        }
-        return (org.osid.repository.Asset)vector.elementAt(i++);
+  public boolean hasNextAsset() throws org.osid.repository.RepositoryException {
+    return (i < vector.size());
+  }
+
+  public org.osid.repository.Asset nextAsset()
+    throws org.osid.repository.RepositoryException {
+    if (i >= vector.size()) {
+      throw new org.osid.repository.RepositoryException(
+        org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS
+      );
     }
-/**
+    return (org.osid.repository.Asset) vector.elementAt(i++);
+  }
+  /**
 <p>MIT O.K.I&#46; SID Implementation License.
   <p>	<b>Copyright and license statement:</b>
   </p>  <p>	Copyright &copy; 2003 Massachusetts Institute of

@@ -1,6 +1,5 @@
-
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -16,8 +15,8 @@
 
 package edu.tufts.vue.compare;
 
-import tufts.vue.LWLink;
 import tufts.vue.LWComponent;
+import tufts.vue.LWLink;
 
 /*
  * ConnectivityMatrixList.java
@@ -26,5 +25,5 @@ import tufts.vue.LWComponent;
  *
  * Historical -- this class now just serves as a typed ArrayList -- could be tossed.  SMF 2012
  */
-public final class ConnectivityMatrixList extends java.util.ArrayList<ConnectivityMatrix> {}
-    
+public final class ConnectivityMatrixList
+  extends java.util.ArrayList<ConnectivityMatrix> {}

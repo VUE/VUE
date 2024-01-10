@@ -56,14 +56,13 @@ package org.okip.service.filing.impl.rfs;
  * Licensed under the {@link org.okip.service.ApiLicense MIT OKI&#153; API Definition License}.
  *
  * @version $Revision: 1.1 $ / $Date: 2003-04-14 20:48:28 $
-*/
+ */
 
-public class RfsType
-extends org.okip.service.shared.api.Type {
+public class RfsType extends org.okip.service.shared.api.Type {
 
-  private static final String DOMAIN    = "Filing";
+  private static final String DOMAIN = "Filing";
   private static final String AUTHORITY = "MIT";
-  private static final String KEYWORD   = "RemoteFileSystem2";
+  private static final String KEYWORD = "RemoteFileSystem2";
 
   /**
    * Constructor RfsType

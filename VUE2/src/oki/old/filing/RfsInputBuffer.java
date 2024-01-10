@@ -67,170 +67,159 @@ import org.okip.service.filing.api.*;
  * @version $Revision: 1.1 $ / $Date: 2003-04-14 20:48:28 $
  */
 
-public class RfsInputBuffer
-    implements java.io.Serializable
-{
-    private String idStr = null;
-    private long startPos = -1;
-    private int maxSize = -1;
-    
-    private transient RfsFactory factory = null;
-    private transient java.io.FileInputStream fileInputStream = null;
-    private transient DataBlock dataBlock;
-    private transient byte[] buffer;
-    private transient long openedStart = -1;
+public class RfsInputBuffer implements java.io.Serializable {
 
-    protected RfsInputBuffer(RfsFactory factory, String idStr, long startPos, int maxSize)
-        throws FilingException
-    {
-        if (factory == null || idStr == null || startPos < 0 || maxSize <= 0)
-            throw new FilingException("Create RfsInputBuffer failed: bad argument(s)");
-        
-        this.factory = factory;
-        this.idStr = idStr;
-        this.startPos = startPos;
-        this.maxSize = maxSize;
-    }
+  private String idStr = null;
+  private long startPos = -1;
+  private int maxSize = -1;
 
-    public void setStartPosition(long startPosition)
-    {
-        this.startPos = startPosition;
-    }
+  private transient RfsFactory factory = null;
+  private transient java.io.FileInputStream fileInputStream = null;
+  private transient DataBlock dataBlock;
+  private transient byte[] buffer;
+  private transient long openedStart = -1;
 
-    private void getInputStream()
-        throws FilingException
-    {
-        try {
-            if (this.fileInputStream == null) {
-                this.fileInputStream = new java.io.FileInputStream(this.idStr);
-                openedStart = startPos;
-                if (startPos > 0) {
-                    long skipped;
-                    try {
-                        skipped = this.fileInputStream.skip(startPos);
-                    } catch (java.io.IOException e) {
-                        throw new FilingException(e);
-                    }
-                    if (skipped < startPos)
-                        throw new FilingIOException("skipped " + skipped + " of " + startPos + " bytes");
-                }
-            }
-        } catch (java.io.FileNotFoundException e) {
-            throw new NotFoundException(e, this.idStr);
-        }
-        if (startPos != openedStart)
-            throw new FilingIOException("RfsInputBuffer internal error: startPos "
-                                        + startPos + " != openedStart " + openedStart);
-        
-    }
+  protected RfsInputBuffer(
+    RfsFactory factory,
+    String idStr,
+    long startPos,
+    int maxSize
+  ) throws FilingException {
+    if (
+      factory == null || idStr == null || startPos < 0 || maxSize <= 0
+    ) throw new FilingException(
+      "Create RfsInputBuffer failed: bad argument(s)"
+    );
 
-   public DataBlock readBuffer()
-        throws FilingException
-    {
-        if (factory != null && factory.getClient() != null)
-            return (DataBlock) factory.invoke(this, "readBufferRemotely");
-        else
-            return readBufferLocally();
-    }
+    this.factory = factory;
+    this.idStr = idStr;
+    this.startPos = startPos;
+    this.maxSize = maxSize;
+  }
 
-    private DataBlock getDataBlock(int size)
-        throws FilingException
-    {
-        // the way we manage DataBlocks may look a bit
-        // odd as we're trying to help out the garbage
-        // collector a little as we're dealing with
-        // large chunks of memory.
-        
-        if (buffer == null || size > buffer.length)
-            buffer = new byte[size];
-        if (dataBlock != null) {
-            dataBlock.buf = buffer;
-            dataBlock.length = size;
-        } else
-            dataBlock = new DataBlock(buffer, size);
-        return dataBlock;
-    }
+  public void setStartPosition(long startPosition) {
+    this.startPos = startPosition;
+  }
 
-    public DataBlock readBufferRemotely()
-        throws FilingException
-    {
-        DataBlock dataBlock = readBufferLocally();
-        
-        /* Closing the stream is going to null out our dataBlock, so
-         * make a shallow copy here just before returning. */
-
-        if (dataBlock != null)
-            dataBlock = dataBlock.copy();
-
-        /* We close the file after each use -- we cannot maintain
-         * state -- we have to re-initialize again at next RMI call.
-         * This is a kindness to the server only and could be skipped
-         * for a miniscule response-time improvement. */
-        
-        close();
-        return dataBlock;
-    }
-
-    private DataBlock readBufferLocally()
-        throws FilingException
-    {
-        getInputStream();
-        try {
-            int available = this.fileInputStream.available();
-            int requestSize;
-            if (available <= 0)
-                requestSize = this.maxSize;// it's going to block anyway, so just go for it
-            else
-                requestSize = available;
-            if (requestSize > this.maxSize)
-                requestSize = this.maxSize;
-            getDataBlock(requestSize);
-            int got = this.fileInputStream.read(dataBlock.buf, 0, dataBlock.length);
-            if (got <= 0) {
-                this.dataBlock.buf = null;
-                this.dataBlock = null;
-            } else if (got < requestSize)
-                this.dataBlock.length = got;
-            if (got == available) {
-                // we got all we could -- check to see if we hit EOF
-                if (startPos + got == RfsEntry.getEntryFile(idStr, false).length())
-                    this.dataBlock.containsEOF = true;
-            }
-            return this.dataBlock;
-        } catch (FilingException fe) {
-            throw fe;
-        } catch (Exception e) {
+  private void getInputStream() throws FilingException {
+    try {
+      if (this.fileInputStream == null) {
+        this.fileInputStream = new java.io.FileInputStream(this.idStr);
+        openedStart = startPos;
+        if (startPos > 0) {
+          long skipped;
+          try {
+            skipped = this.fileInputStream.skip(startPos);
+          } catch (java.io.IOException e) {
             throw new FilingException(e);
+          }
+          if (skipped < startPos) throw new FilingIOException(
+            "skipped " + skipped + " of " + startPos + " bytes"
+          );
         }
+      }
+    } catch (java.io.FileNotFoundException e) {
+      throw new NotFoundException(e, this.idStr);
     }
+    if (startPos != openedStart) throw new FilingIOException(
+      "RfsInputBuffer internal error: startPos " +
+      startPos +
+      " != openedStart " +
+      openedStart
+    );
+  }
 
-    protected void close()
-        throws FilingException
-    {
-        buffer = null;
-        if (dataBlock != null) {
-            dataBlock.buf = null;
-            dataBlock = null;
-        }
-        try {
-            if (fileInputStream != null) {
-                fileInputStream.close();
-                fileInputStream = null;
-            } 
-        } catch (Exception e) {
-            throw new FilingException(e, "close " + idStr);
-        }
-    }
+  public DataBlock readBuffer() throws FilingException {
+    if (
+      factory != null && factory.getClient() != null
+    ) return (DataBlock) factory.invoke(
+      this,
+      "readBufferRemotely"
+    ); else return readBufferLocally();
+  }
 
-    public void finalize()
-    {
-        try {
-            close();
-        } catch(Exception e) {}
+  private DataBlock getDataBlock(int size) throws FilingException {
+    // the way we manage DataBlocks may look a bit
+    // odd as we're trying to help out the garbage
+    // collector a little as we're dealing with
+    // large chunks of memory.
+
+    if (buffer == null || size > buffer.length) buffer = new byte[size];
+    if (dataBlock != null) {
+      dataBlock.buf = buffer;
+      dataBlock.length = size;
+    } else dataBlock = new DataBlock(buffer, size);
+    return dataBlock;
+  }
+
+  public DataBlock readBufferRemotely() throws FilingException {
+    DataBlock dataBlock = readBufferLocally();
+
+    /* Closing the stream is going to null out our dataBlock, so
+     * make a shallow copy here just before returning. */
+
+    if (dataBlock != null) dataBlock = dataBlock.copy();
+
+    /* We close the file after each use -- we cannot maintain
+     * state -- we have to re-initialize again at next RMI call.
+     * This is a kindness to the server only and could be skipped
+     * for a miniscule response-time improvement. */
+
+    close();
+    return dataBlock;
+  }
+
+  private DataBlock readBufferLocally() throws FilingException {
+    getInputStream();
+    try {
+      int available = this.fileInputStream.available();
+      int requestSize;
+      if (available <= 0) requestSize = this.maxSize; // it's going to block anyway, so just go for it
+      else requestSize = available;
+      if (requestSize > this.maxSize) requestSize = this.maxSize;
+      getDataBlock(requestSize);
+      int got = this.fileInputStream.read(dataBlock.buf, 0, dataBlock.length);
+      if (got <= 0) {
+        this.dataBlock.buf = null;
+        this.dataBlock = null;
+      } else if (got < requestSize) this.dataBlock.length = got;
+      if (got == available) {
+        // we got all we could -- check to see if we hit EOF
+        if (
+          startPos + got == RfsEntry.getEntryFile(idStr, false).length()
+        ) this.dataBlock.containsEOF = true;
+      }
+      return this.dataBlock;
+    } catch (FilingException fe) {
+      throw fe;
+    } catch (Exception e) {
+      throw new FilingException(e);
     }
-  
-    public String toString()
-    {
-        return "RfsInputBuffer[" + idStr + "] p="+startPos;
+  }
+
+  protected void close() throws FilingException {
+    buffer = null;
+    if (dataBlock != null) {
+      dataBlock.buf = null;
+      dataBlock = null;
     }
+    try {
+      if (fileInputStream != null) {
+        fileInputStream.close();
+        fileInputStream = null;
+      }
+    } catch (Exception e) {
+      throw new FilingException(e, "close " + idStr);
+    }
+  }
+
+  public void finalize() {
+    try {
+      close();
+    } catch (Exception e) {}
+  }
+
+  public String toString() {
+    return "RfsInputBuffer[" + idStr + "] p=" + startPos;
+  }
 }

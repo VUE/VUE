@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -21,7 +21,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
-
 import javax.swing.AbstractButton;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -29,7 +28,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
-
 import tufts.vue.DEBUG;
 import tufts.vue.DrawContext;
 import tufts.vue.LWCEvent;
@@ -70,226 +68,225 @@ import tufts.vue.gui.Widget;
 // Okay, so they can be owned by the map, but could just have bit for now that says "invisible",
 // if we can handle the direct viewing, drawing & selecting of a container with clever traversals.
 
-public class SlideViewer extends tufts.vue.MapViewer
-{
-    //private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
+public class SlideViewer extends tufts.vue.MapViewer {
 
-    private boolean isMapView = false;
-    private boolean mBlackout = false;
-    
-    private boolean mZoomBorder;
-    private boolean inFocal;
-    //private LWComponent mZoomContent; // what we zoom-to
-    private LWPathway.Entry mLastLoad;
+  //private final VueTool PresentationTool = VueToolbarController.getController().getTool("viewTool");
 
-    private final AbstractButton btnLocked;
-    private final AbstractButton btnZoom;
-    private final AbstractButton btnFocus;
-    private final AbstractButton btnSlide;
-    private final AbstractButton btnMaster;
-    private final AbstractButton btnMapView;
-    private final AbstractButton btnFill;
-    private final AbstractButton btnRebuild;
-    private final AbstractButton btnRevert;
-    //private final AbstractButton btnPresent;
+  private boolean isMapView = false;
+  private boolean mBlackout = false;
 
-    private static final String lblRevertOnSlide = VueResources.getString("button.resetstyle.label");
-    private static final String lblRevertOnMaster = VueResources.getString("button.resetallstyle.label");
+  private boolean mZoomBorder;
+  private boolean inFocal;
+  //private LWComponent mZoomContent; // what we zoom-to
+  private LWPathway.Entry mLastLoad;
 
-    private boolean masterJustPressed;
-    private boolean slideJustPressed;
+  private final AbstractButton btnLocked;
+  private final AbstractButton btnZoom;
+  private final AbstractButton btnFocus;
+  private final AbstractButton btnSlide;
+  private final AbstractButton btnMaster;
+  private final AbstractButton btnMapView;
+  private final AbstractButton btnFill;
+  private final AbstractButton btnRebuild;
+  private final AbstractButton btnRevert;
+  //private final AbstractButton btnPresent;
 
-    private class Toolbar extends JPanel implements ActionListener {
-        Toolbar() {
-            //btnLocked.setFont(VueConstants.FONT_SMALL);
-            //add(btnLocked);
-            add(Box.createHorizontalGlue());
-            //add(btnZoom);
-            //if (DEBUG.Enabled) add(btnFocus);
-            add(btnSlide);
-            add(btnMaster);
-            //add(btnMapView);
-            //add(btnFill);
-            //add(btnPresent);
-            add(btnRebuild);
-            add(btnRevert);
+  private static final String lblRevertOnSlide = VueResources.getString(
+    "button.resetstyle.label"
+  );
+  private static final String lblRevertOnMaster = VueResources.getString(
+    "button.resetallstyle.label"
+  );
 
-            ButtonGroup exclusive = new ButtonGroup();
-            exclusive.add(btnZoom);
-            if (DEBUG.Enabled) exclusive.add(btnFocus);
-            exclusive.add(btnSlide);
-            exclusive.add(btnMaster);
-            //exclusive.add(btnPresent);
+  private boolean masterJustPressed;
+  private boolean slideJustPressed;
 
-            btnRebuild.setEnabled(false);
-            btnRevert.setEnabled(false);
-        }
+  private class Toolbar extends JPanel implements ActionListener {
 
-      
-        private void add(AbstractButton b) {
-            b.addActionListener(this);
-            super.add(b);
-        }
+    Toolbar() {
+      //btnLocked.setFont(VueConstants.FONT_SMALL);
+      //add(btnLocked);
+      add(Box.createHorizontalGlue());
+      //add(btnZoom);
+      //if (DEBUG.Enabled) add(btnFocus);
+      add(btnSlide);
+      add(btnMaster);
+      //add(btnMapView);
+      //add(btnFill);
+      //add(btnPresent);
+      add(btnRebuild);
+      add(btnRevert);
 
-        public void actionPerformed(ActionEvent e) {
-            if (DEBUG.PRESENT) out(e);
-            if (e.getSource() == btnMapView) {
-                if (mLastLoad != null && !mLastLoad.isPathway())
-                    mLastLoad.setMapView(btnMapView.isSelected());
-                reload();
-            } else if (e.getSource() == btnMaster) {
-                masterJustPressed = true;
-                reload();
-            } else if (e.getSource() == btnSlide) {
-                slideJustPressed = true;
-                reload();
-            } else if (e.getSource() == btnRebuild) {
-                mLastLoad.rebuildSlide();
-                mLastLoad.pathway.getMap().getUndoManager().mark(btnRebuild.getText());
-                reload();
-            } else if (e.getSource() == btnRevert) {
-                if (btnMaster.isSelected()) {
-                    //out("REVERTING ALL IN " + mLastLoad.pathway);
-                    for (LWPathway.Entry entry : mLastLoad.pathway.getEntries()) {
-                        //out("REVERTING ENTRY " + entry);
-                        LWSlide slide = entry.getSlide();
-                        if (slide != null) 
-                            slide.revertToMasterStyle();
-                    }
-                } else {
-                    //out("REVERTING CURRENT ENTRY " + mLastLoad);
-                    mLastLoad.revertSlideToMasterStyle();
-                }
-                mLastLoad.pathway.getMap().getUndoManager().mark(btnRevert.getText());
-            }
+      ButtonGroup exclusive = new ButtonGroup();
+      exclusive.add(btnZoom);
+      if (DEBUG.Enabled) exclusive.add(btnFocus);
+      exclusive.add(btnSlide);
+      exclusive.add(btnMaster);
+      //exclusive.add(btnPresent);
 
-        }
-
+      btnRebuild.setEnabled(false);
+      btnRevert.setEnabled(false);
     }
-     
-    
-    public SlideViewer(LWMap map) {
-        super(null, "SLIDE");
-        //super(map == null ? new LWMap("empty") : map, "SlideViewer");
 
-        setName("Viewer"); // for DockWindow title and backward compat with window saved location
+    private void add(AbstractButton b) {
+      b.addActionListener(this);
+      super.add(b);
+    }
 
-        btnLocked = new JCheckBox(VueResources.getString("checkbox.lock.label"));
-        //btnLocked = makeButton("Lock");
-        btnZoom = makeButton(VueResources.getString("button.zoom.label"));
-        btnFocus = makeButton(VueResources.getString("button.focus.label"));
-        btnSlide = makeButton(VueResources.getString("button.slide..label"));
-        btnMaster = makeButton(VueResources.getString("checkbox.masterslide.label"));
-        btnMapView = new JCheckBox(VueResources.getString("checkbox.mapview.label"));
-        btnFill = new JCheckBox(VueResources.getString("checkbox.fill.label"));
-        btnRebuild = new JButton(VueResources.getString("button.revert.label"));
-        btnRevert = new JButton(VueResources.getString("button.resetstyle.label"));
-        //btnPresent = makeButton("Present");
+    public void actionPerformed(ActionEvent e) {
+      if (DEBUG.PRESENT) out(e);
+      if (e.getSource() == btnMapView) {
+        if (mLastLoad != null && !mLastLoad.isPathway()) mLastLoad.setMapView(
+          btnMapView.isSelected()
+        );
+        reload();
+      } else if (e.getSource() == btnMaster) {
+        masterJustPressed = true;
+        reload();
+      } else if (e.getSource() == btnSlide) {
+        slideJustPressed = true;
+        reload();
+      } else if (e.getSource() == btnRebuild) {
+        mLastLoad.rebuildSlide();
+        mLastLoad.pathway.getMap().getUndoManager().mark(btnRebuild.getText());
+        reload();
+      } else if (e.getSource() == btnRevert) {
+        if (btnMaster.isSelected()) {
+          //out("REVERTING ALL IN " + mLastLoad.pathway);
+          for (LWPathway.Entry entry : mLastLoad.pathway.getEntries()) {
+            //out("REVERTING ENTRY " + entry);
+            LWSlide slide = entry.getSlide();
+            if (slide != null) slide.revertToMasterStyle();
+          }
+        } else {
+          //out("REVERTING CURRENT ENTRY " + mLastLoad);
+          mLastLoad.revertSlideToMasterStyle();
+        }
+        mLastLoad.pathway.getMap().getUndoManager().mark(btnRevert.getText());
+      }
+    }
+  }
 
-        btnSlide.setSelected(true);
+  public SlideViewer(LWMap map) {
+    super(null, "SLIDE");
+    //super(map == null ? new LWMap("empty") : map, "SlideViewer");
 
-        //DEBUG_TIMER_ROLLOVER = false;
+    setName("Viewer"); // for DockWindow title and backward compat with window saved location
 
-        //VUE.addActiveListener(LWPathway.Entry.class, this);
+    btnLocked = new JCheckBox(VueResources.getString("checkbox.lock.label"));
+    //btnLocked = makeButton("Lock");
+    btnZoom = makeButton(VueResources.getString("button.zoom.label"));
+    btnFocus = makeButton(VueResources.getString("button.focus.label"));
+    btnSlide = makeButton(VueResources.getString("button.slide..label"));
+    btnMaster =
+      makeButton(VueResources.getString("checkbox.masterslide.label"));
+    btnMapView =
+      new JCheckBox(VueResources.getString("checkbox.mapview.label"));
+    btnFill = new JCheckBox(VueResources.getString("checkbox.fill.label"));
+    btnRebuild = new JButton(VueResources.getString("button.revert.label"));
+    btnRevert = new JButton(VueResources.getString("button.resetstyle.label"));
+    //btnPresent = makeButton("Present");
 
-        /*
+    btnSlide.setSelected(true);
+    //DEBUG_TIMER_ROLLOVER = false;
+
+    //VUE.addActiveListener(LWPathway.Entry.class, this);
+
+    /*
         VUE.addActiveListener(LWPathway.Entry.class, new VUE.ActiveListener() {
             public void activeChanged(VUE.ActiveEvent e) {
                 load((LWPathway.Entry) e.active);
             }
         });
         */
-        
-        /*
+
+    /*
         VUE.ActivePathwayEntryHandler.addListener(new VUE.ActiveListener<LWPathway.Entry>() {
                 public void activeChanged(VUE.ActiveEvent<LWPathway.Entry> e) {
                     load(e.active);
                 }
             });
         */
-        
-    }
 
-    public void activeChanged(tufts.vue.ActiveEvent e, LWPathway.Entry entry) {
-        // todo: if entry is null, leave the current contents, but NOT
-        // if this is because the map has been closed (will want
-        // to be tracking all active instances of LWMap to make this easy --
-        // e.g., if this entry's map is in the set, we're good).
-        load(entry);
-    }
-    
-    public void showSlideViewer()
-    {
-        if (Widget.isHidden(this) || !Widget.isExpanded(this))
-            Widget.setExpanded(this, true);
-    }
-    
-    
-    protected AbstractButton makeButton(String name) {
-        AbstractButton b = new JToggleButton(name);
-        b.setFocusable(false);
-        //b.setBorderPainted(false);
-        return b;
-    }
+  }
 
-//     protected String getEmptyMessage() {
-//         if (mLastLoad != null && btnSlide.isSelected())
-//             return "Not on Pathway";
-//         else
-//             return "Empty";
-//     }
-    
-//     @Override
-//     public void addNotify() {
-//         super.addNotify();
-//         getParent().add(new Toolbar(), BorderLayout.NORTH);
-//     }
+  public void activeChanged(tufts.vue.ActiveEvent e, LWPathway.Entry entry) {
+    // todo: if entry is null, leave the current contents, but NOT
+    // if this is because the map has been closed (will want
+    // to be tracking all active instances of LWMap to make this easy --
+    // e.g., if this entry's map is in the set, we're good).
+    load(entry);
+  }
 
-    @Override
-    public void grabVueApplicationFocus(String from, ComponentEvent event) {
-        final int id = event == null ? 0 : event.getID();
+  public void showSlideViewer() {
+    if (Widget.isHidden(this) || !Widget.isExpanded(this)) Widget.setExpanded(
+      this,
+      true
+    );
+  }
 
-        if (id == MouseEvent.MOUSE_ENTERED)
-            out("GVAF " + from + " ignored");
-        else
-            super.grabVueApplicationFocus(from, event);
+  protected AbstractButton makeButton(String name) {
+    AbstractButton b = new JToggleButton(name);
+    b.setFocusable(false);
+    //b.setBorderPainted(false);
+    return b;
+  }
+
+  //     protected String getEmptyMessage() {
+  //         if (mLastLoad != null && btnSlide.isSelected())
+  //             return "Not on Pathway";
+  //         else
+  //             return "Empty";
+  //     }
+
+  //     @Override
+  //     public void addNotify() {
+  //         super.addNotify();
+  //         getParent().add(new Toolbar(), BorderLayout.NORTH);
+  //     }
+
+  @Override
+  public void grabVueApplicationFocus(String from, ComponentEvent event) {
+    final int id = event == null ? 0 : event.getID();
+
+    if (id == MouseEvent.MOUSE_ENTERED) out(
+      "GVAF " + from + " ignored"
+    ); else super.grabVueApplicationFocus(from, event);
+  }
+
+  @Override
+  public void LWCChanged(LWCEvent e) {
+    //Util.printStackTrace(e.toString());
+    if (DEBUG.PRESENT) out("SLIDEVIEWER LWCChanged " + e);
+
+    if (e.component instanceof LWPathway) {
+      // If we're displaying a slide for a node, and
+      // the pathway has changed, it may be that the
+      // node was just added to the pathway and we
+      // need to load it's new slide (or it was
+      // removed, and we also need to display that)
+      reload();
+    } else {
+      super.LWCChanged(e);
+      if (true || e.getComponent() == mFocal) {
+        fitToFocal();
+      }
     }
-    
+  }
 
-    @Override
-    public void LWCChanged(LWCEvent e) {
-        //Util.printStackTrace(e.toString());
-        if (DEBUG.PRESENT) out("SLIDEVIEWER LWCChanged " + e);
+  public void showMasterSlideMode() {
+    out("showMasterSlideMode");
+    masterJustPressed = true;
+    reload();
+  }
 
-        if (e.component instanceof LWPathway) {
-            // If we're displaying a slide for a node, and
-            // the pathway has changed, it may be that the
-            // node was just added to the pathway and we
-            // need to load it's new slide (or it was
-            // removed, and we also need to display that)
-            reload();
-        } else {
-            super.LWCChanged(e);
-            if (true||e.getComponent() == mFocal) {
-                fitToFocal();
-            }
-        }
-    }
+  public void showSlideMode() {
+    out("showSlideMode");
+    slideJustPressed = true;
+    reload();
+  }
 
-    public void showMasterSlideMode()
-    {
-        out("showMasterSlideMode");
-    	masterJustPressed = true;
-    	reload();
-    }
-    
-    public void showSlideMode()
-    {
-        out("showSlideMode");
-    	slideJustPressed = true;
-    	reload();
-    }
-    /*
+  /*
     public LWComponent pickDropTarget(float mapX, float mapY, Object dropping) {
         PickContext pc = getPickContext();
         if (dropping == null)
@@ -299,12 +296,11 @@ public class SlideViewer extends tufts.vue.MapViewer
         return LWTraversal.PointPick.pick(pc, mapX, mapY);
     }
     */
-    
 
-    // no longer relevant: maxLayer hack currently not in use
-    //protected int getMaxLayer() { return inPathwaySlide ? 1 : 0; }
+  // no longer relevant: maxLayer hack currently not in use
+  //protected int getMaxLayer() { return inPathwaySlide ? 1 : 0; }
 
-    /*
+  /*
     protected PickContext getPickContext(float x, float y) {
         PickContext pc = super.getPickContext(x, y);
 
@@ -322,8 +318,8 @@ public class SlideViewer extends tufts.vue.MapViewer
         return pc;
     }
     */
-    
-    /*
+
+  /*
     private LWPathway mCurrentPath;
     public void activeChanged(VUE.ActivePathwayEntry.Event e) {
         load(e.entry);
@@ -337,17 +333,17 @@ public class SlideViewer extends tufts.vue.MapViewer
     }
 */
 
-    private void reload() {
-        // TODO: load nothing if active pathway from a different map
-        //if (mLastLoad != null)
-        if (mLastLoad == null) {
-            if (VUE.getActivePathway() != null)
-                load(VUE.getActivePathway().asEntry());
-        } else
-            load(mLastLoad);
-    }
-        
-    /*
+  private void reload() {
+    // TODO: load nothing if active pathway from a different map
+    //if (mLastLoad != null)
+    if (mLastLoad == null) {
+      if (VUE.getActivePathway() != null) load(
+        VUE.getActivePathway().asEntry()
+      );
+    } else load(mLastLoad);
+  }
+
+  /*
     public void selectionChanged(LWSelection s) {
         super.selectionChanged(s);
 
@@ -373,154 +369,151 @@ if (true) return;
     }
     */
 
-    @Override
-    protected boolean skipAllPainting() {
-        return VUE.inNativeFullScreen();
+  @Override
+  protected boolean skipAllPainting() {
+    return VUE.inNativeFullScreen();
+  }
+
+  protected void load(LWPathway.Entry entry) {
+    if (VUE.inNativeFullScreen()) {
+      // don't slow us down with our updates if we're in native full screen / presenting
+      return;
     }
-    
 
-    protected void load(LWPathway.Entry entry)
-    {
-        if (VUE.inNativeFullScreen()) {
-            // don't slow us down with our updates if we're in native full screen / presenting
-            return;
-        }
-        
-        if (DEBUG.PRESENT) out("SlideViewer: loading " + entry);
-        mLastLoad = entry;
+    if (DEBUG.PRESENT) out("SlideViewer: loading " + entry);
+    mLastLoad = entry;
 
-        LWComponent focal;
+    LWComponent focal;
 
-        // If no slide available, disable slide button, even if don't want it!
+    // If no slide available, disable slide button, even if don't want it!
 
+    if (entry == null) {
+      mZoomBorder = false;
+      //mZoomContent = null;
+      inFocal = false;
+      focal = null;
+      btnMapView.setEnabled(false);
+      btnRebuild.setEnabled(false);
+      btnRevert.setEnabled(false);
+      //} else if (btnMaster.isSelected() || entry.isPathway()) {
+    } else if (masterJustPressed || (entry.isPathway() && !slideJustPressed)) {
+      if (DEBUG.PRESENT) out("master auto-select");
+      btnMaster.setSelected(true);
+      isMapView = false;
+      focal = entry.pathway.getMasterSlide();
+      inFocal = true;
+      btnRebuild.setEnabled(false);
+      btnRevert.setEnabled(true);
+      btnRevert.setText(lblRevertOnMaster);
+    } else {
+      if (DEBUG.PRESENT) out("slide auto-select");
+      btnSlide.setSelected(true);
+
+      if (entry.isPathway()) {
+        entry = entry.pathway.getCurrentEntry();
         if (entry == null) {
-            mZoomBorder = false;
-            //mZoomContent = null;
-            inFocal = false;
-            focal = null;
-            btnMapView.setEnabled(false);
-            btnRebuild.setEnabled(false);
-            btnRevert.setEnabled(false);
-            //} else if (btnMaster.isSelected() || entry.isPathway()) {
-        } else if (masterJustPressed || (entry.isPathway() && !slideJustPressed)) {
-            if (DEBUG.PRESENT) out("master auto-select");
-            btnMaster.setSelected(true);
-            isMapView = false;
-            focal = entry.pathway.getMasterSlide();
-            inFocal = true;
-            btnRebuild.setEnabled(false);
-            btnRevert.setEnabled(true);
-            btnRevert.setText(lblRevertOnMaster);
-        } else {
-            if (DEBUG.PRESENT) out("slide auto-select");
-            btnSlide.setSelected(true);
-            
-            if (entry.isPathway()) {
-                entry = entry.pathway.getCurrentEntry();
-                if (entry == null) {
-                    // pathway is empty -- TODO: handle cleanly
-                    return;
-                }
-            }
-
-            isMapView = entry.isMapView();
-            btnMapView.setSelected(isMapView);
-            btnRebuild.setEnabled(!entry.isOffMapSlide());
-            btnRevert.setEnabled(true);
-            btnRevert.setText(lblRevertOnSlide);
-            focal = entry.getFocal();
-            inFocal = true;
+          // pathway is empty -- TODO: handle cleanly
+          return;
         }
+      }
 
-        //mZoomContent = focal;
-
-        masterJustPressed = slideJustPressed = false;
-        
-        super.loadFocal(focal);
-        //reshapeImpl(0,0,0,0);
-        if (DEBUG.PRESENT) out("SlideViewer: focused is now " + mFocal + " from map " + mMap);
+      isMapView = entry.isMapView();
+      btnMapView.setSelected(isMapView);
+      btnRebuild.setEnabled(!entry.isOffMapSlide());
+      btnRevert.setEnabled(true);
+      btnRevert.setText(lblRevertOnSlide);
+      focal = entry.getFocal();
+      inFocal = true;
     }
 
-    private LWSlide getActiveMasterSlide() {
-        if (VUE.getActiveMap() != null)
-            return VUE.getActiveMap().getActivePathway().getMasterSlide();
-        else
-            return null;
+    //mZoomContent = focal;
+
+    masterJustPressed = slideJustPressed = false;
+
+    super.loadFocal(focal);
+    //reshapeImpl(0,0,0,0);
+    if (DEBUG.PRESENT) out(
+      "SlideViewer: focused is now " + mFocal + " from map " + mMap
+    );
+  }
+
+  private LWSlide getActiveMasterSlide() {
+    if (VUE.getActiveMap() != null) return VUE
+      .getActiveMap()
+      .getActivePathway()
+      .getMasterSlide(); else return null;
+  }
+
+  /** @return false -- a no-op -- don't allow focal popping in slide viewer */
+  @Override
+  protected boolean popFocal(boolean toTopLevel, boolean animate) {
+    return false;
+  }
+
+  //     @Override
+  //     public void loadFocal(LWComponent focal, boolean fitToFocal, boolean animate) {
+  //         if (focal instanceof LWMap) {
+  //             // never load the map in the slide viewer
+  //         } else {
+  //             super.loadFocal(focal, fitToFocal, animate);
+  //         }
+  //     }
+
+  @Override
+  protected Color getBackgroundFillColor(DrawContext dc) {
+    //return Color.white;
+    return Color.darkGray;
+    // this code produces "filled" slide viewer look,
+    // tho then we can't make out the edge of the slide:
+    //         final LWPathway.Entry entry = VUE.getActiveEntry();
+    //         if (entry != null)
+    //             return entry.getFullScreenFillColor();
+    //         else
+    //             return Color.gray;
+  }
+
+  @Override
+  protected void drawFocal(DrawContext dc) {
+    //if (mLastLoad != null && mLastLoad.isMapView()) {
+    if (mLastLoad != null && !mLastLoad.canProvideSlide()) {
+      // have to fill first, or super.drawFocal will fill over us...
+      //             if (DEBUG.Enabled)
+      //                 dc.fillBackground(Color.red);
+      //             else
+      dc.fillBackground(getBackgroundFillColor(dc));
+      mLastLoad.pathway.getMasterSlide().drawFit(dc.push(), 0);
+      dc.pop();
+      //mLastLoad.pathway.getMasterSlide().drawIntoFrame(dc);
     }
+    super.drawFocalImpl(dc);
+  }
 
-    /** @return false -- a no-op -- don't allow focal popping in slide viewer */
-    @Override
-    protected boolean popFocal(boolean toTopLevel, boolean animate) { return false; }
-    
-//     @Override
-//     public void loadFocal(LWComponent focal, boolean fitToFocal, boolean animate) {
-//         if (focal instanceof LWMap) {
-//             // never load the map in the slide viewer
-//         } else {
-//             super.loadFocal(focal, fitToFocal, animate);
-//         }
-//     }
+  @Override
+  protected void drawSelection(DrawContext dc, LWSelection s) {
+    // Don't draw selection if its the focused component
+    if (s.size() == 1 && s.first() == mFocal) return;
+    super.drawSelection(dc, s);
+  }
 
-    @Override
-    protected Color getBackgroundFillColor(DrawContext dc) {
-        //return Color.white;
-        return Color.darkGray;
-// this code produces "filled" slide viewer look,
-// tho then we can't make out the edge of the slide:
-//         final LWPathway.Entry entry = VUE.getActiveEntry();
-//         if (entry != null)
-//             return entry.getFullScreenFillColor();
-//         else
-//             return Color.gray;
-    }
-
-    @Override
-    protected void drawFocal(DrawContext dc) {
-        //if (mLastLoad != null && mLastLoad.isMapView()) {
-        if (mLastLoad != null && !mLastLoad.canProvideSlide()) {
-            // have to fill first, or super.drawFocal will fill over us...
-//             if (DEBUG.Enabled)
-//                 dc.fillBackground(Color.red);
-//             else
-                dc.fillBackground(getBackgroundFillColor(dc));
-                mLastLoad.pathway.getMasterSlide().drawFit(dc.push(), 0);
-                dc.pop();
-            //mLastLoad.pathway.getMasterSlide().drawIntoFrame(dc);
-        }
-        super.drawFocalImpl(dc);
-            
-    }
-
-
-    @Override
-    protected void drawSelection(DrawContext dc, LWSelection s) {
-        // Don't draw selection if its the focused component
-        if (s.size() == 1 && s.first() == mFocal)
-            return;
-        super.drawSelection(dc, s);
-    }
-
-
-    @Override
-    protected DrawContext getDrawContext(Graphics2D g) {
-        DrawContext dc = super.getDrawContext(g);
-        dc.setDrawPathways(false);        
-        //dc.setEditMode(btnMaster.isSelected());
-        /* dc.focal now handles this 
+  @Override
+  protected DrawContext getDrawContext(Graphics2D g) {
+    DrawContext dc = super.getDrawContext(g);
+    dc.setDrawPathways(false);
+    //dc.setEditMode(btnMaster.isSelected());
+    /* dc.focal now handles this 
         if (isMapView) {
             dc.isFocused = true;// turns off pathway drawing
             //dc.setInteractive(false); // turns off selection drawing
         }
         */
-        return dc;
-    }
+    return dc;
+  }
 
-    @Override
-    public void fireViewerEvent(int id, String cause) {
-        if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
-    }
-
-    /*
+  @Override
+  public void fireViewerEvent(int id, String cause) {
+    if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
+  }
+  /*
     protected void reshapeImpl(int x, int y, int w, int h) {
         if (DEBUG.PRESENT) out("reshapeImpl");
         zoomToContents();
@@ -551,8 +544,8 @@ if (true) return;
 
     }
     */
-    
-    /*
+
+  /*
     protected void drawMap(DrawContext dc)
     {
         if (mFocal == null)
@@ -567,11 +560,11 @@ if (true) return;
         }
     }
     */
-    
-    /* either draws the entire map (previously zoomed to to something to focus on),
-     * or a fully focused part of of it, where we only draw that item.
-     */
-    /*
+
+  /* either draws the entire map (previously zoomed to to something to focus on),
+   * or a fully focused part of of it, where we only draw that item.
+   */
+  /*
     protected void drawFocal(DrawContext dc)
     {
         // TODO: need to get this working to wherever we've been "zoom fitted" to, and/or
@@ -614,9 +607,8 @@ if (true) return;
         }
     }
     */
-    
 
-    /*
+  /*
     protected void XsetDragger(LWComponent c) {
         // need to cleanup MapViewer such that overriding this actually works
         if (btnMaster.isSelected() && c instanceof LWSlide)
@@ -627,8 +619,8 @@ if (true) return;
         }
     }
     */
-    
-    /*
+
+  /*
     protected void drawSlide(DrawContext dc)
     {
         // just drawing the master slide here only happens to work because it's exactly
@@ -685,10 +677,8 @@ if (true) return;
         //Dc.setMapDrawing();
     }
     */
-    
-    
 
-    /*
+  /*
       // not relevant: we'lre not in a scroll pane
     protected void panScrollRegionImpl(int dx, int dy, boolean allowGrowth) {
         if (inFocal)
@@ -697,8 +687,8 @@ if (true) return;
             super.panScrollRegionImpl(dx, dy, allowGrowth);
     }
     */
-    
-    /*
+
+  /*
     public void keyPressed(java.awt.event.KeyEvent e) {
         super.keyPressed(e);
         if (e.isConsumed())
@@ -711,7 +701,7 @@ if (true) return;
     }
     */
 
-    /*
+  /*
     protected void XsetMapOriginOffsetImpl(float panelX, float panelY, boolean update) {
         if (inFocal) {
             super.setMapOriginOffsetImpl(mFocal.getX(), mFocal.getY(), update);
@@ -739,9 +729,8 @@ if (true) return;
             return super.getOriginY();
     }
     */
-    
-        
-    /*
+
+  /*
     protected void drawMap(DrawContext dc) {
         if (mBlackout) {
             dc.g.setColor(Color.black);
@@ -769,12 +758,11 @@ if (true) return;
     }
     */
 
+  //    public void reshape(int x, int y, int w, int h) {
+  //        out("     reshape: "+ w + " x " + h+ " "+ x + "," + y);
+  //    }
 
-    //    public void reshape(int x, int y, int w, int h) {
-    //        out("     reshape: "+ w + " x " + h+ " "+ x + "," + y);
-    //    }
-    
-    /*
+  /*
     private VueAction[] mMenuActions;
     public void addNotify() {
         super.addNotify();
@@ -809,7 +797,7 @@ if (true) return;
     }
     */
 
-    /*
+  /*
     private static class SingletonMap extends LWMap {
         private final LWMap srcMap;
         SingletonMap(LWMap srcMap, LWComponent singleChild) {
@@ -823,8 +811,5 @@ if (true) return;
         }
     }
     */
-    
-    
 
-    
 }

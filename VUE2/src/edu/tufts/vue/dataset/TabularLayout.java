@@ -25,78 +25,72 @@
 
 package edu.tufts.vue.dataset;
 
+import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.*;
 
+public class TabularLayout extends AbstractLayout {
 
-public class TabularLayout extends  AbstractLayout{
- 
-    public static final String LABEL = "Tabular Layout";
-    
-    /** Creates a new instance of Tabular */
-    public TabularLayout() {
-        super(LABEL);
+  public static final String LABEL = "Tabular Layout";
+
+  /** Creates a new instance of Tabular */
+  public TabularLayout() {
+    super(LABEL);
+  }
+
+  public LWMap createMap(Dataset ds, String mapName) throws Exception {
+    Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
+    Map<String, Integer> repeatMap = new HashMap<String, Integer>();
+
+    LWMap map = new LWMap(mapName);
+
+    int count = 0;
+    float y = 20;
+    float x = 0;
+    int toggle = 0;
+    for (ArrayList<String> row : ds.getRowList()) {
+      String node1Label = row.get(0);
+      String node2Label = row.get(1);
+      LWNode node1;
+      LWNode node2;
+      x += 300;
+      if (toggle == 0) {
+        toggle++;
+        y = y + 50;
+      } else if (toggle == 1) {
+        toggle = 0;
+        y = y - 50;
+      }
+      if (count % 5 == 0) {
+        y += 100;
+        x = 400;
+        toggle = 0;
+      }
+      if (!nodeMap.containsKey(node1Label)) {
+        node1 = new LWNode(node1Label);
+        nodeMap.put(node1Label, node1);
+        map.add(node1);
+        count++;
+      } else {
+        node1 = nodeMap.get(node1Label);
+      }
+      if (!nodeMap.containsKey(node2Label)) {
+        node2 = new LWNode(node2Label);
+        map.add(node2);
+        nodeMap.put(node2Label, node2);
+        count++;
+      } else {
+        node2 = nodeMap.get(node2Label);
+      }
+      LWLink link = new LWLink(node1, node2);
+      map.add(link);
+
+      node1.setLocation(x, y);
+      if (node2 != null) node2.setLocation(x + 150, y);
     }
-     
-     public LWMap createMap(Dataset ds,String mapName) throws Exception{
-        Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
-        Map<String,Integer> repeatMap = new HashMap<String,Integer>();
-        
-        LWMap map = new LWMap(mapName);
-       
-        int count = 0;
-        float y = 20;
-        float x = 0;
-        int toggle = 0;
-       for(ArrayList<String> row: ds.getRowList()) {
-            String node1Label = row.get(0);
-            String node2Label = row.get(1);
-            LWNode node1;
-            LWNode node2;
-            x += 300;
-            if(toggle == 0) {
-                toggle++;
-                y = y + 50;
-            } else
-                if(toggle == 1) {
-                toggle = 0;
-                y = y - 50;
-                }
-            if(count % 5 == 0) {
-                y += 100;
-                x = 400;
-                toggle = 0;
-            }
-            if(!nodeMap.containsKey(node1Label)) {
-                node1 = new LWNode(node1Label);
-                nodeMap.put(node1Label,node1);
-                map.add(node1);
-                count++;
-            } else {
-                node1 = nodeMap.get(node1Label);
-            }
-            if(!nodeMap.containsKey(node2Label)) {
-                node2 = new LWNode(node2Label);
-                map.add(node2);
-                nodeMap.put(node2Label,node2);
-                count++;
-            } else {
-                node2 = nodeMap.get(node2Label);
-            }
-            LWLink link = new LWLink(node1,node2);
-            map.add(link);
-            
-            
-            node1.setLocation(x,y);
-            if(node2 != null)
-                node2.setLocation(x+150,y);
-            
-        }
-        return map;
-    }
-    
+    return map;
+  }
 }

@@ -64,22 +64,20 @@ package org.okip.service.filing.impl.rfs;
  *
  * @version $Name: not supported by cvs2svn $ / $Revision: 1.1 $ / $Date: 2003-04-14 20:48:28 $
  */
-public class RfsID
-implements org.okip.service.filing.api.ID
-{
-    private String id;
+public class RfsID implements org.okip.service.filing.api.ID {
 
-    protected RfsID(String s)
-    {
-        this.id = s;
-    }
+  private String id;
 
-    /**
-     * Method toString
-     *
-     * @return String
-     */
-    public String toString() {
-        return id;
-    }
+  protected RfsID(String s) {
+    this.id = s;
+  }
+
+  /**
+   * Method toString
+   *
+   * @return String
+   */
+  public String toString() {
+    return id;
+  }
 }

@@ -63,7 +63,7 @@
   <property name="test.home"   value="${top.dir}/test" />
   <property name="test.lib"   value="${test.home}/lib" />
   <property name="junit.jar"   value="${test.lib}/junit.jar" />
-  <property name="target.version" value="1.6"/>
+  <property name="target.version" value="1.7"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
   <property name="jre.home" value="/usr/local/atsys/jenkins/jre/jre7"/>
@@ -542,7 +542,7 @@
 
     <!--
     
-   <javac srcdir="${linux.src}"
+   <javac nowarn="on" srcdir="${linux.src}"
    	  destdir="${linux.class}"
    	  debug="${compile.debug}"
    	  deprecation="${compile.deprecation}"
@@ -565,7 +565,7 @@
 
    
 
-    <javac srcdir="${basedir}"
+    <javac nowarn="on" srcdir="${basedir}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -582,7 +582,7 @@
       <exclude name="**/old/**"/>
     </javac>
     
-    <javac srcdir="${basedir}" 
+    <javac nowarn="on" srcdir="${basedir}" 
            destdir="${build.class}"
               debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -597,7 +597,7 @@
       <exclude name="**/old/**"/>
     </javac>
 
-    <javac srcdir="${basedir}" 
+    <javac nowarn="on" srcdir="${basedir}" 
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -610,7 +610,7 @@
       <include name="tufts/oki/**/*.java"/>
     </javac>
 
-    <javac srcdir="${basedir}" 
+    <javac nowarn="on" srcdir="${basedir}" 
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -627,7 +627,7 @@
       <exclude name="**/old/**"/>
     </javac>
 
-    <javac srcdir="${basedir}" 
+    <javac nowarn="on" srcdir="${basedir}" 
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -647,7 +647,7 @@
       <exclude name="**/old/**"/>
     </javac>
 
-    <javac srcdir="${basedir}" 
+    <javac nowarn="on" srcdir="${basedir}" 
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -664,7 +664,7 @@
       <exclude name="**/bak/**"/>
       <exclude name="**/old/**"/>
     </javac>
-     <javac srcdir="${basedir}"
+     <javac nowarn="on" srcdir="${basedir}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -1114,7 +1114,7 @@
          that reside in /System/Library/Java in Mac OS X, which can access native OS X features via
          classes such as NSWindow, NSApplcation, etc. -->
     <mkdir dir="maclib/classes"/>
-    <javac srcdir="${basedir}" 
+    <javac nowarn="on" srcdir="${basedir}" 
            destdir="maclib/classes"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -1136,7 +1136,7 @@
          that reside in /System/Library/Java in Mac OS X, which can access native OS X features via
          classes such as NSWindow, NSApplcation, etc. -->
     <mkdir dir="maclib/classes"/>
-    <javac srcdir="${basedir}" 
+    <javac nowarn="on" srcdir="${basedir}" 
            destdir="maclib/classes"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -1292,7 +1292,7 @@ public static final String
 }
 </echo>
 <!-- Compile file as part of regular compile target - peter 21-Jul-06  
-	<javac srcdir="${build.home}" 
+	<javac nowarn="on" srcdir="${build.home}" 
            destdir="${build.class}"
            optimize="${compile.optimize}"
            listfiles="yes"

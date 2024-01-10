@@ -67,65 +67,61 @@ import org.okip.service.filing.api.*;
  * @version $Name: not supported by cvs2svn $ / $Revision: 1.1 $ / $Date: 2003-04-14 20:48:28 $
  */
 
-public class RfsByteStore extends RfsEntry
-implements org.okip.service.filing.api.ByteStore
-{
-    protected RfsByteStore(RfsFactory factory, String idStr)
-        throws FilingException
-    {
-        initEntry(factory, idStr, false, null, null);
-    }
-    protected RfsByteStore(RfsFactory factory, String idStr, boolean create)
-        throws FilingException
-    {
-        initEntry(factory, idStr, create, null, null);
-    }
-    protected RfsByteStore(RfsCabinet parent, String idStr, RfsEntryCache rc)
-        throws FilingException
-    {
-        if (parent == null)
-            initEntry(null, idStr, false, rc, null);
-        else
-            initEntry(parent.factory, idStr, false, rc, parent);
-    }
-    
-    
-    /**
-     * Returns the length of this ByteStore
-     *
-     * @return The length, in bytes, of this ByteStore
-     *
-     * @throws FilingIOException - if an IO error occurs reading Object
-     */
-    public long length()
-        throws FilingException
-    {
-        if (hasClient) {
-            try {
-                if (cache != null)
-                    return cache.length();
-                else
-                    return ((Long) factory.invoke(this, "length")).longValue();
-            } catch (Exception ex) {
-                return 0;
-            }
-        } else 
-            return getLocalFile().length();
-    }
+public class RfsByteStore
+  extends RfsEntry
+  implements org.okip.service.filing.api.ByteStore {
 
-    /**
-     * Tests whether the Factory Owner may append to this ByteStore.
-     *
-     * @return <code>true</code> if and only if the Factory Owner is
-     *          allowed to append to this ByteStore
-     *          <code>false</code> otherwise.
-     *
-     */
-    public boolean canAppend()
-        throws FilingException
-    {
-        return canWrite();
-    }
+  protected RfsByteStore(RfsFactory factory, String idStr)
+    throws FilingException {
+    initEntry(factory, idStr, false, null, null);
+  }
+
+  protected RfsByteStore(RfsFactory factory, String idStr, boolean create)
+    throws FilingException {
+    initEntry(factory, idStr, create, null, null);
+  }
+
+  protected RfsByteStore(RfsCabinet parent, String idStr, RfsEntryCache rc)
+    throws FilingException {
+    if (parent == null) initEntry(null, idStr, false, rc, null); else initEntry(
+      parent.factory,
+      idStr,
+      false,
+      rc,
+      parent
+    );
+  }
+
+  /**
+   * Returns the length of this ByteStore
+   *
+   * @return The length, in bytes, of this ByteStore
+   *
+   * @throws FilingIOException - if an IO error occurs reading Object
+   */
+  public long length() throws FilingException {
+    if (hasClient) {
+      try {
+        if (cache != null) return cache.length(); else return (
+          (Long) factory.invoke(this, "length")
+        ).longValue();
+      } catch (Exception ex) {
+        return 0;
+      }
+    } else return getLocalFile().length();
+  }
+
+  /**
+   * Tests whether the Factory Owner may append to this ByteStore.
+   *
+   * @return <code>true</code> if and only if the Factory Owner is
+   *          allowed to append to this ByteStore
+   *          <code>false</code> otherwise.
+   *
+   */
+  public boolean canAppend() throws FilingException {
+    return canWrite();
+  }
 
   /**
    * Marks this ByteStore so that only append operations are allowed.
@@ -138,33 +134,29 @@ implements org.okip.service.filing.api.ByteStore
    * if an IO error occurs or
    * if it is not possible to restrict to append-only in this implementation
    */
-  public boolean setAppendOnly()
-  throws FilingException {
+  public boolean setAppendOnly() throws FilingException {
     throw new UnsupportedFilingOperationException(
-      "Cannot set a ByteStore AppendOnly in this implementation");
+      "Cannot set a ByteStore AppendOnly in this implementation"
+    );
   }
-
 
   /**
    * Get the mime-type of this ByteStore.
    *
    * @return the mime-type (Content-Type in a jar file manifest)
    */
-  public String getMimeType()
-  throws FilingException {
-
+  public String getMimeType() throws FilingException {
     // quick implementation.  Better implementation would have more
     // mime-types, configurable, and read the first few bytes of the
     // file as in the UNIX "file" command
 
-    String name      = this.getName();
+    String name = this.getName();
     String extension = name.substring(name.lastIndexOf(".") + 1);
-    String mimeType  = (String) mimeTypesSuffixTable.get(extension);
+    String mimeType = (String) mimeTypesSuffixTable.get(extension);
 
     if (mimeType != null) {
       return mimeType;
-    }
-    else {
+    } else {
       return "application/octet-stream";
     }
   }
@@ -234,8 +226,7 @@ implements org.okip.service.filing.api.ByteStore
    * does not have permission to set the mime-type or
    * if an IO error occurs setting the mime-type.
    */
-  public String setMimeType(String mimeType)
-  throws FilingException {
+  public String setMimeType(String mimeType) throws FilingException {
     // this implementation cannot set the mime-type, it derives it
     // from a guess based on the name
     return this.getMimeType();
@@ -251,10 +242,9 @@ implements org.okip.service.filing.api.ByteStore
    *
    */
   public String getDigest(org.okip.service.shared.api.Type digestAlgorithm)
-  throws FilingException {
+    throws FilingException {
     return null;
   }
-
 
   /**
    * Return OkiInputStream object which can be used to access this ByteStore.
@@ -266,11 +256,9 @@ implements org.okip.service.filing.api.ByteStore
    * does not have permission to read this ByteStore or
    * if an IO error occurs.
    */
-    public OkiInputStream getOkiInputStream()
-        throws FilingException
-    {
-        return new RfsInputStream(this);
-    }
+  public OkiInputStream getOkiInputStream() throws FilingException {
+    return new RfsInputStream(this);
+  }
 
   /**
    * Return OkiOutputStream object which can be used to access this ByteStore.
@@ -282,12 +270,9 @@ implements org.okip.service.filing.api.ByteStore
    * does not have permission to read this ByteStore or
    * if an IO error occurs.
    */
-    public OkiOutputStream getOkiOutputStream()
-        throws FilingException
-    {
-        return new RfsOutputStream(factory, this.idStr, this.cache);
-    }
-
+  public OkiOutputStream getOkiOutputStream() throws FilingException {
+    return new RfsOutputStream(factory, this.idStr, this.cache);
+  }
 
   /**
    * Return true if this ByteStore exists in multiple equivalent versions.
@@ -296,8 +281,7 @@ implements org.okip.service.filing.api.ByteStore
    * @return boolean
    *
    */
-  public boolean hasVersions()
-  throws FilingException {
+  public boolean hasVersions() throws FilingException {
     return false;
   }
 
@@ -319,8 +303,7 @@ implements org.okip.service.filing.api.ByteStore
    * @return ByteStore
    *
    */
-  public ByteStore getBaseVersion()
-  throws FilingException {
+  public ByteStore getBaseVersion() throws FilingException {
     return this;
   }
 
@@ -335,9 +318,10 @@ implements org.okip.service.filing.api.ByteStore
    * are not implemented.
    */
   public ByteStore getVersion(java.lang.String versionKey)
-  throws FilingException {
+    throws FilingException {
     throw new UnsupportedFilingOperationException(
-      "ByteStore versioning not implemented");
+      "ByteStore versioning not implemented"
+    );
   }
 
   /**
@@ -346,8 +330,7 @@ implements org.okip.service.filing.api.ByteStore
    * @return ByteStore[]
    *
    */
-  public ByteStore[] getVersions()
-  throws FilingException {
+  public ByteStore[] getVersions() throws FilingException {
     ByteStore[] b = new ByteStore[1];
 
     b[0] = this;
@@ -368,93 +351,90 @@ implements org.okip.service.filing.api.ByteStore
    * if an IO error occurs or
    * if versions are not implemented.
    */
-  public ByteStore newVersion(org.okip.service.shared.api.Agent agent,
-                              String versionKey)
-  throws FilingException {
+  public ByteStore newVersion(
+    org.okip.service.shared.api.Agent agent,
+    String versionKey
+  ) throws FilingException {
     throw new UnsupportedFilingOperationException(
-      "ByteStore versioning not implemented");
+      "ByteStore versioning not implemented"
+    );
   }
 
-    /**
-     * Tests this entry for equality with the given object.
-     * Returns <code>true</code> if and only if the argument is not
-     * <code>null</code> and is equal to this RfsByteStore.
-     *
-     * This implentation tests to see if the creating
-     * factories are the same object, and that getID().toString()
-     * for both entries is equivalent.
-     *
-     * @param object
-     *
-     * @return  <code>true</code> if and only if the objects are operationally equivalent
-     *          <code>false</code> otherwise, or if an error occurs
-     */
-    public boolean equals(Object object)
-    {
-        if (this == object)
-            return true;
-        try {
-            if (object instanceof RfsByteStore) {
-                RfsByteStore rb = (RfsByteStore) object;
-                return this.factory == rb.factory
-                    && this.getID().toString().equals(rb.getID().toString());
-                
-            } else
-                return false;
-        } catch (Throwable t) {
-            return false;
-        }
+  /**
+   * Tests this entry for equality with the given object.
+   * Returns <code>true</code> if and only if the argument is not
+   * <code>null</code> and is equal to this RfsByteStore.
+   *
+   * This implentation tests to see if the creating
+   * factories are the same object, and that getID().toString()
+   * for both entries is equivalent.
+   *
+   * @param object
+   *
+   * @return  <code>true</code> if and only if the objects are operationally equivalent
+   *          <code>false</code> otherwise, or if an error occurs
+   */
+  public boolean equals(Object object) {
+    if (this == object) return true;
+    try {
+      if (object instanceof RfsByteStore) {
+        RfsByteStore rb = (RfsByteStore) object;
+        return (
+          this.factory == rb.factory &&
+          this.getID().toString().equals(rb.getID().toString())
+        );
+      } else return false;
+    } catch (Throwable t) {
+      return false;
     }
-        
-    /**
-     * Compares this this ByteStore to another ByteStore.
-     *
-     * @param byteStore The <code>ByteStore</code> to be compared to
-     * this ByteStore
-     *
-     * @return 0 if they are equal, less than 0 or greater than 0 if
-     * they differ, depending on the implementation-dependent quality
-     * used for the comparison.
-     *
-     * @throws FilingException - if Factory Owner
-     * does not have read permission on the ByteStore being compared to or
-     * if an IO error occurs reading the ByteStore being compared to
-     *
-     * @see java.lang.Comparable
-     */
+  }
 
-    public int compareTo(ByteStore byteStore)
-        throws FilingException
-    {
-        try {
-            return getID().toString().compareTo(byteStore.getID().toString());
-        } catch (Throwable e) {}
-        return -1000;
-    }
+  /**
+   * Compares this this ByteStore to another ByteStore.
+   *
+   * @param byteStore The <code>ByteStore</code> to be compared to
+   * this ByteStore
+   *
+   * @return 0 if they are equal, less than 0 or greater than 0 if
+   * they differ, depending on the implementation-dependent quality
+   * used for the comparison.
+   *
+   * @throws FilingException - if Factory Owner
+   * does not have read permission on the ByteStore being compared to or
+   * if an IO error occurs reading the ByteStore being compared to
+   *
+   * @see java.lang.Comparable
+   */
 
-    /**
-     * Returns a diagnostic string representation of this ByteStore.
-     *
-     * @return  A string form of this ByteStore
-     */
-    public String toString()
-    {
-        return "RfsByteStore[" + super.toString() + "]";
-    }
+  public int compareTo(ByteStore byteStore) throws FilingException {
+    try {
+      return getID().toString().compareTo(byteStore.getID().toString());
+    } catch (Throwable e) {}
+    return -1000;
+  }
 
-    /**
-     * Tests whether this is a Cabinet.
-     * @return boolean - always returns false
-     */
-    public final boolean isCabinet() {
-        return false;
-    }
-    
-    /**
-     * Tests whether this is a ByteStore.
-     * @return boolean - always returns true
-     */
-    public final boolean isByteStore() {
-        return true;
-    }
+  /**
+   * Returns a diagnostic string representation of this ByteStore.
+   *
+   * @return  A string form of this ByteStore
+   */
+  public String toString() {
+    return "RfsByteStore[" + super.toString() + "]";
+  }
+
+  /**
+   * Tests whether this is a Cabinet.
+   * @return boolean - always returns false
+   */
+  public final boolean isCabinet() {
+    return false;
+  }
+
+  /**
+   * Tests whether this is a ByteStore.
+   * @return boolean - always returns true
+   */
+  public final boolean isByteStore() {
+    return true;
+  }
 }

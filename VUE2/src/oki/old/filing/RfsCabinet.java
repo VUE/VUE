@@ -67,50 +67,50 @@ import org.okip.service.filing.api.*;
  * @version $Name: not supported by cvs2svn $ / $Revision: 1.1 $ / $Date: 2003-04-14 20:48:28 $
  */
 
-public class RfsCabinet extends RfsEntry
-    implements org.okip.service.filing.api.Cabinet
-               ,org.okip.service.filing.api.Refreshable
-{
-    private transient java.util.Map entries;
-    private transient long lastRefresh = 0;
-    
-    /* There was a policy we had in effect in the original LFS
-     * implementation, where CabinetEntry's contained within this
-     * cabinet that were not readable were treated as if they didn't
-     * exist, and the user would never see these entries.  Not sure if
-     * we want to continue it, but it's made optional here.  */
-    private boolean ignoreUnreadables = true;
-    private boolean caching = false;
-    
-    protected RfsCabinet(RfsFactory factory, String idStr)
-        throws FilingException
-    {
-        initEntry(factory, idStr, false, null, null);
-        initCabinet();
-    }
-    protected RfsCabinet(RfsFactory factory, String idStr, boolean create)
-        throws FilingException
-    {
-        initEntry(factory, idStr, create, null, null);
-        initCabinet();
-    }
-    protected RfsCabinet(RfsCabinet parent, String idStr, RfsEntryCache rc)
-        throws FilingException
-    {
-        initEntry(parent.factory, idStr, false, rc, parent);
-        initCabinet();
-    }
+public class RfsCabinet
+  extends RfsEntry
+  implements
+    org.okip.service.filing.api.Cabinet,
+    org.okip.service.filing.api.Refreshable {
 
-    private void initCabinet()
-    {
-        if (factory != null) {
-            // factory will be null remotely
-            caching = factory.getMaxCacheAge() > 0;
-            ignoreUnreadables = factory.getClassBoolean("RFS_IGNORE_UNREADABLE_FILES", true);
-        }
-    }
+  private transient java.util.Map entries;
+  private transient long lastRefresh = 0;
 
-    
+  /* There was a policy we had in effect in the original LFS
+   * implementation, where CabinetEntry's contained within this
+   * cabinet that were not readable were treated as if they didn't
+   * exist, and the user would never see these entries.  Not sure if
+   * we want to continue it, but it's made optional here.  */
+  private boolean ignoreUnreadables = true;
+  private boolean caching = false;
+
+  protected RfsCabinet(RfsFactory factory, String idStr)
+    throws FilingException {
+    initEntry(factory, idStr, false, null, null);
+    initCabinet();
+  }
+
+  protected RfsCabinet(RfsFactory factory, String idStr, boolean create)
+    throws FilingException {
+    initEntry(factory, idStr, create, null, null);
+    initCabinet();
+  }
+
+  protected RfsCabinet(RfsCabinet parent, String idStr, RfsEntryCache rc)
+    throws FilingException {
+    initEntry(parent.factory, idStr, false, rc, parent);
+    initCabinet();
+  }
+
+  private void initCabinet() {
+    if (factory != null) {
+      // factory will be null remotely
+      caching = factory.getMaxCacheAge() > 0;
+      ignoreUnreadables =
+        factory.getClassBoolean("RFS_IGNORE_UNREADABLE_FILES", true);
+    }
+  }
+
   /**
    * Method getProperties
    *
@@ -128,25 +128,24 @@ public class RfsCabinet extends RfsEntry
    * @return java.util.Map of properties of this Cabinet and implementation
    *
    */
-    public java.util.Map getProperties() throws FilingException {
-        return RfsFactory.getStaticProperties();
-    }
+  public java.util.Map getProperties() throws FilingException {
+    return RfsFactory.getStaticProperties();
+  }
 
-    /**
-     * Create new anonymous ByteStore in this cabinet, to be deleted
-     * automatically on exit
-     *
-     * @return  The ByteStore created
-     *
-     * @throws FilingException - if an IO error occurs or
-     * if Factory Owner does not have permission to create a ByteStore.
-     */
-    public ByteStore createTempByteStore()
-        throws FilingException
-    {
-        throw new UnsupportedFilingOperationException("createTempByteStore not implemented");
-    }
-
+  /**
+   * Create new anonymous ByteStore in this cabinet, to be deleted
+   * automatically on exit
+   *
+   * @return  The ByteStore created
+   *
+   * @throws FilingException - if an IO error occurs or
+   * if Factory Owner does not have permission to create a ByteStore.
+   */
+  public ByteStore createTempByteStore() throws FilingException {
+    throw new UnsupportedFilingOperationException(
+      "createTempByteStore not implemented"
+    );
+  }
 
   /**
    * Create new ByteStore and add it to this Cabinet under the given
@@ -162,38 +161,34 @@ public class RfsCabinet extends RfsEntry
    * if an IO error occurs or
    * if Factory Owner does not have permission to create a ByteStore.
    */
-    public ByteStore createByteStore(String name)
-        throws FilingException
-    {
-        String newId = this.idStr + factory.getSeparatorChar() + name;
-        RfsByteStore bs = new RfsByteStore(factory, newId, true);
-        addEntry(bs);
-        return bs;
-    }
-    
-    /**
-     * Create new Cabinet and add it to this Cabinet under the given
-     * name.
-     *
-     * The name must not include this Cabinet's separationCharacter.
-     *
-     * @param   name  The name to be used
-     *
-     * @return  The Cabinet created
-     *
-     * @throws FilingException - if name is already in use by a CabinetEntry or
-     * if name includes the separationCharacter or
-     * if an IO error occurs pr
-     * if Factory Owner does not have permission to create a Cabinet.
-     */
-    public Cabinet createCabinet(String name)
-        throws FilingException
-    {
-        String newId = this.idStr + factory.getSeparatorChar() + name;
-        RfsCabinet cab = new RfsCabinet(factory, newId, true);
-        addEntry(cab);
-        return cab;
-    }
+  public ByteStore createByteStore(String name) throws FilingException {
+    String newId = this.idStr + factory.getSeparatorChar() + name;
+    RfsByteStore bs = new RfsByteStore(factory, newId, true);
+    addEntry(bs);
+    return bs;
+  }
+
+  /**
+   * Create new Cabinet and add it to this Cabinet under the given
+   * name.
+   *
+   * The name must not include this Cabinet's separationCharacter.
+   *
+   * @param   name  The name to be used
+   *
+   * @return  The Cabinet created
+   *
+   * @throws FilingException - if name is already in use by a CabinetEntry or
+   * if name includes the separationCharacter or
+   * if an IO error occurs pr
+   * if Factory Owner does not have permission to create a Cabinet.
+   */
+  public Cabinet createCabinet(String name) throws FilingException {
+    String newId = this.idStr + factory.getSeparatorChar() + name;
+    RfsCabinet cab = new RfsCabinet(factory, newId, true);
+    addEntry(cab);
+    return cab;
+  }
 
   /**
    * Method createByteStore
@@ -210,11 +205,10 @@ public class RfsCabinet extends RfsEntry
    * if an IO error occurs or
    * if Factory Owner does not have permission to create a ByteStore
    */
-    public ByteStore createByteStore(ByteStore oldByteStore)
-        throws FilingException
-    {
-        return createByteStore(oldByteStore.getName(), oldByteStore);
-    }
+  public ByteStore createByteStore(ByteStore oldByteStore)
+    throws FilingException {
+    return createByteStore(oldByteStore.getName(), oldByteStore);
+  }
 
   /**
    * Create new named ByteStore in this Cabinet by copying contents,
@@ -230,50 +224,46 @@ public class RfsCabinet extends RfsEntry
    * @throws FilingException - if an IO error occurs or
    * if Factory Owner does not have permission to create a ByteStore.
    */
-    public ByteStore createByteStore(String name, ByteStore oldByteStore)
-        throws FilingException
-    {
-        ByteStore newByteStore = this.createByteStore(name);
-        newByteStore.setMimeType(oldByteStore.getMimeType());
-        try {
-            newByteStore.setOwner(oldByteStore.getOwner());
-        } catch (UnsupportedFilingOperationException e) {}
-        copyByteStore(oldByteStore, newByteStore);
-        return newByteStore;
-    }
+  public ByteStore createByteStore(String name, ByteStore oldByteStore)
+    throws FilingException {
+    ByteStore newByteStore = this.createByteStore(name);
+    newByteStore.setMimeType(oldByteStore.getMimeType());
+    try {
+      newByteStore.setOwner(oldByteStore.getOwner());
+    } catch (UnsupportedFilingOperationException e) {}
+    copyByteStore(oldByteStore, newByteStore);
+    return newByteStore;
+  }
 
-    public static void copyByteStore(ByteStore src, ByteStore dest)
-        throws FilingException
-    {
-        RfsInputStream input = (RfsInputStream) src.getOkiInputStream();
-        RfsOutputStream output = (RfsOutputStream) dest.getOkiOutputStream();
-        
-        try {
-            DataBlock dataBlock;
-            while ((dataBlock = input.readMax()) != null)
-                output.writeThrough(dataBlock);
-        } finally {
-            output.close();
-            input.close();
-        }
+  public static void copyByteStore(ByteStore src, ByteStore dest)
+    throws FilingException {
+    RfsInputStream input = (RfsInputStream) src.getOkiInputStream();
+    RfsOutputStream output = (RfsOutputStream) dest.getOkiOutputStream();
+
+    try {
+      DataBlock dataBlock;
+      while ((dataBlock = input.readMax()) != null) output.writeThrough(
+        dataBlock
+      );
+    } finally {
+      output.close();
+      input.close();
     }
-    
-    public static void copyByteStoreOld(ByteStore src, ByteStore dest)
-        throws FilingException
-    {
-        OkiInputStream input = src.getOkiInputStream();
-        OkiOutputStream output = dest.getOkiOutputStream();
-        try {
-            int len = 0;
-            byte[] bytearr = new byte[8192];
-            while ((len = input.read(bytearr)) != -1)
-                output.write(bytearr, 0, len);
-        } finally {
-            output.close();
-            input.close();
-        }
+  }
+
+  public static void copyByteStoreOld(ByteStore src, ByteStore dest)
+    throws FilingException {
+    OkiInputStream input = src.getOkiInputStream();
+    OkiOutputStream output = dest.getOkiOutputStream();
+    try {
+      int len = 0;
+      byte[] bytearr = new byte[8192];
+      while ((len = input.read(bytearr)) != -1) output.write(bytearr, 0, len);
+    } finally {
+      output.close();
+      input.close();
     }
-    
+  }
 
   /**
    * Add CabinetEntry, must be from same CabinetFactory.
@@ -288,414 +278,393 @@ public class RfsCabinet extends RfsEntry
    * if Factory Owner does not have permission to add a Cabinet or
    * if the add/remove semantics are not supportable in the implmentation.
    */
-    public void add(CabinetEntry entry, String name)
-        throws FilingException
-    {
-        throw new UnsupportedFilingOperationException("add/remove cabinetEntry not implemented");
+  public void add(CabinetEntry entry, String name) throws FilingException {
+    throw new UnsupportedFilingOperationException(
+      "add/remove cabinetEntry not implemented"
+    );
+  }
+
+  /**
+   * Remove CabinetEntry.  Does not destroy CabinetEntry.
+   *
+   * @param entry
+   *
+   * @throws FilingException - if an IO error occurs or
+   * if Factory Owner does not have permission to remove a Cabinet or
+   * if the add/remove semantics are not supportable in the implmentation.
+   */
+  public void remove(CabinetEntry entry) throws FilingException {
+    throw new UnsupportedFilingOperationException(
+      "add/remove cabinetEntry not implemented"
+    );
+  }
+
+  /**
+   * Get CabinetEntry from Cabinet by ID.
+   *
+   * @param id
+   * @return CabinetEntry which has given ID.
+   * @throws FilingException - if Factory Owner
+   * does not have read permission on the CabinetEntry with this ID or
+   * if an IO error occurs accessing the CabinetEntry with this ID or
+   * if there is no CabinetEntry with this ID in this Cabinet.
+   */
+  public CabinetEntry getCabinetEntry(ID id) throws FilingException {
+    return getCabinetEntry(getBaseName(id.toString()));
+  }
+
+  /**
+   * Get CabinetEntry by name.  Not all CabinetEntrys have names,
+   * but if it has a name, it is unique within a Cabinet.
+   *
+   * @param name
+   *
+   * @return CabinetEntry which has given name
+   *
+   * @throws FilingException - if Factory Owner
+   * does not have read permission on the CabinetEntry with this name or
+   * if an IO error occurs accessing the CabinetEntry with this name or
+   * if there is no CabinetEntry with this name in this Cabinet.
+   */
+  public CabinetEntry getCabinetEntry(String name) throws FilingException {
+    if (this.entries != null) {
+      // check to see if we've already got this entry in our cache
+      CabinetEntry ce = (CabinetEntry) this.entries.get(name);
+      if (ce != null) return ce;
+    }
+    /*
+     * This is a bit different than other methods that ultimately
+     * create a cabinet entry in that we don't know type TYPE
+     * (bytestore/cabient) until we go over the wire and find
+     * out -- so that has to happen before we can do anything.
+     * So this is the only place we create RfsEntry's on
+     * the remote host and return them back here, where they
+     * must be localized to this runtime before we can use them.
+     */
+    if (hasClient) {
+      RfsEntry ce = (RfsEntry) factory.invoke(
+        this,
+        "getCabinetEntry",
+        String.class,
+        name
+      );
+      runtimeLocalize(ce);
+      addEntry(ce);
+      return ce;
+    } else {
+      return getCabinetEntryLocally(this.idStr + java.io.File.separator + name);
+    }
+  }
+
+  /*
+   * Make sure a remotely constructed cabinet entry is based on our cabinetFactory,
+   * so that in particular it will pick up our client if we have one.
+   */
+  private void runtimeLocalize(CabinetEntry ce) throws FilingException {
+    RfsEntry rfsEntry = (RfsEntry) ce;
+    rfsEntry.factory = this.factory;
+    rfsEntry.parent = this;
+    if (factory != null && factory.getClient() != null) this.hasClient = true;
+    if (caching) {
+      if (rfsEntry.cache != null) {
+        rfsEntry.cache.setLastRefresh(System.currentTimeMillis());
+        rfsEntry.cache.setEntry(rfsEntry);
+      } else new Throwable("localized entry came over w/out cache")
+        .printStackTrace();
+    } else rfsEntry.cache = null;
+  }
+
+  private CabinetEntry getCabinetEntryLocally(String idStr)
+    throws FilingException {
+    getLocalFile();
+    java.io.File testFile = new java.io.File(idStr);
+    if (!testFile.exists()) throw new NotFoundException(
+      "CabinetEntry '" + idStr + "' not found"
+    );
+    RfsEntry entry;
+    if (testFile.isDirectory()) entry =
+      new RfsCabinet(factory, idStr); else if (testFile.isFile()) entry =
+      new RfsByteStore(factory, idStr); else throw new FilingException(
+      "CabinetEntry '" + idStr + "' is neither directory or regular file"
+    );
+    if (caching) entry.cache = new RfsEntryCache(testFile);
+    return entry;
+  }
+
+  /**
+   * Get an immutable Iterator over all CabinetEntries in this Cabinet.
+   *
+   * The iterator will throw an <code>UnsupportedOperationException</code>
+   * if remove() is called.
+   *
+   * @return java.util.Iterator
+   *
+   */
+  public java.util.Iterator entries() throws FilingException {
+    if (hasClient) return entriesRemotely(); else return entriesLocally();
+  }
+
+  public void refresh() throws FilingException {
+    if (hasClient) fetchRemoteEntries();
+  }
+
+  public java.util.Iterator entriesLocally() throws FilingException {
+    getLocalFile();
+
+    if (!this.canReadLocally()) throw new FilingPermissionDeniedException(
+      "cannot read contents of " + this.idStr
+    );
+
+    java.io.File[] list = this.file.listFiles();
+    if (list == null) return emptyIterator;
+
+    java.util.List entriesList = new java.util.ArrayList();
+    for (int i = 0; i < list.length; i++) {
+      if (ignoreUnreadables && !list[i].canRead()) continue;
+      String path;
+      try {
+        path = list[i].getCanonicalPath();
+      } catch (java.io.IOException e) {
+        path = list[i].getPath();
+      }
+      if (list[i].isDirectory()) entriesList.add(
+        new RfsCabinet(this, path, null)
+      ); else if (list[i].isFile()) entriesList.add(
+        new RfsByteStore(this, path, null)
+      );
+      //else
+      //System.err.println("Unknown type: " + list[i]);
+      // Ignore special files (pipes, sockets, devices, etc)
+    }
+    return entriesList.iterator();
+  }
+
+  /**
+   * A remote-only method.
+   */
+  public java.util.Iterator entriesRemotely() throws FilingException {
+    if (this.entries == null) fetchRemoteEntries(); else {
+      // If our list of entries is more than RFS_MAX_CACHE_AGE old,
+      // reload it.
+      long dataAge;
+      if (lastRefresh > 0) dataAge =
+        System.currentTimeMillis() - lastRefresh; else dataAge = -1;
+
+      if (
+        dataAge < 0 || dataAge > factory.getMaxCacheAge()
+      ) fetchRemoteEntries();
     }
 
-    /**
-     * Remove CabinetEntry.  Does not destroy CabinetEntry.
-     *
-     * @param entry
-     *
-     * @throws FilingException - if an IO error occurs or
-     * if Factory Owner does not have permission to remove a Cabinet or
-     * if the add/remove semantics are not supportable in the implmentation.
-     */
-    public void remove(CabinetEntry entry)
-        throws FilingException
-    {
-        throw new UnsupportedFilingOperationException("add/remove cabinetEntry not implemented");
-    }
+    if (this.entries == null) return emptyIterator; else {
+      /*
+       * Return an immutable iterator over our
+       * interal list of entries.
+       */
+      return new java.util.Iterator() {
+        java.util.Iterator i = entries.values().iterator();
 
-
-    /**
-     * Get CabinetEntry from Cabinet by ID.
-     *
-     * @param id
-     * @return CabinetEntry which has given ID.
-     * @throws FilingException - if Factory Owner
-     * does not have read permission on the CabinetEntry with this ID or
-     * if an IO error occurs accessing the CabinetEntry with this ID or
-     * if there is no CabinetEntry with this ID in this Cabinet.
-     */
-    public CabinetEntry getCabinetEntry(ID id)
-        throws FilingException
-    {
-        return getCabinetEntry(getBaseName(id.toString()));
-    }
-
-
-    /**
-     * Get CabinetEntry by name.  Not all CabinetEntrys have names,
-     * but if it has a name, it is unique within a Cabinet.
-     *
-     * @param name
-     *
-     * @return CabinetEntry which has given name
-     *
-     * @throws FilingException - if Factory Owner
-     * does not have read permission on the CabinetEntry with this name or
-     * if an IO error occurs accessing the CabinetEntry with this name or
-     * if there is no CabinetEntry with this name in this Cabinet.
-     */
-    public CabinetEntry getCabinetEntry(String name)
-        throws FilingException
-    {
-        if (this.entries != null) {
-            // check to see if we've already got this entry in our cache
-            CabinetEntry ce = (CabinetEntry) this.entries.get(name);
-            if (ce != null)
-                return ce;
+        public boolean hasNext() {
+          return i.hasNext();
         }
+
+        public Object next() {
+          return i.next();
+        }
+
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+      };
+    }
+  }
+
+  protected void notifyDelete(RfsEntry entry) throws FilingException {
+    if (entries != null) entries.remove(entry.getName());
+  }
+
+  protected void notifyRename(RfsEntry entry, String oldName)
+    throws FilingException {
+    if (entries != null) {
+      /*
+       * Our purpose here is to find an entry in our hash table
+       * that's been renamed, take it out and re-hash it back
+       * in under it's new name.
+       */
+      RfsEntry oldEntry = (RfsEntry) entries.remove(oldName);
+      String newName = entry.getName();
+      if (oldEntry != null) {
+        if (oldEntry != entry) throw new FilingException(
+          "notifyRename inconsistency: " + oldEntry + " != " + entry
+        );
         /*
-         * This is a bit different than other methods that ultimately
-         * create a cabinet entry in that we don't know type TYPE
-         * (bytestore/cabient) until we go over the wire and find
-         * out -- so that has to happen before we can do anything.
-         * So this is the only place we create RfsEntry's on
-         * the remote host and return them back here, where they
-         * must be localized to this runtime before we can use them.
+         * Now put it back but under it's newly changed name,
+         * unless there's something under that name already.
          */
-        if (hasClient) {
-            RfsEntry ce = (RfsEntry) factory.invoke(this, "getCabinetEntry", String.class, name);
-            runtimeLocalize(ce);
-            addEntry(ce);
-            return ce;
+        RfsEntry existingEntry = (RfsEntry) entries.get(entry.getName());
+        if (existingEntry != null) {
+          /*
+           * If there happned to be an entry that already had this
+           * name, we're already done, except that if there's a cache,
+           * update the existing entry with the new cache data.
+           */
+          if (existingEntry.cache != null) {
+            existingEntry.cache.copy(entry.cache);
+            entry.cache = existingEntry.cache;
+          }
         } else {
-            return getCabinetEntryLocally(this.idStr + java.io.File.separator + name);
+          entries.put(entry.getName(), entry);
         }
+      }
     }
-    
-    /*
-     * Make sure a remotely constructed cabinet entry is based on our cabinetFactory,
-     * so that in particular it will pick up our client if we have one.
-     */
-    private void runtimeLocalize(CabinetEntry ce)
-        throws FilingException
-    {
-        RfsEntry rfsEntry = (RfsEntry) ce;
-        rfsEntry.factory = this.factory;
-        rfsEntry.parent = this;
-        if (factory != null && factory.getClient() != null)
-            this.hasClient = true;
-        if (caching) {
-            if (rfsEntry.cache != null) {
-                rfsEntry.cache.setLastRefresh(System.currentTimeMillis());
-                rfsEntry.cache.setEntry(rfsEntry);
-            } else
-                new Throwable("localized entry came over w/out cache").printStackTrace();
-        } else
-            rfsEntry.cache = null;
+  }
+
+  private void addEntry(CabinetEntry ce) throws FilingException {
+    RfsEntry entry = (RfsEntry) ce;
+    if (entries != null) {
+      RfsEntry existingEntry = (RfsEntry) entries.get(entry.getName());
+      if (existingEntry != null && existingEntry.cache != null) {
+        //System.err.println("making orphan of: " + existingEntry);
+        existingEntry.cache.markStale();
+        existingEntry.cache = entry.cache;
+      }
+      entries.put(entry.getName(), entry);
     }
-    
+  }
 
+  /*
+   * A remote-only method.
+   */
+  private void fetchRemoteEntries() throws FilingException {
+    if (!hasClient) throw new FilingException(
+      "getRemoteEntries requires a remote client"
+    );
 
-    private CabinetEntry getCabinetEntryLocally(String idStr)
-        throws FilingException
-    {
-        getLocalFile();
-        java.io.File testFile = new java.io.File(idStr);
-        if (!testFile.exists())
-            throw new NotFoundException("CabinetEntry '" + idStr  + "' not found");
-        RfsEntry entry;
-        if (testFile.isDirectory())
-            entry = new RfsCabinet(factory, idStr);
-        else if (testFile.isFile())
-            entry = new RfsByteStore(factory, idStr);
-        else
-            throw new FilingException("CabinetEntry '" + idStr + "' is neither directory or regular file");
-        if (caching)
-            entry.cache = new RfsEntryCache(testFile);
-        return entry;
+    java.util.List entryData;
+    try {
+      /*
+       * Remotely grab a block of data with info on all of the CabinetEntries
+       * in this cabinet at once.
+       */
+      entryData = ((java.util.List) factory.invoke(this, "getAllEntryData"));
+    } catch (FilingPermissionDeniedException e) {
+      this.entries = null;
+      return;
     }
+    if (entryData == null) throw new FilingException(
+      "No remote response fetching cabinet " + getPath()
+    );
 
-    /**
-     * Get an immutable Iterator over all CabinetEntries in this Cabinet.
-     *
-     * The iterator will throw an <code>UnsupportedOperationException</code>
-     * if remove() is called.
-     *
-     * @return java.util.Iterator
-     *
-     */
-    public java.util.Iterator entries()
-        throws FilingException
-    {
-        if (hasClient)
-            return entriesRemotely();
-        else
-            return entriesLocally();
-    }
-
-    public void refresh()
-        throws FilingException
-    {
-        if (hasClient)
-            fetchRemoteEntries();
-    }
-
-    public java.util.Iterator entriesLocally()
-        throws FilingException
-    {
-        getLocalFile();
-
-        if (!this.canReadLocally())
-            throw new FilingPermissionDeniedException("cannot read contents of " + this.idStr);
-
-        java.io.File[] list = this.file.listFiles();
-        if (list == null)
-            return emptyIterator;
-        
-        java.util.List entriesList = new java.util.ArrayList();
-        for (int i = 0; i < list.length; i++) {
-            if (ignoreUnreadables && !list[i].canRead())
-                continue;
-            String path;
-            try {
-                path = list[i].getCanonicalPath();
-            } catch (java.io.IOException e) {
-                path = list[i].getPath();
-            }
-            if (list[i].isDirectory())
-                entriesList.add(new RfsCabinet(this, path, null));
-            else if (list[i].isFile())
-                entriesList.add(new RfsByteStore(this, path, null));
-            //else
-                //System.err.println("Unknown type: " + list[i]);
-                // Ignore special files (pipes, sockets, devices, etc)
-        }
-        return entriesList.iterator();
-    }
-
-    /**
-     * A remote-only method.
-     */
-    public java.util.Iterator entriesRemotely()
-        throws FilingException
-    {
-        if (this.entries == null)
-            fetchRemoteEntries();
-        else {
-            // If our list of entries is more than RFS_MAX_CACHE_AGE old,
-            // reload it.
-            long dataAge;
-            if (lastRefresh > 0)
-                dataAge = System.currentTimeMillis() - lastRefresh;
-            else
-                dataAge = -1;
-            
-            if (dataAge < 0 || dataAge > factory.getMaxCacheAge())
-                fetchRemoteEntries();
-        }
-
-        if (this.entries == null)
-            return emptyIterator;
-        else {
-            /*
-             * Return an immutable iterator over our
-             * interal list of entries.
-             */
-	    return new java.util.Iterator() {
-                java.util.Iterator i = entries.values().iterator();
-
-                public boolean hasNext() {return i.hasNext();}
-		public Object next() 	 {return i.next();}
-		public void remove() {
-		    throw new UnsupportedOperationException();
-                }
-	    };
-        }
-    }
-
-    protected void notifyDelete(RfsEntry entry)
-        throws FilingException
-    {
-        if (entries != null)
-            entries.remove(entry.getName());
-    }
-    
-    protected void notifyRename(RfsEntry entry, String oldName)
-        throws FilingException
-    {
-        if (entries != null) {
-            /*
-             * Our purpose here is to find an entry in our hash table
-             * that's been renamed, take it out and re-hash it back
-             * in under it's new name.
-             */
-            RfsEntry oldEntry = (RfsEntry) entries.remove(oldName);
-            String newName = entry.getName();
-            if (oldEntry != null) {
-                if (oldEntry != entry)
-                    throw new FilingException("notifyRename inconsistency: " + oldEntry + " != " + entry);
-                /*
-                 * Now put it back but under it's newly changed name,
-                 * unless there's something under that name already.
-                 */
-                RfsEntry existingEntry = (RfsEntry) entries.get(entry.getName());                
-                if (existingEntry != null) {
-                    /*
-                     * If there happned to be an entry that already had this
-                     * name, we're already done, except that if there's a cache,
-                     * update the existing entry with the new cache data.
-                     */
-                    if (existingEntry.cache != null) {
-                        existingEntry.cache.copy(entry.cache);
-                        entry.cache = existingEntry.cache;
-                    }
-                } else {
-                    entries.put(entry.getName(), entry);
-                }
-            }
-        }
-    }
-
-    private void addEntry(CabinetEntry ce)
-        throws FilingException
-    {
-        RfsEntry entry = (RfsEntry) ce;
-        if (entries != null) {
-            RfsEntry existingEntry = (RfsEntry) entries.get(entry.getName());
-            if (existingEntry != null && existingEntry.cache != null) {
-                //System.err.println("making orphan of: " + existingEntry);
-                existingEntry.cache.markStale();
-                existingEntry.cache = entry.cache;
-            }
-            entries.put(entry.getName(), entry);
-        }
-    }
-    
-    /*
-     * A remote-only method.
-     */
-    private void fetchRemoteEntries()
-        throws FilingException
-    {
-        if (!hasClient)
-            throw new FilingException("getRemoteEntries requires a remote client");
-        
-        java.util.List entryData;
-        try {
-            /*
-             * Remotely grab a block of data with info on all of the CabinetEntries
-             * in this cabinet at once.
-             */
-            entryData = ((java.util.List) factory.invoke(this, "getAllEntryData"));
-            
-        } catch (FilingPermissionDeniedException e) {
-            this.entries = null;
-            return;
-        }
-        if (entryData == null)
-            throw new FilingException("No remote response fetching cabinet " + getPath());
-
-        long now = System.currentTimeMillis();
-
-        /*
-         * The first two elements in the list are a meta-data
-         * update for this cabinet itself.  The children
-         * follow.
-         */
-
-        if (this.cache != null)
-            this.cache.copyUpdate((RfsEntryCache) entryData.get(1));
-        if (this.id == null)
-            this.id = (RfsID) entryData.get(0);
-            
-        /*
-         * Now update our local cache with the new information
-         * (for entries we haven't seen before, create a new cache entry)
-         */
-
-        java.util.HashMap curEntries = (java.util.HashMap) this.entries;//.clone();
-        if (curEntries == null)
-            this.entries = new java.util.HashMap();
-        else
-            this.entries = new java.util.HashMap((int)(curEntries.size() * 1.4 + 0.5), 0.75f);
-        
-        /*
-         * Now iterate through the block of returned meta-data
-         * (a list of RfsEntryCache's for the entire directory)
-         * and update anything we already have in cache and
-         * create new cached cabient entries for anything we don't
-         * have yet.
-         */
-        String basePath = this.idStr + factory.getSeparatorChar();
-        java.util.Iterator iter = entryData.iterator();
-        iter.next(); // skip over first entry which is the ID
-        iter.next(); // skip over second entry which an entry cache for this cabinet
-        while (iter.hasNext()) {
-            RfsEntryCache rfsData = (RfsEntryCache) iter.next();
-            RfsEntry existingEntry = null;
-            if (curEntries != null)
-                existingEntry = (RfsEntry) curEntries.remove(rfsData.name);
-            if (existingEntry != null) {
-                // update our existing entry so anyone out there with a reference
-                // to it get's to make use of the updated information.
-                this.entries.put(rfsData.name, existingEntry);
-                if (existingEntry.cache != null) {
-                    existingEntry.cache.copy(rfsData);
-                    existingEntry.cache.setLastRefresh(now);
-                }
-            } else {
-                if (ignoreUnreadables && !rfsData.isReadableSet())
-                    continue;
-                // construct new entry
-                rfsData.setLastRefresh(now);
-                String path = basePath + rfsData.name;
-                if (rfsData.isByteStore())
-                    this.entries.put(rfsData.name, new RfsByteStore(this, path, rfsData));
-                else if (rfsData.isCabinet())
-                    this.entries.put(rfsData.name, new RfsCabinet(this, path, rfsData));
-                //else
-                //  System.err.println("Unknown entry type: " + rfsData);
-                // Ignore special files (pipes, sockets, devices, etc)
-            }
-        }
-        if (curEntries != null) {
-            // any remaining entries are deleted files: render them stale
-            iter = curEntries.values().iterator();
-            while (iter.hasNext()) {
-                RfsEntry rfsEntry = (RfsEntry) iter.next();
-                if (rfsEntry.cache != null)
-                    rfsEntry.cache.markStale(now);
-            }
-        }
-        this.lastRefresh = System.currentTimeMillis();
-    }
+    long now = System.currentTimeMillis();
 
     /*
-     * Return a list of all the elements in the cabinet.
-     * The first element is an update of the cabinet itself.
+     * The first two elements in the list are a meta-data
+     * update for this cabinet itself.  The children
+     * follow.
      */
-    public java.util.List getAllEntryData()
-        throws FilingException
-    {
-        getLocalFile();
-        if (!this.file.canRead())
-            throw new FilingPermissionDeniedException("cannot read contents of " + this.idStr);
 
-        java.io.File[] list = this.file.listFiles();
-        int size = 2;
-        if (list != null)
-            size += list.length;
-        java.util.List entriesList = new java.util.ArrayList(size);
-        entriesList.add(getID());
-        entriesList.add(new RfsEntryCache(getLocalFile()));
-        for (int i = 0; i < list.length; i++)
-            entriesList.add(new RfsEntryCache(list[i]));
-        return entriesList;
+    if (this.cache != null) this.cache.copyUpdate(
+        (RfsEntryCache) entryData.get(1)
+      );
+    if (this.id == null) this.id = (RfsID) entryData.get(0);
+
+    /*
+     * Now update our local cache with the new information
+     * (for entries we haven't seen before, create a new cache entry)
+     */
+
+    java.util.HashMap curEntries = (java.util.HashMap) this.entries; //.clone();
+    if (curEntries == null) this.entries =
+      new java.util.HashMap(); else this.entries =
+      new java.util.HashMap((int) (curEntries.size() * 1.4 + 0.5), 0.75f);
+
+    /*
+     * Now iterate through the block of returned meta-data
+     * (a list of RfsEntryCache's for the entire directory)
+     * and update anything we already have in cache and
+     * create new cached cabient entries for anything we don't
+     * have yet.
+     */
+    String basePath = this.idStr + factory.getSeparatorChar();
+    java.util.Iterator iter = entryData.iterator();
+    iter.next(); // skip over first entry which is the ID
+    iter.next(); // skip over second entry which an entry cache for this cabinet
+    while (iter.hasNext()) {
+      RfsEntryCache rfsData = (RfsEntryCache) iter.next();
+      RfsEntry existingEntry = null;
+      if (curEntries != null) existingEntry =
+        (RfsEntry) curEntries.remove(rfsData.name);
+      if (existingEntry != null) {
+        // update our existing entry so anyone out there with a reference
+        // to it get's to make use of the updated information.
+        this.entries.put(rfsData.name, existingEntry);
+        if (existingEntry.cache != null) {
+          existingEntry.cache.copy(rfsData);
+          existingEntry.cache.setLastRefresh(now);
+        }
+      } else {
+        if (ignoreUnreadables && !rfsData.isReadableSet()) continue;
+        // construct new entry
+        rfsData.setLastRefresh(now);
+        String path = basePath + rfsData.name;
+        if (rfsData.isByteStore()) this.entries.put(
+            rfsData.name,
+            new RfsByteStore(this, path, rfsData)
+          ); else if (rfsData.isCabinet()) this.entries.put(
+            rfsData.name,
+            new RfsCabinet(this, path, rfsData)
+          );
+        //else
+        //  System.err.println("Unknown entry type: " + rfsData);
+        // Ignore special files (pipes, sockets, devices, etc)
+      }
     }
-    
-    private static class EmptyIterator implements java.util.Iterator
-    {
-        public final boolean hasNext() { return false; }
-        public final Object next() { return null; }
-        public final void remove() {}
+    if (curEntries != null) {
+      // any remaining entries are deleted files: render them stale
+      iter = curEntries.values().iterator();
+      while (iter.hasNext()) {
+        RfsEntry rfsEntry = (RfsEntry) iter.next();
+        if (rfsEntry.cache != null) rfsEntry.cache.markStale(now);
+      }
     }
-    private static final EmptyIterator emptyIterator = new EmptyIterator();
+    this.lastRefresh = System.currentTimeMillis();
+  }
+
+  /*
+   * Return a list of all the elements in the cabinet.
+   * The first element is an update of the cabinet itself.
+   */
+  public java.util.List getAllEntryData() throws FilingException {
+    getLocalFile();
+    if (!this.file.canRead()) throw new FilingPermissionDeniedException(
+      "cannot read contents of " + this.idStr
+    );
+
+    java.io.File[] list = this.file.listFiles();
+    int size = 2;
+    if (list != null) size += list.length;
+    java.util.List entriesList = new java.util.ArrayList(size);
+    entriesList.add(getID());
+    entriesList.add(new RfsEntryCache(getLocalFile()));
+    for (int i = 0; i < list.length; i++) entriesList.add(
+      new RfsEntryCache(list[i])
+    );
+    return entriesList;
+  }
+
+  private static class EmptyIterator implements java.util.Iterator {
+
+    public final boolean hasNext() {
+      return false;
+    }
+
+    public final Object next() {
+      return null;
+    }
+
+    public final void remove() {}
+  }
+
+  private static final EmptyIterator emptyIterator = new EmptyIterator();
 
   /**
    * Return the root Cabinet of this cabinet.
@@ -706,17 +675,15 @@ public class RfsCabinet extends RfsEntry
    * does not have read permission on the root Cabinet or
    * if an IO error occurs.
    */
-    public Cabinet getRootCabinet()
-        throws FilingException
-    {
-        try {
-            return new RfsCabinet(factory, ""+factory.getSeparatorChar() );
-        } catch (FilingException e) {
-            throw e;
-        } catch (Exception e) {
-            return null;
-        }
+  public Cabinet getRootCabinet() throws FilingException {
+    try {
+      return new RfsCabinet(factory, "" + factory.getSeparatorChar());
+    } catch (FilingException e) {
+      throw e;
+    } catch (Exception e) {
+      return null;
     }
+  }
 
   /**
    * Return true if this Cabinet is the root Cabinet.
@@ -725,24 +692,19 @@ public class RfsCabinet extends RfsEntry
    * @return true if and only if this Cabinet is the root Cabinet.
    *
    */
-    public boolean isRootCabinet()
-        throws FilingException
-    {
-        if (hasClient)
-            return ((Boolean) factory.invoke(this, "isRootCabinet")).booleanValue();
-        else
-            return isRootCabinetLocally();
-    }
+  public boolean isRootCabinet() throws FilingException {
+    if (hasClient) return (
+      (Boolean) factory.invoke(this, "isRootCabinet")
+    ).booleanValue(); else return isRootCabinetLocally();
+  }
 
-    private boolean isRootCabinetLocally()
-        throws FilingException
-    {
-        try {
-            return getLocalFile().getParentFile() == null;
-        } catch (Exception e) {
-            return false;
-        }
+  private boolean isRootCabinetLocally() throws FilingException {
+    try {
+      return getLocalFile().getParentFile() == null;
+    } catch (Exception e) {
+      return false;
     }
+  }
 
   /**
    * Set quota for Agent in this Cabinet.
@@ -755,9 +717,10 @@ public class RfsCabinet extends RfsEntry
    * if an IO error occurs or
    * if quotas are not implemented.
    */
-  public void setQuota(org.okip.service.shared.api.Agent agent,
-                       long quotaBytes)
-  throws FilingException {
+  public void setQuota(
+    org.okip.service.shared.api.Agent agent,
+    long quotaBytes
+  ) throws FilingException {
     throw new UnsupportedFilingOperationException("Quotas not implemented");
   }
 
@@ -773,7 +736,7 @@ public class RfsCabinet extends RfsEntry
    * if quotas are not implemented.
    */
   public long getQuota(org.okip.service.shared.api.Agent agent)
-  throws FilingException {
+    throws FilingException {
     throw new UnsupportedFilingOperationException("Quotas not implemented");
   }
 
@@ -790,7 +753,7 @@ public class RfsCabinet extends RfsEntry
    * if quotas are not implemented.
    */
   public long getQuotaUsed(org.okip.service.shared.api.Agent agent)
-  throws FilingException {
+    throws FilingException {
     throw new UnsupportedFilingOperationException("Quotas not implemented");
   }
 
@@ -803,8 +766,7 @@ public class RfsCabinet extends RfsEntry
    * @throws FilingException - if an IO error occurs or
    * if space restrictions are not implemented.
    */
-  public long getAvailableBytes()
-  throws FilingException {
+  public long getAvailableBytes() throws FilingException {
     throw new UnsupportedFilingOperationException("Quotas not implemented");
   }
 
@@ -817,88 +779,81 @@ public class RfsCabinet extends RfsEntry
    * @throws FilingException - if an IO error occurs or
    * if space restrictions are not implemented.
    */
-  public long getUsedBytes()
-  throws FilingException {
-    throw new UnsupportedFilingOperationException("Space Restrictions not implemented");
+  public long getUsedBytes() throws FilingException {
+    throw new UnsupportedFilingOperationException(
+      "Space Restrictions not implemented"
+    );
   }
 
-    /**
-     * Tests this entry for equality with the given object.
-     * Returns <code>true</code> if and only if the argument is not
-     * <code>null</code> and is equal to this RfsCabinet.
-     *
-     * This implentation tests to see if the creating
-     * factories are the same object, and that getID().toString()
-     * for both entries is equivalent.
-     *
-     * @param object
-     *
-     * @return  <code>true</code> if and only if the objects are operationally equivalent
-     *          <code>false</code> otherwise, or if an error occurs
-     */
-    public boolean equals(Object object)
-    {
-        if (this == object)
-            return true;
-        try {
-            if (object instanceof RfsCabinet) {
-                RfsCabinet rc = (RfsCabinet) object;
-                return this.factory == rc.factory
-                    // todo: this should call getID().equals
-                    && this.getID().toString().equals(rc.getID().toString());
-                
-            } else
-                return false;
-        } catch (Throwable t) {
-            return false;
-        }
+  /**
+   * Tests this entry for equality with the given object.
+   * Returns <code>true</code> if and only if the argument is not
+   * <code>null</code> and is equal to this RfsCabinet.
+   *
+   * This implentation tests to see if the creating
+   * factories are the same object, and that getID().toString()
+   * for both entries is equivalent.
+   *
+   * @param object
+   *
+   * @return  <code>true</code> if and only if the objects are operationally equivalent
+   *          <code>false</code> otherwise, or if an error occurs
+   */
+  public boolean equals(Object object) {
+    if (this == object) return true;
+    try {
+      if (object instanceof RfsCabinet) {
+        RfsCabinet rc = (RfsCabinet) object;
+        return (
+          this.factory == rc.factory &&
+          // todo: this should call getID().equals
+          this.getID().toString().equals(rc.getID().toString())
+        );
+      } else return false;
+    } catch (Throwable t) {
+      return false;
     }
+  }
 
+  /**
+   * Compares this this Cabinet to another Cabinet.
+   *
+   * @param cabinet The <code>Cabinet</code> to be compared to this Cabinet
+   *
+   * @return 0 if they are equal, less than 0 or greater than 0 if
+   * they differ, depending on the implementation-dependent quality
+   * used for the comparison.
+   *
+   * @throws FilingException - if Factory Owner
+   * does not have read permission on the Cabinet being compared to or
+   * if an IO error occurs reading the or Cabinet being compared to
+   *
+   * @see java.lang.Comparable
+   */
+  public int compareTo(Cabinet cabinet) throws FilingException {
+    try {
+      return getID().toString().compareTo(cabinet.getID().toString());
+    } catch (Throwable e) {}
+    return -1000;
+  }
 
-    /**
-     * Compares this this Cabinet to another Cabinet.
-     *
-     * @param cabinet The <code>Cabinet</code> to be compared to this Cabinet
-     *
-     * @return 0 if they are equal, less than 0 or greater than 0 if
-     * they differ, depending on the implementation-dependent quality
-     * used for the comparison.
-     *
-     * @throws FilingException - if Factory Owner
-     * does not have read permission on the Cabinet being compared to or
-     * if an IO error occurs reading the or Cabinet being compared to
-     *
-     * @see java.lang.Comparable
-     */
-    public int compareTo(Cabinet cabinet)
-        throws FilingException
-    {
-        try {
-            return getID().toString().compareTo(cabinet.getID().toString());
-        } catch (Throwable e) {}
-        return -1000;
-    }
+  public String toString() {
+    return "RfsCabinet[" + super.toString() + "]";
+  }
 
-    public String toString()
-    {
-        return "RfsCabinet[" + super.toString() + "]";
-    }
+  /**
+   * Tests whether this is a Cabinet.
+   * @return boolean - always returns true
+   */
+  public final boolean isCabinet() {
+    return true;
+  }
 
-    /**
-     * Tests whether this is a Cabinet.
-     * @return boolean - always returns true
-     */
-    public final boolean isCabinet() {
-        return true;
-    }
-
-    /**
-     * Tests whether this is a ByteStore.
-     * @return boolean - always returns false
-     */
-    public final boolean isByteStore() {
-        return false;
-    }
-
-    
+  /**
+   * Tests whether this is a ByteStore.
+   * @return boolean - always returns false
+   */
+  public final boolean isByteStore() {
+    return false;
+  }
 }

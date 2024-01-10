@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -20,6 +20,7 @@
  */
 
 package tufts.oki.shared2;
+
 import java.util.*;
 
 /**
@@ -28,41 +29,42 @@ import java.util.*;
  * @author  Mark Norton
  */
 public class ObjectIterator implements org.osid.shared.ObjectIterator {
-    
-    private Vector object_vector = null;
-    private int offset = 0;
-    
-    /** 
-     *  Creates a new instance of ObjectIterator 
-     *
-     *  @author Mark Norton
-     */
-    public ObjectIterator(Vector vect) {
-        object_vector = vect;
-    }
-    
-    /**
-     *  See if there is another object left in the interation.
-     *
-     *  @author Mark Norton
-     *
-     *  @return true if there is at least one more object left in the list.
-     */
-    public boolean hasNextObject() {
-        return (offset < object_vector.size());
-    }
-    
-    /**
-     *  Get the next object in this iteration list.
-     *
-     *  @author Mark Norton
-     *
-     *  @return the next object in the list.
-     */
-    public java.io.Serializable nextObject() {
-        java.io.Serializable obj = (java.io.Serializable) object_vector.elementAt(offset);
-        offset++;
-        return obj;
-    }
-    
+
+  private Vector object_vector = null;
+  private int offset = 0;
+
+  /**
+   *  Creates a new instance of ObjectIterator
+   *
+   *  @author Mark Norton
+   */
+  public ObjectIterator(Vector vect) {
+    object_vector = vect;
+  }
+
+  /**
+   *  See if there is another object left in the interation.
+   *
+   *  @author Mark Norton
+   *
+   *  @return true if there is at least one more object left in the list.
+   */
+  public boolean hasNextObject() {
+    return (offset < object_vector.size());
+  }
+
+  /**
+   *  Get the next object in this iteration list.
+   *
+   *  @author Mark Norton
+   *
+   *  @return the next object in the list.
+   */
+  public java.io.Serializable nextObject() {
+    java.io.Serializable obj = (java.io.Serializable) object_vector.elementAt(
+      offset
+    );
+    offset++;
+    return obj;
+  }
 }

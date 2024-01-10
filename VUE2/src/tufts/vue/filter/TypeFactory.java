@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -21,20 +21,20 @@
 
 package tufts.vue.filter;
 
+import java.util.ArrayList;
 /**
  *
  * @author  akumar03
  */
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Vector;
+
 public class TypeFactory {
 
-    
-    /** Creates a new instance of TypeFactory */
-    public static Type getIntegerType() {
-        return new IntegerType();
-        /**
+  /** Creates a new instance of TypeFactory */
+  public static Type getIntegerType() {
+    return new IntegerType();
+    /**
         Operator eqOperator = new DefaultOperator("equal","=",true) {
             public boolean compare(Statement s1,Statement s2) {
                 Object value1  = s1.getValue();
@@ -93,13 +93,11 @@ public class TypeFactory {
         type.getOperators().add(ltOperator);
         return type;
          */
-    }
-    
-    
-    
-    public static Type getStringType() {
-        return new StringType();
-        /**
+  }
+
+  public static Type getStringType() {
+    return new StringType();
+    /**
        Operator eqOperator = new DefaultOperator("equals","equals",true) {
             public boolean compare(Statement s1,Statement s2) {
                 Object value1  = s1.getValue();
@@ -154,16 +152,18 @@ public class TypeFactory {
         type.getOperators().add(endOperator);
         return type;
          */
-    }
-    public static Type getBooleanType() {
-        return new BooleanType();
-    }
-    // currently returns only string and integer types;
-    public static List getAllTypes() {
-        List typeList = new Vector();
-        typeList.add(getIntegerType());
-        typeList.add(getStringType());
-        //typeList.add(getBooleanType());
-        return typeList;
-    }
+  }
+
+  public static Type getBooleanType() {
+    return new BooleanType();
+  }
+
+  // currently returns only string and integer types;
+  public static List getAllTypes() {
+    List typeList = new Vector();
+    typeList.add(getIntegerType());
+    typeList.add(getStringType());
+    //typeList.add(getBooleanType());
+    return typeList;
+  }
 }

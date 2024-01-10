@@ -11,7 +11,6 @@
    Syntax recommendation http://www.w3.org/TR/REC-CSS2/
 */
 
-
 /*
  * includes ColorBrewer Color schemes under the following license and conditions:
  *
@@ -39,39 +38,55 @@
  *
  **/
 
-
-node.w1 { 
-    background: #EDF8FB; shape: round-rect;
-    stroke-width: 10px; stroke-style:dotted;  
-    font-family: Arial; font-size: 10pt;  font-color: #000000; font-style: italic; font-weight: bold;
-    text-align: justify; text-indent: 5px;
-
+node.w1 {
+  background: #edf8fb;
+  shape: round-rect;
+  stroke-width: 10px;
+  stroke-style: dotted;
+  font-family: Arial;
+  font-size: 10pt;
+  font-color: #000000;
+  font-style: italic;
+  font-weight: bold;
+  text-align: justify;
+  text-indent: 5px;
 }
 node.w2 {
- background: #B2E2E2; font-size: normal;  
+  background: #b2e2e2;
+  font-size: normal;
 }
-node.w3 { 
-    background: #66C2A4; font-size: normal;  
+node.w3 {
+  background: #66c2a4;
+  font-size: normal;
 }
 node.w4 {
-
- background: #2CA25F; font-size: normal;  
+  background: #2ca25f;
+  font-size: normal;
 }
-node.w5 { 
-    background: #006D2C; font-size: normal; font-color: #FFFFFF  
+node.w5 {
+  background: #006d2c;
+  font-size: normal;
+  font-color: #ffffff;
 }
-link.w1 { 
-  background: #EDF8FB; weight: 1px; arrow-end: start; curved: true; 
+link.w1 {
+  background: #edf8fb;
+  weight: 1px;
+  arrow-end: start;
+  curved: true;
 }
 link.w2 {
- background: #B2E2E2; weight: 2pt;
+  background: #b2e2e2;
+  weight: 2pt;
 }
-link.w3 { 
-   background:#66C2A4; weight: 3pt;
+link.w3 {
+  background: #66c2a4;
+  weight: 3pt;
 }
 link.w4 {
-  background: #2CA25F; weight: 4pt;
+  background: #2ca25f;
+  weight: 4pt;
 }
-link.w5 { 
-    background: #006D2C; weight: 5pt;
+link.w5 {
+  background: #006d2c;
+  weight: 5pt;
 }

@@ -1,8 +1,7 @@
-
-node.fedoraObject{ 
-     	font-family:   Arial, Helvetica, sans-serif;
-	font-size: 16.0px; 
-	font-color: #FF0000; 
-	font-style: italic; 
-        font-weight: bold;
+node.fedoraObject {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-color: #ff0000;
+  font-style: italic;
+  font-weight: bold;
 }

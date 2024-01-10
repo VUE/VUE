@@ -1,5 +1,5 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -27,52 +27,50 @@ package tufts.vue.filter;
  */
 public class Key {
 
-    /** Creates a new instance of Key */
-    tufts.vue.filter.Type type;
-    Object sKey;
-    Object defaultValue;
-    public Key() {
-    }
+  /** Creates a new instance of Key */
+  tufts.vue.filter.Type type;
+  Object sKey;
+  Object defaultValue;
 
-    public Key(String key,tufts.vue.filter.Type type) {
-        this.type = type;
-        this.sKey = key;
-        if(type.getDisplayName().equals(Type.INTEGER_TYPE))
-            defaultValue = new Integer(0);
-        else if(type.getDisplayName().equals(Type.BOOLEAN_TYPE))
-            defaultValue = new Boolean(true);
-        else
-            defaultValue = new String("");
-    }
+  public Key() {}
 
-    public void setType(Type type) {
-        this.type= type;
-    }
+  public Key(String key, tufts.vue.filter.Type type) {
+    this.type = type;
+    this.sKey = key;
+    if (type.getDisplayName().equals(Type.INTEGER_TYPE)) defaultValue =
+      new Integer(0); else if (
+      type.getDisplayName().equals(Type.BOOLEAN_TYPE)
+    ) defaultValue = new Boolean(true); else defaultValue = new String("");
+  }
 
-    public Type getType() {
-        return this.type;
-    }
+  public void setType(Type type) {
+    this.type = type;
+  }
 
-     public void setKey(Object key) {
-        this.sKey = key;
-    }
+  public Type getType() {
+    return this.type;
+  }
 
-    public Object getKey() {
-        return this.sKey;
-    }
+  public void setKey(Object key) {
+    this.sKey = key;
+  }
 
-    public Object getDefaultValue() {
-        return defaultValue;
-    }
-    public void setDefaultValue(Object defaultValue) {
-        this.defaultValue = defaultValue;
-    }
+  public Object getKey() {
+    return this.sKey;
+  }
 
-    public String toString() {
-        return sKey.toString();
-    }
+  public Object getDefaultValue() {
+    return defaultValue;
+  }
 
-    /*
+  public void setDefaultValue(Object defaultValue) {
+    this.defaultValue = defaultValue;
+  }
+
+  public String toString() {
+    return sKey.toString();
+  }
+  /*
     public String toString() {
         return "Key[type="+type + " key=" + sKey + " default=" + defaultValue + "]";
     }

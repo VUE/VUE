@@ -1,0 +1,518 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Current File",
+      "request": "launch",
+      "mainClass": "${file}"
+    },
+    {
+      "type": "java",
+      "name": "CabCat",
+      "request": "launch",
+      "mainClass": "CabCat",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "CabList",
+      "request": "launch",
+      "mainClass": "CabList",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "CabSync",
+      "request": "launch",
+      "mainClass": "CabSync",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "CabSyncViewer",
+      "request": "launch",
+      "mainClass": "CabSyncViewer",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "CabViewer",
+      "request": "launch",
+      "mainClass": "CabViewer",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "FedoraRESTSearchAdapter",
+      "request": "launch",
+      "mainClass": "edu.tufts.osidimpl.repository.fedora_2_2.FedoraRESTSearchAdapter",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "WeightVisualizationSettingsPanel",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.compare.ui.WeightVisualizationSettingsPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "Export",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.component.Export",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "Import",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.component.Import",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "OpenCalaisAnalyzer",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.mbs.OpenCalaisAnalyzer",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "YahooAnalyzer",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.mbs.YahooAnalyzer",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "ShowAgainDialog",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.preferences.implementations.ShowAgainDialog",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "PreferencesDialog",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.preferences.ui.PreferencesDialog",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "RSSDataSource",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.rss.RSSDataSource",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "ConfigurationUI",
+      "request": "launch",
+      "mainClass": "edu.tufts.vue.ui.ConfigurationUI",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "MacTest",
+      "request": "launch",
+      "mainClass": "maclib.MacTest",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LWCInfoPanel",
+      "request": "launch",
+      "mainClass": "old.LWCInfoPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LWImage",
+      "request": "launch",
+      "mainClass": "old.LWImage",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "ObjectInspectorPanel",
+      "request": "launch",
+      "mainClass": "old.ObjectInspectorPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "Screen",
+      "request": "launch",
+      "mainClass": "old.Screen",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "VuePreferences",
+      "request": "launch",
+      "mainClass": "old.VuePreferences",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "ZoteroAction",
+      "request": "launch",
+      "mainClass": "old.zotero.zotero.ZoteroAction",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "ZoteroDandDTree",
+      "request": "launch",
+      "mainClass": "old.zotero.zotero.ZoteroDandDTree",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "Util",
+      "request": "launch",
+      "mainClass": "tufts.Util",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "AuthNTest",
+      "request": "launch",
+      "mainClass": "tufts.oki.authentication.AuthNTest",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "AuthenticationTest",
+      "request": "launch",
+      "mainClass": "tufts.oki.authentication.AuthenticationTest",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LocalFilingTest",
+      "request": "launch",
+      "mainClass": "tufts.oki.localFiling.LocalFilingTest",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LocalFilingTest2",
+      "request": "launch",
+      "mainClass": "tufts.oki.localFiling.LocalFilingTest2",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "RemoteFilingTest",
+      "request": "launch",
+      "mainClass": "tufts.oki.remoteFiling.RemoteFilingTest",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "RemotePathTest",
+      "request": "launch",
+      "mainClass": "tufts.oki.remoteFiling.RemotePathTest",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "ArrowToolPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.ArrowToolPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "AuthZTest",
+      "request": "launch",
+      "mainClass": "tufts.vue.AuthZTest",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "DEBUG",
+      "request": "launch",
+      "mainClass": "tufts.vue.DEBUG",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "FavoritesWindow",
+      "request": "launch",
+      "mainClass": "tufts.vue.FavoritesWindow",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "FillToolPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.FillToolPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "FontEditorPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.FontEditorPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "Images",
+      "request": "launch",
+      "mainClass": "tufts.vue.Images",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LWCToolPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.LWCToolPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LWComponent",
+      "request": "launch",
+      "mainClass": "tufts.vue.LWComponent",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LWImage(1)",
+      "request": "launch",
+      "mainClass": "tufts.vue.LWImage",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LinkToolPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.LinkToolPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "MapInspectorPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.MapInspectorPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "MapViewer",
+      "request": "launch",
+      "mainClass": "tufts.vue.MapViewer",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "NodeToolPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.NodeToolPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "NotePanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.NotePanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "PathwayPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.PathwayPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "PropertiesEditor",
+      "request": "launch",
+      "mainClass": "tufts.vue.PropertiesEditor",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "SingleInstance",
+      "request": "launch",
+      "mainClass": "tufts.vue.SingleInstance",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "SplashScreen",
+      "request": "launch",
+      "mainClass": "tufts.vue.SplashScreen",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "TextBox",
+      "request": "launch",
+      "mainClass": "tufts.vue.TextBox",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "URLResource",
+      "request": "launch",
+      "mainClass": "tufts.vue.URLResource",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "VUE",
+      "request": "launch",
+      "mainClass": "tufts.vue.VUE",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "VueDandDTree",
+      "request": "launch",
+      "mainClass": "tufts.vue.VueDandDTree",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "VueResources",
+      "request": "launch",
+      "mainClass": "tufts.vue.VueResources",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "VueToolbarController",
+      "request": "launch",
+      "mainClass": "tufts.vue.VueToolbarController",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "AboutAction",
+      "request": "launch",
+      "mainClass": "tufts.vue.action.AboutAction",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "OpenAction",
+      "request": "launch",
+      "mainClass": "tufts.vue.action.OpenAction",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "RDFOpenAction",
+      "request": "launch",
+      "mainClass": "tufts.vue.action.RDFOpenAction",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "SaveAction",
+      "request": "launch",
+      "mainClass": "tufts.vue.action.SaveAction",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "ShortcutsAction",
+      "request": "launch",
+      "mainClass": "tufts.vue.action.ShortcutsAction",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "TextOpenAction",
+      "request": "launch",
+      "mainClass": "tufts.vue.action.TextOpenAction",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "XMLIngest",
+      "request": "launch",
+      "mainClass": "tufts.vue.ds.XMLIngest",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "XmlDataSource",
+      "request": "launch",
+      "mainClass": "tufts.vue.ds.XmlDataSource",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "AutoCompleteDocument",
+      "request": "launch",
+      "mainClass": "tufts.vue.gui.AutoCompleteDocument",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "DockWindow",
+      "request": "launch",
+      "mainClass": "tufts.vue.gui.DockWindow",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "GUI",
+      "request": "launch",
+      "mainClass": "tufts.vue.gui.GUI",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "HtmlOutputDialog",
+      "request": "launch",
+      "mainClass": "tufts.vue.gui.HtmlOutputDialog",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "LinkPropertyPanel",
+      "request": "launch",
+      "mainClass": "tufts.vue.gui.LinkPropertyPanel",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "VueMenuBar",
+      "request": "launch",
+      "mainClass": "tufts.vue.gui.VueMenuBar",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "VueTextPane",
+      "request": "launch",
+      "mainClass": "tufts.vue.gui.VueTextPane",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "WidgetStack",
+      "request": "launch",
+      "mainClass": "tufts.vue.gui.WidgetStack",
+      "projectName": "src_e2701a60"
+    },
+    {
+      "type": "java",
+      "name": "InspectorPane",
+      "request": "launch",
+      "mainClass": "tufts.vue.ui.InspectorPane",
+      "projectName": "src_e2701a60"
+    }
+  ]
+}

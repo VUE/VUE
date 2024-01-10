@@ -1,5 +1,14 @@
 package edu.tufts.vue.mbs;
 
+import com.clearforest.calais.common.CalaisJavaIf;
+import com.clearforest.calais.common.Property;
+import com.clearforest.calais.common.StringUtils;
+import com.clearforest.calais.simple.Entity;
+import com.google.common.collect.AbstractMapEntry;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.metadata.VueMetadataElement;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -19,10 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -35,16 +42,6 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
-import com.clearforest.calais.common.CalaisJavaIf;
-import com.clearforest.calais.common.Property;
-import com.clearforest.calais.common.StringUtils;
-import com.clearforest.calais.simple.Entity;
-import com.google.common.collect.AbstractMapEntry;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-
-import edu.tufts.vue.metadata.MetadataList;
-import edu.tufts.vue.metadata.VueMetadataElement;
 import tufts.vue.AnalyzerAction;
 import tufts.vue.LWComponent;
 import tufts.vue.LWNode;
@@ -55,329 +52,345 @@ import tufts.vue.VueResources;
 
 public class OpenCalaisAnalyzer implements LWComponentAnalyzer {
 
-	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger
-			.getLogger(AnalyzerAction.class);
-	private ArrayList<CalaisEntity> m_entities = new ArrayList<CalaisEntity>();
+  private static final org.apache.log4j.Logger Log =
+    org.apache.log4j.Logger.getLogger(AnalyzerAction.class);
+  private ArrayList<CalaisEntity> m_entities = new ArrayList<CalaisEntity>();
 
-	public List analyze(LWComponent c) {
-		return analyze(c, true);
-	}
+  public List analyze(LWComponent c) {
+    return analyze(c, true);
+  }
 
-	private String downloadURL(String theURL) throws IOException {
-		URL u;
-		InputStream is = null;
-		DataInputStream dis;
-		String s;
-		StringBuffer sb = new StringBuffer();
+  private String downloadURL(String theURL) throws IOException {
+    URL u;
+    InputStream is = null;
+    DataInputStream dis;
+    String s;
+    StringBuffer sb = new StringBuffer();
 
-		try {
-			u = new URL(theURL);
-			is = u.openStream();
-			dis = new DataInputStream(new BufferedInputStream(is));
-			while ((s = dis.readLine()) != null)
-				sb.append(s + "\n");
-		} finally {
-			try {
-				if (is != null)
-					is.close();
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-			}
-		}
-		return sb.toString();
-	}
+    try {
+      u = new URL(theURL);
+      is = u.openStream();
+      dis = new DataInputStream(new BufferedInputStream(is));
+      while ((s = dis.readLine()) != null) sb.append(s + "\n");
+    } finally {
+      try {
+        if (is != null) is.close();
+      } catch (IOException ioe) {
+        ioe.printStackTrace();
+      }
+    }
+    return sb.toString();
+  }
 
-	public Multimap analyzeResource(LWComponent c) throws IOException {
-		m_entities = new ArrayList<CalaisEntity>();
-		Multimap<String, AnalyzerResult> results = Multimaps
-				.newArrayListMultimap();
-		String resp_simple = null;
-		String context = null;
-		if (c != null) {
-			Resource r = c.getResource();
-			String spec = r.getSpec();
-			if (spec.startsWith("http") || spec.startsWith("https")) {
-				resp_simple = downloadURL("http://service.semanticproxy.com/processurl/xqffs8ggkmebrsehdsbt56j8/simple/"
-						+ spec);
-			}
-		} else {
-			context = "Eduardo Manet the 19th century French painter.";
-		}
+  public Multimap analyzeResource(LWComponent c) throws IOException {
+    m_entities = new ArrayList<CalaisEntity>();
+    Multimap<String, AnalyzerResult> results = Multimaps.newArrayListMultimap();
+    String resp_simple = null;
+    String context = null;
+    if (c != null) {
+      Resource r = c.getResource();
+      String spec = r.getSpec();
+      if (spec.startsWith("http") || spec.startsWith("https")) {
+        resp_simple =
+          downloadURL(
+            "http://service.semanticproxy.com/processurl/xqffs8ggkmebrsehdsbt56j8/simple/" +
+            spec
+          );
+      }
+    } else {
+      context = "Eduardo Manet the 19th century French painter.";
+    }
 
-		javax.xml.parsers.DocumentBuilderFactory factory = DocumentBuilderFactory
-				.newInstance();
-		factory.setIgnoringElementContentWhitespace(true);
-		factory.setIgnoringComments(true);
-		factory.setValidating(false);
+    javax.xml.parsers.DocumentBuilderFactory factory =
+      DocumentBuilderFactory.newInstance();
+    factory.setIgnoringElementContentWhitespace(true);
+    factory.setIgnoringComments(true);
+    factory.setValidating(false);
 
-		InputStream is = null;
-		org.w3c.dom.Document doc = null;
+    InputStream is = null;
+    org.w3c.dom.Document doc = null;
 
-		try {
-			is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
-			doc = factory.newDocumentBuilder().parse((InputStream) is);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		NodeList nodeLst = doc.getElementsByTagName("CalaisSimpleOutputFormat");
+    try {
+      is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
+      doc = factory.newDocumentBuilder().parse((InputStream) is);
+    } catch (UnsupportedEncodingException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (SAXException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (ParserConfigurationException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    NodeList nodeLst = doc.getElementsByTagName("CalaisSimpleOutputFormat");
 
-		for (int s = 0; s < nodeLst.getLength(); s++) {
+    for (int s = 0; s < nodeLst.getLength(); s++) {
+      Node fstNode = nodeLst.item(s);
+      visit(fstNode, 0);
+    }
 
-			Node fstNode = nodeLst.item(s);
-			visit(fstNode, 0);
-		}
+    Iterator<CalaisEntity> it = m_entities.iterator();
+    while (it.hasNext()) {
+      CalaisEntity prop = it.next();
+      results.put(
+        prop.getType(),
+        new AnalyzerResult(
+          prop.getType(),
+          prop.getName(),
+          prop.getRelevance(),
+          prop.getCount()
+        )
+      );
+    }
 
-		Iterator<CalaisEntity> it = m_entities.iterator();
-		while (it.hasNext()) {
-			CalaisEntity prop = it.next();
-			results.put(prop.getType(), new AnalyzerResult(prop.getType(), prop.getName(), prop.getRelevance(), prop.getCount()));
-		}
+    return results;
+  }
 
-		return results;
-	}
-	public CalaisJavaIf prepCalais()
-	{
-		CalaisJavaIf calais = new CalaisJavaIf("xqffs8ggkmebrsehdsbt56j8");
-		calais.setOutputFormat("text/simple");
-		calais.setCalaisURL("http://api.opencalais.com/enlighten/rest");
-		//calais.setCalaisURL("http://api.opencalais.com/enlighten/calais.asmx/Enlighten");
-		calais.setVerifyCert(false);
-		
-		return calais;		
-	}
-	
-	public Multimap analyzeString(String tweet)
-	{
-		m_entities = new ArrayList<CalaisEntity>();
-		Multimap<String, AnalyzerResult> results = Multimaps
-				.newArrayListMultimap();
+  public CalaisJavaIf prepCalais() {
+    CalaisJavaIf calais = new CalaisJavaIf("xqffs8ggkmebrsehdsbt56j8");
+    calais.setOutputFormat("text/simple");
+    calais.setCalaisURL("http://api.opencalais.com/enlighten/rest");
+    //calais.setCalaisURL("http://api.opencalais.com/enlighten/calais.asmx/Enlighten");
+    calais.setVerifyCert(false);
 
-	//	String resp_simple = downloadURL("http://service.semanticproxy.com/processurl/xqffs8ggkmebrsehdsbt56j8/simple/"
-		//			+ spec);
-		//System.out.println("TWEET:"+ tweet);
-		//URLEncoder.encode(tweet);
-		String resp_simple = null;
-		CalaisJavaIf calais = prepCalais();
-		resp_simple = calais.callEnlighten(tweet);
+    return calais;
+  }
 
-		resp_simple = StringUtils.unescapeHTML(resp_simple);
-		System.out.println(resp_simple);
-		javax.xml.parsers.DocumentBuilderFactory factory = DocumentBuilderFactory
-				.newInstance();
-		factory.setIgnoringElementContentWhitespace(true);
-		factory.setIgnoringComments(true);
-		factory.setValidating(false);
+  public Multimap analyzeString(String tweet) {
+    m_entities = new ArrayList<CalaisEntity>();
+    Multimap<String, AnalyzerResult> results = Multimaps.newArrayListMultimap();
 
-		InputStream is = null;
-		org.w3c.dom.Document doc = null;
+    //	String resp_simple = downloadURL("http://service.semanticproxy.com/processurl/xqffs8ggkmebrsehdsbt56j8/simple/"
+    //			+ spec);
+    //System.out.println("TWEET:"+ tweet);
+    //URLEncoder.encode(tweet);
+    String resp_simple = null;
+    CalaisJavaIf calais = prepCalais();
+    resp_simple = calais.callEnlighten(tweet);
 
-		try {
-			is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
-			doc = factory.newDocumentBuilder().parse((InputStream) is);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block		
-			e.printStackTrace();
-			return results;
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return results;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return results;
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return results;
-		}
-		NodeList nodeLst = doc.getElementsByTagName("CalaisSimpleOutputFormat");
+    resp_simple = StringUtils.unescapeHTML(resp_simple);
+    System.out.println(resp_simple);
+    javax.xml.parsers.DocumentBuilderFactory factory =
+      DocumentBuilderFactory.newInstance();
+    factory.setIgnoringElementContentWhitespace(true);
+    factory.setIgnoringComments(true);
+    factory.setValidating(false);
 
-		for (int s = 0; s < nodeLst.getLength(); s++) {
+    InputStream is = null;
+    org.w3c.dom.Document doc = null;
 
-			Node fstNode = nodeLst.item(s);
-			visit(fstNode, 0);
-		}
+    try {
+      is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
+      doc = factory.newDocumentBuilder().parse((InputStream) is);
+    } catch (UnsupportedEncodingException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return results;
+    } catch (SAXException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return results;
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return results;
+    } catch (ParserConfigurationException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return results;
+    }
+    NodeList nodeLst = doc.getElementsByTagName("CalaisSimpleOutputFormat");
 
-		Iterator<CalaisEntity> it = m_entities.iterator();
-		while (it.hasNext()) {
-			CalaisEntity prop = it.next();
-			results.put(prop.getType(), new AnalyzerResult(prop.getType(), prop
-					.getName(), prop.getRelevance(), prop.getCount()));
-			
-			System.out.println("Analyzer Result : " + prop.getType() + "," + prop.getName() + "," + prop.getRelevance() + "," + prop.getCount());
-		}
+    for (int s = 0; s < nodeLst.getLength(); s++) {
+      Node fstNode = nodeLst.item(s);
+      visit(fstNode, 0);
+    }
 
-		return results;
-	
-	}
-	public List analyze(LWComponent c, boolean fallback) {
-		m_entities = new ArrayList<CalaisEntity>();
-		List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
-		CalaisJavaIf calais = prepCalais();
+    Iterator<CalaisEntity> it = m_entities.iterator();
+    while (it.hasNext()) {
+      CalaisEntity prop = it.next();
+      results.put(
+        prop.getType(),
+        new AnalyzerResult(
+          prop.getType(),
+          prop.getName(),
+          prop.getRelevance(),
+          prop.getCount()
+        )
+      );
 
-		String context = null;
-		if (c != null) {
-			MetadataList ml = c.getMetadataList();
-			List<VueMetadataElement> elems = ml.getMetadata();
-			Iterator i = elems.iterator();
-			c.getNotes();
-			context = c.getLabel().trim() + ".  ";
+      System.out.println(
+        "Analyzer Result : " +
+        prop.getType() +
+        "," +
+        prop.getName() +
+        "," +
+        prop.getRelevance() +
+        "," +
+        prop.getCount()
+      );
+    }
 
-			if (c.getNotes() != null)
-				context += c.getNotes().trim() + ".  ";
+    return results;
+  }
 
-			while (i.hasNext()) {
-				VueMetadataElement e = (VueMetadataElement) i.next();
-				context += e.getValue() + ".  ";
-			}
+  public List analyze(LWComponent c, boolean fallback) {
+    m_entities = new ArrayList<CalaisEntity>();
+    List<AnalyzerResult> results = new ArrayList<AnalyzerResult>();
+    CalaisJavaIf calais = prepCalais();
 
-			if (c.getResource() != null) {
-				MetaMap map = c.getResource().getProperties();
-				// /c.getResource().get
-				if (map != null) {
-					Collection collection = map.entries();
+    String context = null;
+    if (c != null) {
+      MetadataList ml = c.getMetadataList();
+      List<VueMetadataElement> elems = ml.getMetadata();
+      Iterator i = elems.iterator();
+      c.getNotes();
+      context = c.getLabel().trim() + ".  ";
 
-					// Iterator iterator = collection.iterator();
-					Object[] obj = collection.toArray();
-					for (int p = 0; p < obj.length; p++) {
-						com.google.common.collect.AbstractMapEntry o = (AbstractMapEntry) obj[p];
-						// System.out.println(o.getKey());
-						String key = o.getKey().toString().toLowerCase();
-						if (key.startsWith("title") || key.startsWith("date")
-								|| key.startsWith("creator")
-								|| key.startsWith("description")) {
-							// System.out.println(o.toString());
-							context += "The " + o.getKey().toString().trim()
-									+ " is " + o.getValue().toString().trim()
-									+ ".  ";
-						}
-					}
-				}
-			}
-		} else {
-			context = "Eduardo Manet the 19th century French painter.";
-		}
+      if (c.getNotes() != null) context += c.getNotes().trim() + ".  ";
 
-		URLEncoder.encode(context);
-		String resp_simple = null;
-		resp_simple = calais.callEnlighten(context);
+      while (i.hasNext()) {
+        VueMetadataElement e = (VueMetadataElement) i.next();
+        context += e.getValue() + ".  ";
+      }
 
-		resp_simple = StringUtils.unescapeHTML(resp_simple);
+      if (c.getResource() != null) {
+        MetaMap map = c.getResource().getProperties();
+        // /c.getResource().get
+        if (map != null) {
+          Collection collection = map.entries();
 
-		// m_entities
-		javax.xml.parsers.DocumentBuilderFactory factory = DocumentBuilderFactory
-				.newInstance();
-		factory.setIgnoringElementContentWhitespace(true);
-		factory.setIgnoringComments(true);
-		factory.setValidating(false);
+          // Iterator iterator = collection.iterator();
+          Object[] obj = collection.toArray();
+          for (int p = 0; p < obj.length; p++) {
+            com.google.common.collect.AbstractMapEntry o =
+              (AbstractMapEntry) obj[p];
+            // System.out.println(o.getKey());
+            String key = o.getKey().toString().toLowerCase();
+            if (
+              key.startsWith("title") ||
+              key.startsWith("date") ||
+              key.startsWith("creator") ||
+              key.startsWith("description")
+            ) {
+              // System.out.println(o.toString());
+              context +=
+              "The " +
+              o.getKey().toString().trim() +
+              " is " +
+              o.getValue().toString().trim() +
+              ".  ";
+            }
+          }
+        }
+      }
+    } else {
+      context = "Eduardo Manet the 19th century French painter.";
+    }
 
-		InputStream is = null;
-		org.w3c.dom.Document doc = null;
+    URLEncoder.encode(context);
+    String resp_simple = null;
+    resp_simple = calais.callEnlighten(context);
 
-		try {
-			is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
-			doc = factory.newDocumentBuilder().parse((InputStream) is);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		NodeList nodeLst = doc.getElementsByTagName("CalaisSimpleOutputFormat");
+    resp_simple = StringUtils.unescapeHTML(resp_simple);
 
-		for (int s = 0; s < nodeLst.getLength(); s++) {
+    // m_entities
+    javax.xml.parsers.DocumentBuilderFactory factory =
+      DocumentBuilderFactory.newInstance();
+    factory.setIgnoringElementContentWhitespace(true);
+    factory.setIgnoringComments(true);
+    factory.setValidating(false);
 
-			Node fstNode = nodeLst.item(s);
-			visit(fstNode, 0);
-		}
+    InputStream is = null;
+    org.w3c.dom.Document doc = null;
 
-		Iterator<CalaisEntity> it = m_entities.iterator();
+    try {
+      is = new java.io.ByteArrayInputStream(resp_simple.getBytes("UTF-8"));
+      doc = factory.newDocumentBuilder().parse((InputStream) is);
+    } catch (UnsupportedEncodingException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (SAXException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (ParserConfigurationException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    NodeList nodeLst = doc.getElementsByTagName("CalaisSimpleOutputFormat");
 
-		while (it.hasNext()) {
-			Entity prop = it.next();
-			results.add(new AnalyzerResult(prop.getType(), prop.getName()));
-		}
+    for (int s = 0; s < nodeLst.getLength(); s++) {
+      Node fstNode = nodeLst.item(s);
+      visit(fstNode, 0);
+    }
 
-		return results;
-	}
+    Iterator<CalaisEntity> it = m_entities.iterator();
 
-	public void visit(Node node, int level) {
-		NodeList nl = node.getChildNodes();
+    while (it.hasNext()) {
+      Entity prop = it.next();
+      results.add(new AnalyzerResult(prop.getType(), prop.getName()));
+    }
 
-		if (nl.getLength() == 1)
-			return;
+    return results;
+  }
 
-		boolean skip = false;
-		for (int i = 0, cnt = nl.getLength(); i < cnt; i++) {
-			Node n = nl.item(i);
+  public void visit(Node node, int level) {
+    NodeList nl = node.getChildNodes();
 
-			if (n.getNodeName().equals("#text"))
-				continue;
-			if (n.getFirstChild() == null)
-				skip = true;
-			else if (n.getFirstChild().getNodeValue() == null
-					|| (n.getFirstChild().getNodeValue() != null && n
-							.getFirstChild().getNodeValue().trim().equals("")))
-				skip = true;
-			else
-				skip = false;
-			
-			if (!skip) {
-				CalaisEntity entity = new CalaisEntity();
-				entity.setType(n.getNodeName());
+    if (nl.getLength() == 1) return;
 
-				NamedNodeMap nnm = n.getAttributes();
-				Node countNode = nnm.getNamedItem("count");
-				String cString = null;
-				try {
-					cString = countNode.getNodeValue();
-				} catch (NullPointerException npe) {
-				} finally {
-					if (cString == null)
-						cString = "1";
-				}
-				entity.setCount((Integer.valueOf(cString)).intValue());
-				Node doubleNode = nnm.getNamedItem("relevance");
-				try {
-					cString = doubleNode.getNodeValue();
-				} catch (NullPointerException npe) {
-				} finally {
-					if (cString == null)
-						cString = "0.0";
-				}
+    boolean skip = false;
+    for (int i = 0, cnt = nl.getLength(); i < cnt; i++) {
+      Node n = nl.item(i);
 
-				entity.setRelevance((Double.valueOf(cString)));
-				entity.setName(n.getFirstChild().getNodeValue());
-				m_entities.add(entity);
-			}
-			visit(nl.item(i), level + 1);
-		}
-	}
+      if (n.getNodeName().equals("#text")) continue;
+      if (n.getFirstChild() == null) skip = true; else if (
+        n.getFirstChild().getNodeValue() == null ||
+        (n.getFirstChild().getNodeValue() != null &&
+          n.getFirstChild().getNodeValue().trim().equals(""))
+      ) skip = true; else skip = false;
 
-	public String getAnalyzerName() {
-		return "Open Calais Analyzer";
-	}
+      if (!skip) {
+        CalaisEntity entity = new CalaisEntity();
+        entity.setType(n.getNodeName());
 
-	public static void main(String[] args) {
-		OpenCalaisAnalyzer oca = new OpenCalaisAnalyzer();
-		oca.analyze(null);
-	}
+        NamedNodeMap nnm = n.getAttributes();
+        Node countNode = nnm.getNamedItem("count");
+        String cString = null;
+        try {
+          cString = countNode.getNodeValue();
+        } catch (NullPointerException npe) {} finally {
+          if (cString == null) cString = "1";
+        }
+        entity.setCount((Integer.valueOf(cString)).intValue());
+        Node doubleNode = nnm.getNamedItem("relevance");
+        try {
+          cString = doubleNode.getNodeValue();
+        } catch (NullPointerException npe) {} finally {
+          if (cString == null) cString = "0.0";
+        }
+
+        entity.setRelevance((Double.valueOf(cString)));
+        entity.setName(n.getFirstChild().getNodeValue());
+        m_entities.add(entity);
+      }
+      visit(nl.item(i), level + 1);
+    }
+  }
+
+  public String getAnalyzerName() {
+    return "Open Calais Analyzer";
+  }
+
+  public static void main(String[] args) {
+    OpenCalaisAnalyzer oca = new OpenCalaisAnalyzer();
+    oca.analyze(null);
+  }
 }

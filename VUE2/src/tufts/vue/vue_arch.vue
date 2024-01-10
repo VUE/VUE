@@ -2,8 +2,15 @@
 <!-- Do Not Remove: Saved date Fri Jun 20 10:49:56 EDT 2008 by Admin on platform Windows Vista 6.0 in JVM 1.5.0_11-b03 -->
 <!-- Do Not Remove: Saving version @(#)VUE: built June 10 2008 at 1234 by vue on Linux 2.4.21-53.EL i386 JVM 1.5.0_06-b05 -->
 <?xml version="1.0" encoding="UTF-8"?>
-<LW-MAP ID="0" label="Vue Architecture" x="0.0" y="0.0" width="0.0"
-    height="0.0" strokeWidth="1.0">
+<LW-MAP
+  ID="0"
+  label="Vue Architecture"
+  x="0.0"
+  y="0.0"
+  width="0.0"
+  height="0.0"
+  strokeWidth="1.0"
+>
     <fillColor>#ffffff</fillColor>
     <font>SansSerif-plain-18</font>
     <child ID="61" label="implements" x="479.77286" y="281.6278"

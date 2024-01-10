@@ -67,128 +67,118 @@ import org.okip.service.filing.api.*;
  * @version $Revision: 1.1 $ / $Date: 2003-04-14 20:48:28 $
  */
 
-public class RfsOutputBuffer
-    implements java.io.Serializable
-{
-    private String idStr = null;
-    private boolean appending = false;
-    private transient byte[] buffer;
-    
-    private transient RfsFactory factory;
-    private transient java.io.FileOutputStream fileOutputStream;
-    private transient int size;
-    private transient RfsEntryCache watchingCache;
+public class RfsOutputBuffer implements java.io.Serializable {
 
-    protected RfsOutputBuffer(RfsFactory factory, String idStr, int size, boolean append, RfsEntryCache wc)
-        throws FilingException
-    {
-        if (factory == null || idStr == null || size <= 0)
-            throw new FilingException("Create RfsOutputBuffer failed: bad argument(s)");
-        
-        this.factory = factory;
-        this.idStr = idStr;
-        this.appending = append;
-        this.size = size;
-        this.buffer = null;
-        this.watchingCache = wc;
-    }
+  private String idStr = null;
+  private boolean appending = false;
+  private transient byte[] buffer;
 
-    private void openFileOutputStream()
-        throws FilingException
-    {
-        try {
-            if (this.fileOutputStream == null)
-                this.fileOutputStream = new java.io.FileOutputStream(this.idStr, this.appending);
-        } catch (Exception e) {
-            throw new FilingException(e);
-        }
-    }
+  private transient RfsFactory factory;
+  private transient java.io.FileOutputStream fileOutputStream;
+  private transient int size;
+  private transient RfsEntryCache watchingCache;
 
-    protected byte[] getBuffer()
-    {
-        if (this.buffer == null)
-            this.buffer = new byte[size];
-        return this.buffer;
-    }
-  
-    protected void writeThrough(DataBlock dataBlock)
-        throws FilingException
-    {
-        writeBuffer(dataBlock);
-    }
-    
-    protected void writeBuffer(int len)
-        throws FilingException
-    {
-        if (len <= 0) 
-            return;
-        DataBlock dataBlock = new DataBlock(this.buffer, len);
-        writeBuffer(dataBlock);
-        dataBlock.buf = null;
-    }
-    
-    private void writeBuffer(DataBlock dataBlock)
-        throws FilingException
-    {
-        if (dataBlock.length <= 0) 
-            return;
-        if (factory != null && factory.getClient() != null) {
-            RfsEntryCache rfsData = (RfsEntryCache)
-                factory.invoke(this, "writeBufferRemotely", DataBlock.class, dataBlock);
-            this.appending = true;
-            if (this.watchingCache != null)
-                this.watchingCache.copyUpdate(rfsData);
-        } else
-            writeBufferLocally(dataBlock);
-    }
+  protected RfsOutputBuffer(
+    RfsFactory factory,
+    String idStr,
+    int size,
+    boolean append,
+    RfsEntryCache wc
+  ) throws FilingException {
+    if (
+      factory == null || idStr == null || size <= 0
+    ) throw new FilingException(
+      "Create RfsOutputBuffer failed: bad argument(s)"
+    );
 
-    public RfsEntryCache writeBufferRemotely(DataBlock dataBlock)
-        throws FilingException
-    {
-        writeBufferLocally(dataBlock);
-        return new RfsEntryCache(new java.io.File(this.idStr));
-    }
-    
-    private void writeBufferLocally(DataBlock dataBlock)
-        throws FilingException
-    {
-        try {
-            openFileOutputStream();
-            if (this.fileOutputStream != null)
-                this.fileOutputStream.write(dataBlock.buf, 0, dataBlock.length);
-        } catch (Exception e) {
-            throw new FilingException(e);
-        }
-    }
-  
-    public void closeBufferStream()
-        throws FilingException
-    {
-        this.appending = false;
-        this.buffer = null;
-        try {
-            if (this.fileOutputStream != null) {
-                this.fileOutputStream.close();
-                this.fileOutputStream = null;
-            } 
-        } catch (Exception e) {
-            throw new FilingException(e);
-        }
-    }
+    this.factory = factory;
+    this.idStr = idStr;
+    this.appending = append;
+    this.size = size;
+    this.buffer = null;
+    this.watchingCache = wc;
+  }
 
-    public void finalize()
-    {
-        try {
-            closeBufferStream();
-        } catch (Exception e) {}
+  private void openFileOutputStream() throws FilingException {
+    try {
+      if (this.fileOutputStream == null) this.fileOutputStream =
+        new java.io.FileOutputStream(this.idStr, this.appending);
+    } catch (Exception e) {
+      throw new FilingException(e);
     }
-  
-    public String toString()
-    {
-        String s = "RfsOutputBuffer["+idStr+"]";
-        if (buffer != null)
-            s += " size="+buffer.length;
-        return s;
-    }
+  }
 
+  protected byte[] getBuffer() {
+    if (this.buffer == null) this.buffer = new byte[size];
+    return this.buffer;
+  }
+
+  protected void writeThrough(DataBlock dataBlock) throws FilingException {
+    writeBuffer(dataBlock);
+  }
+
+  protected void writeBuffer(int len) throws FilingException {
+    if (len <= 0) return;
+    DataBlock dataBlock = new DataBlock(this.buffer, len);
+    writeBuffer(dataBlock);
+    dataBlock.buf = null;
+  }
+
+  private void writeBuffer(DataBlock dataBlock) throws FilingException {
+    if (dataBlock.length <= 0) return;
+    if (factory != null && factory.getClient() != null) {
+      RfsEntryCache rfsData = (RfsEntryCache) factory.invoke(
+        this,
+        "writeBufferRemotely",
+        DataBlock.class,
+        dataBlock
+      );
+      this.appending = true;
+      if (this.watchingCache != null) this.watchingCache.copyUpdate(rfsData);
+    } else writeBufferLocally(dataBlock);
+  }
+
+  public RfsEntryCache writeBufferRemotely(DataBlock dataBlock)
+    throws FilingException {
+    writeBufferLocally(dataBlock);
+    return new RfsEntryCache(new java.io.File(this.idStr));
+  }
+
+  private void writeBufferLocally(DataBlock dataBlock) throws FilingException {
+    try {
+      openFileOutputStream();
+      if (this.fileOutputStream != null) this.fileOutputStream.write(
+          dataBlock.buf,
+          0,
+          dataBlock.length
+        );
+    } catch (Exception e) {
+      throw new FilingException(e);
+    }
+  }
+
+  public void closeBufferStream() throws FilingException {
+    this.appending = false;
+    this.buffer = null;
+    try {
+      if (this.fileOutputStream != null) {
+        this.fileOutputStream.close();
+        this.fileOutputStream = null;
+      }
+    } catch (Exception e) {
+      throw new FilingException(e);
+    }
+  }
+
+  public void finalize() {
+    try {
+      closeBufferStream();
+    } catch (Exception e) {}
+  }
+
+  public String toString() {
+    String s = "RfsOutputBuffer[" + idStr + "]";
+    if (buffer != null) s += " size=" + buffer.length;
+    return s;
+  }
 }
