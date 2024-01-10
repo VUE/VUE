@@ -508,16 +508,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(Actions.CloseMap);
         fileMenu.addSeparator();        
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
-        fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
-        if (VUE.isApplet() && VueApplet.isZoteroApplet())
-        {
-        	fileMenu.add(Actions.SaveCopyToZotero);
-        }
+        fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.Revert);
         Actions.Revert.setEnabled(false);
         fileMenu.addSeparator();
-     //   fileMenu.add(Actions.ZoteroAction);
-        //fileMenu.add(exportAction);
 
         //fileMenu.add(quickImport);
 
