@@ -1,0 +1,4 @@
+include ':VUE'
+
+project(':VUE').projectDir = file('VUE2')
+rootProject.name = 'VUE-root'
