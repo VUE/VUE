@@ -1,0 +1,64 @@
+{
+  "name": "regexp-to-ast",
+  "version": "0.4.0",
+  "main": "lib/regexp-to-ast.js",
+  "repository": "https://github.com/bd82/regexp-to-ast.git",
+  "author": "Shahar Soel",
+  "license": "MIT",
+  "description": "Parses a Regular Expression and outputs an AST",
+  "keywords": [
+    "regExp",
+    "parser",
+    "regular expression"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "coveralls": "^3.0.0",
+    "eslint": "^5.2.0",
+    "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-plugin-es5": "^1.3.1",
+    "gitty": "^3.6.0",
+    "jsonfile": "^5.0.0",
+    "lodash": "latest",
+    "mocha": "^6.0.2",
+    "npm-run-all": "^4.1.2",
+    "nyc": "^13.3.0",
+    "prettier": "1.16.4",
+    "semver": "^5.5.0",
+    "typescript": "^3.3.3333"
+  },
+  "scripts": {
+    "release": "git fetch && git rebase && node scripts/release.js",
+    "ci_full_flow": "npm-run-all type_check test check_coverage verify_format",
+    "test": "nyc mocha \"./test/**/*spec.js\"",
+    "check_coverage": "nyc check-coverage --lines 100 --statements 100 --functions 100",
+    "report_coverage": "cat coverage/lcov.info | node_modules/.bin/coveralls",
+    "format": "prettier --no-editorconfig --write \"**/*.@(ts|js|md)\"",
+    "verify_format": "prettier --no-editorconfig --list-different  \"**/*.@(ts|js)\"",
+    "type_check": "tsc"
+  },
+  "typings": "api.d.ts",
+  "files": [
+    "lib",
+    "LICENSE",
+    "CHANGELOG.md",
+    "README.md",
+    "api.d.ts"
+  ],
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "exclude": [
+      "test/**.*"
+    ]
+  },
+  "prettier": {
+    "semi": false,
+    "tabWidth": 4,
+    "useTabs": false
+  }
+}
