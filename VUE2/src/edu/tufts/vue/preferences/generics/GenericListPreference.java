@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -21,7 +21,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.prefs.Preferences;
-
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -35,106 +34,115 @@ import javax.swing.event.ListSelectionListener;
  * @author Brian Goodmon
  */
 
-public abstract class GenericListPreference extends BasePref implements ListSelectionListener
-{
-	protected JPanel		panel = null;
-	protected JLabel		titleLabel = null;
-	protected JTextArea		messageArea = null;
-	protected JList			list = null;
-	protected JScrollPane	scrollPane = new JScrollPane(list);
-	protected Object		previousValue = null;
-	protected Runnable 		loadList = null;
+public abstract class GenericListPreference
+  extends BasePref
+  implements ListSelectionListener {
 
-	public GenericListPreference() {
-	}
+  protected JPanel panel = null;
+  protected JLabel titleLabel = null;
+  protected JTextArea messageArea = null;
+  protected JList list = null;
+  protected JScrollPane scrollPane = new JScrollPane(list);
+  protected Object previousValue = null;
+  protected Runnable loadList = null;
 
-	protected void finalize() throws Throwable {
-		try {
-			panel = null;
-			titleLabel = null;
-			messageArea = null;
-			list = null;
-			scrollPane = null;
-			previousValue = null;
-			loadList = null;
-		}
-		finally {
-			super.finalize();
-		}
-	}
+  public GenericListPreference() {}
 
-	public Object getPreviousValue() {
-		return (previousValue != null ? previousValue : getDefaultValue());
-	}
+  protected void finalize() throws Throwable {
+    try {
+      panel = null;
+      titleLabel = null;
+      messageArea = null;
+      list = null;
+      scrollPane = null;
+      previousValue = null;
+      loadList = null;
+    } finally {
+      super.finalize();
+    }
+  }
 
-	public abstract String getTitle();
-	public abstract String getDescription();
-	public abstract String getDefaultValue();
+  public Object getPreviousValue() {
+    return (previousValue != null ? previousValue : getDefaultValue());
+  }
 
-	public JComponent getPreferenceUI() {
-		if (panel == null) {
-			panel = new JPanel();
-			panel.setBackground(Color.WHITE);
-			panel.setLayout(new GridBagLayout());
+  public abstract String getTitle();
 
-			Font				defaultFont = panel.getFont();
-			GridBagConstraints	gbConstraints = new GridBagConstraints();
+  public abstract String getDescription();
 
-			titleLabel = new JLabel(getTitle());
-			titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD));
+  public abstract String getDefaultValue();
 
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 0;
-			gbConstraints.gridwidth = 1;
-			gbConstraints.gridheight = 1;
-			gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-			gbConstraints.anchor = GridBagConstraints.NORTHWEST;
-			gbConstraints.weightx = 1.0;
-			gbConstraints.weighty = 0.0;
-			gbConstraints.insets = new Insets(15, 10, 2, 2);
-			panel.add(titleLabel, gbConstraints);
+  public JComponent getPreferenceUI() {
+    if (panel == null) {
+      panel = new JPanel();
+      panel.setBackground(Color.WHITE);
+      panel.setLayout(new GridBagLayout());
 
-			messageArea = new JTextArea(getDescription());
-			messageArea.setFont(defaultFont);
-			messageArea.setColumns(30);
-			messageArea.setLineWrap(true);
-			messageArea.setWrapStyleWord(true);
+      Font defaultFont = panel.getFont();
+      GridBagConstraints gbConstraints = new GridBagConstraints();
 
-			gbConstraints.gridy = 1;
-			panel.add(messageArea, gbConstraints);
+      titleLabel = new JLabel(getTitle());
+      titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD));
 
-			list = new JList();
-			list.setFont(defaultFont);
-			list.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			list.addListSelectionListener(this);
+      gbConstraints.gridx = 0;
+      gbConstraints.gridy = 0;
+      gbConstraints.gridwidth = 1;
+      gbConstraints.gridheight = 1;
+      gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+      gbConstraints.anchor = GridBagConstraints.NORTHWEST;
+      gbConstraints.weightx = 1.0;
+      gbConstraints.weighty = 0.0;
+      gbConstraints.insets = new Insets(15, 10, 2, 2);
+      panel.add(titleLabel, gbConstraints);
 
-			scrollPane = new JScrollPane(list);
+      messageArea = new JTextArea(getDescription());
+      messageArea.setFont(defaultFont);
+      messageArea.setColumns(30);
+      messageArea.setLineWrap(true);
+      messageArea.setWrapStyleWord(true);
 
-			gbConstraints.gridy = 2;
-			gbConstraints.fill = GridBagConstraints.BOTH;
-			gbConstraints.weighty = 1.0;
-			gbConstraints.insets = new Insets(15, 30, 15, 30);
-			panel.add(scrollPane, gbConstraints);
+      gbConstraints.gridy = 1;
+      panel.add(messageArea, gbConstraints);
 
-			java.awt.EventQueue.invokeLater(loadList);
-		}
+      list = new JList();
+      list.setFont(defaultFont);
+      list
+        .getSelectionModel()
+        .setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      list.addListSelectionListener(this);
 
-		return panel;
-	}
+      scrollPane = new JScrollPane(list);
 
- 	/** interface VuePreference */
-	public String getValue() {
-		return Preferences.userNodeForPackage(getPrefRoot()).get(getPrefName(),
-			Preferences.systemNodeForPackage(getPrefRoot()).get(getPrefName(),
-			getDefaultValue()));
-	}
+      gbConstraints.gridy = 2;
+      gbConstraints.fill = GridBagConstraints.BOTH;
+      gbConstraints.weighty = 1.0;
+      gbConstraints.insets = new Insets(15, 30, 15, 30);
+      panel.add(scrollPane, gbConstraints);
 
-	/** interface VuePreference */
-	public void setValue(Object obj) {
-		Preferences	p = Preferences.userNodeForPackage(getPrefRoot());
+      java.awt.EventQueue.invokeLater(loadList);
+    }
 
-		previousValue = getValue();
-		p.put(getPrefName(), (String)obj);
-		_fireVuePrefEvent();
-	}
+    return panel;
+  }
+
+  /** interface VuePreference */
+  public String getValue() {
+    return Preferences
+      .userNodeForPackage(getPrefRoot())
+      .get(
+        getPrefName(),
+        Preferences
+          .systemNodeForPackage(getPrefRoot())
+          .get(getPrefName(), getDefaultValue())
+      );
+  }
+
+  /** interface VuePreference */
+  public void setValue(Object obj) {
+    Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+
+    previousValue = getValue();
+    p.put(getPrefName(), (String) obj);
+    _fireVuePrefEvent();
+  }
 }

@@ -67,196 +67,190 @@ import org.okip.service.filing.api.*;
  * @version $Name: not supported by cvs2svn $ / $Revision: 1.1 $ / $Date: 2003-04-14 20:48:28 $
  */
 
-class RfsOutputStream
-    implements OkiOutputStream
-{
-    private RfsFactory factory = null;
-    private String idStr = null;
-    private boolean append = false;
-    private int bufferSize;
-    private int bufferPos = 0;
-    private RfsOutputBuffer out = null;
-    private RfsEntryCache watchingCache = null;
+class RfsOutputStream implements OkiOutputStream {
 
-    protected RfsOutputStream(RfsFactory factory, String idStr, RfsEntryCache cache)
-        throws FilingException
-    {
-        this(factory, idStr, -1, false, cache);
-    }
-    protected RfsOutputStream(RfsFactory factory, String idStr, int bufferSize, boolean append, RfsEntryCache cache)
-        throws FilingException
-    {
-        this.factory = factory;
-        this.idStr = idStr;
-        this.append = append;
-        this.watchingCache = cache;
-        if (bufferSize <= 0)
-            this.bufferSize = factory.getIOBufferSize();
-        else
-            this.bufferSize = bufferSize;
-    }
+  private RfsFactory factory = null;
+  private String idStr = null;
+  private boolean append = false;
+  private int bufferSize;
+  private int bufferPos = 0;
+  private RfsOutputBuffer out = null;
+  private RfsEntryCache watchingCache = null;
 
-    private RfsOutputBuffer getOutputBuffer()
-        throws FilingException
-    {
-        if (this.out == null)
-            this.out = new RfsOutputBuffer(factory, idStr, bufferSize, append, watchingCache);
-        return this.out;
-    }
-    
-    private byte[] getBuffer()
-        throws FilingException
-    {
-        return getOutputBuffer().getBuffer();
-    }
+  protected RfsOutputStream(
+    RfsFactory factory,
+    String idStr,
+    RfsEntryCache cache
+  ) throws FilingException {
+    this(factory, idStr, -1, false, cache);
+  }
 
-    /**
-     * Writes b.length bytes to this IO Object.
-     */
-    public void write(byte[] b)
-        throws FilingException
-    {
-        write(b, 0, b.length);
-    }
-    
-    /*
-     * Write the given data buffer straight through
-     * without touching our internal buffer.
-     */
-    protected void writeThrough(byte[] data, int off, int len)
-        throws FilingException
-    {
-        if (len <= 0) 
-            return;
-        DataBlock dataBlock = new DataBlock(data, off, len);
-        writeThrough(dataBlock);
-        dataBlock.buf = null;
-    }
-    protected void writeThrough(DataBlock dataBlock)
-        throws FilingException
-    {
-        flush();
-        getOutputBuffer().writeThrough(dataBlock);
-    }
+  protected RfsOutputStream(
+    RfsFactory factory,
+    String idStr,
+    int bufferSize,
+    boolean append,
+    RfsEntryCache cache
+  ) throws FilingException {
+    this.factory = factory;
+    this.idStr = idStr;
+    this.append = append;
+    this.watchingCache = cache;
+    if (bufferSize <= 0) this.bufferSize =
+      factory.getIOBufferSize(); else this.bufferSize = bufferSize;
+  }
 
-    /**
-     * Writes len bytes from the specified byte array starting at
-     * offset off to this IO Object.
-     */
-    public void write(byte[] data, int off, int len)
-        throws FilingException
-    {
-        try {
-            int toSend = len;
-            int dataIndex = off;
-            int roomLeft;
-            /*
-             * Keep filling & flushing our buffer until we've
-             * processed all the data we've been asked to send.
-             */
-            while (toSend > 0) {
-                if (this.bufferPos == 0 && toSend >= this.bufferSize) {
-                    /* Don't bother doing the arraycopy if we're at
-                     * the start of a buffer (nothing to flush) and would need to
-                     * immediately flush the buffer -- just deliver right
-                     * from the user buffer.
-                     */
-                    writeThrough(data, dataIndex, this.bufferSize);
-                    dataIndex += this.bufferSize;
-                    toSend -= this.bufferSize;
-                } else if (toSend >= (roomLeft = this.bufferSize - this.bufferPos)) {
-                    /*
-                     * We're going to exceed our remaining buffer space -- fill it, flush it,
-                     * and come back around for more.
-                     */
-                    System.arraycopy(data, dataIndex, getBuffer(), this.bufferPos, roomLeft);
-                    dataIndex += roomLeft;
-                    toSend -= roomLeft;
-                    this.bufferPos += roomLeft;
-                    flush();
-                } else {
-                    /*
-                     * There isn't enough data left to fill our buffer --
-                     * copy data into our buffer and return.
-                     */
-                    System.arraycopy(data, dataIndex, getBuffer(), this.bufferPos, toSend);
-                    this.bufferPos += toSend;
-                    toSend = 0;
-                }
-            }
-        } catch (FilingException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new FilingException(e);
+  private RfsOutputBuffer getOutputBuffer() throws FilingException {
+    if (this.out == null) this.out =
+      new RfsOutputBuffer(factory, idStr, bufferSize, append, watchingCache);
+    return this.out;
+  }
+
+  private byte[] getBuffer() throws FilingException {
+    return getOutputBuffer().getBuffer();
+  }
+
+  /**
+   * Writes b.length bytes to this IO Object.
+   */
+  public void write(byte[] b) throws FilingException {
+    write(b, 0, b.length);
+  }
+
+  /*
+   * Write the given data buffer straight through
+   * without touching our internal buffer.
+   */
+  protected void writeThrough(byte[] data, int off, int len)
+    throws FilingException {
+    if (len <= 0) return;
+    DataBlock dataBlock = new DataBlock(data, off, len);
+    writeThrough(dataBlock);
+    dataBlock.buf = null;
+  }
+
+  protected void writeThrough(DataBlock dataBlock) throws FilingException {
+    flush();
+    getOutputBuffer().writeThrough(dataBlock);
+  }
+
+  /**
+   * Writes len bytes from the specified byte array starting at
+   * offset off to this IO Object.
+   */
+  public void write(byte[] data, int off, int len) throws FilingException {
+    try {
+      int toSend = len;
+      int dataIndex = off;
+      int roomLeft;
+      /*
+       * Keep filling & flushing our buffer until we've
+       * processed all the data we've been asked to send.
+       */
+      while (toSend > 0) {
+        if (this.bufferPos == 0 && toSend >= this.bufferSize) {
+          /* Don't bother doing the arraycopy if we're at
+           * the start of a buffer (nothing to flush) and would need to
+           * immediately flush the buffer -- just deliver right
+           * from the user buffer.
+           */
+          writeThrough(data, dataIndex, this.bufferSize);
+          dataIndex += this.bufferSize;
+          toSend -= this.bufferSize;
+        } else if (toSend >= (roomLeft = this.bufferSize - this.bufferPos)) {
+          /*
+           * We're going to exceed our remaining buffer space -- fill it, flush it,
+           * and come back around for more.
+           */
+          System.arraycopy(
+            data,
+            dataIndex,
+            getBuffer(),
+            this.bufferPos,
+            roomLeft
+          );
+          dataIndex += roomLeft;
+          toSend -= roomLeft;
+          this.bufferPos += roomLeft;
+          flush();
+        } else {
+          /*
+           * There isn't enough data left to fill our buffer --
+           * copy data into our buffer and return.
+           */
+          System.arraycopy(
+            data,
+            dataIndex,
+            getBuffer(),
+            this.bufferPos,
+            toSend
+          );
+          this.bufferPos += toSend;
+          toSend = 0;
         }
+      }
+    } catch (FilingException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new FilingException(e);
     }
+  }
 
+  /**
+   * Writes the specified byte to this IO Object.
+   */
+  public void write(int b) throws FilingException {
+    byte[] buffer = getBuffer();
+    buffer[this.bufferPos++] = (byte) b;
+    if (this.bufferPos == buffer.length) flush();
+  }
 
-    /**
-     * Writes the specified byte to this IO Object.
-     */
-    public void write(int b)
-        throws FilingException
-    {
-        byte[] buffer = getBuffer();
-        buffer[this.bufferPos++] = (byte) b;
-        if (this.bufferPos == buffer.length)
-            flush();
+  /**
+   * Flushes this IO Object and forces any buffered output bytes
+   * to be written out to the stream.
+   */
+  public void flush() throws FilingException {
+    if (this.out != null && this.bufferPos > 0) {
+      this.out.writeBuffer(this.bufferPos);
+      this.bufferPos = 0;
     }
+  }
 
-    /**
-     * Flushes this IO Object and forces any buffered output bytes
-     * to be written out to the stream.
-     */
-    public void flush()
-        throws FilingException
-    {
-        if (this.out != null && this.bufferPos > 0) {
-            this.out.writeBuffer(this.bufferPos);
-            this.bufferPos = 0;
-        }
+  /**
+   * Closes this IO Object and releases any system resources
+   * associated with the IO Object.
+   */
+  public void close() throws FilingException {
+    flush();
+    if (this.out != null) {
+      this.out.closeBufferStream();
+      this.out = null;
     }
+  }
 
-    /**
-     * Closes this IO Object and releases any system resources
-     * associated with the IO Object.
-     */
-    public void close()
-        throws FilingException
-    {
-        flush();
-        if (this.out != null) {
-            this.out.closeBufferStream();
-            this.out = null;
-        }
-    }
+  public void finalize() throws FilingException {
+    close();
+  }
 
-    public void finalize()
-        throws FilingException
-    {
-        close();
-    }
-    
-    /**
-     * Return OutputStream in native environment which can be used to
-     * access this ByteStore.  In Java, this is a java.io.OutputStream
-     * object.  From this one may obtain a Writer via OutputStreamReader.
-     *
-     * @return A java.io.OutputStream object which may be used to write to this
-     * ByteStore.
-     *
-     * @throws FilingPermissionDeniedException - if Factory Owner
-     * does not have permission to write to this ByteStore.
-     * @throws FilingIOException - if an IO error occurs.
-     */
-    public java.io.OutputStream getNativeOutputStream()
-        throws FilingException
-    {
-        return new org.okip.service.filing.api.JavaOutputStreamAdapter(this);
-    }
+  /**
+   * Return OutputStream in native environment which can be used to
+   * access this ByteStore.  In Java, this is a java.io.OutputStream
+   * object.  From this one may obtain a Writer via OutputStreamReader.
+   *
+   * @return A java.io.OutputStream object which may be used to write to this
+   * ByteStore.
+   *
+   * @throws FilingPermissionDeniedException - if Factory Owner
+   * does not have permission to write to this ByteStore.
+   * @throws FilingIOException - if an IO error occurs.
+   */
+  public java.io.OutputStream getNativeOutputStream() throws FilingException {
+    return new org.okip.service.filing.api.JavaOutputStreamAdapter(this);
+  }
 
-    public String toString()
-    {
-        return "RfsOutputStream[" + idStr + "] len=" + bufferSize + " pos="+bufferPos;
-    }
+  public String toString() {
+    return (
+      "RfsOutputStream[" + idStr + "] len=" + bufferSize + " pos=" + bufferPos
+    );
+  }
 }

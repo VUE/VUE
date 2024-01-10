@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -16,96 +16,86 @@
 package edu.tufts.osidimpl.repository.localfiles;
 
 public class CreatedTimePartStructure
-implements org.osid.repository.PartStructure
-{
-    private org.osid.shared.Id createdTimerPartStructureId = null;
-    private org.osid.shared.Type type = new Type("mit.edu","partStructure","createdTime","Created Time");
-    private String displayName = "Created Time";
-    private String description = "Time the entity was created.";
-    private boolean mandatory = false;
-    private boolean populatedByRepository = true;
-    private boolean repeatable = false;
-	private static CreatedTimePartStructure createdTimePartStructure = new CreatedTimePartStructure();
-	
-	protected static CreatedTimePartStructure getInstance()
-	{
-		return createdTimePartStructure;
-	}
-	
-    public String getDisplayName()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.displayName;
-    }
+  implements org.osid.repository.PartStructure {
 
-    public String getDescription()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.description;
-    }
+  private org.osid.shared.Id createdTimerPartStructureId = null;
+  private org.osid.shared.Type type = new Type(
+    "mit.edu",
+    "partStructure",
+    "createdTime",
+    "Created Time"
+  );
+  private String displayName = "Created Time";
+  private String description = "Time the entity was created.";
+  private boolean mandatory = false;
+  private boolean populatedByRepository = true;
+  private boolean repeatable = false;
+  private static CreatedTimePartStructure createdTimePartStructure =
+    new CreatedTimePartStructure();
 
-    public boolean isMandatory()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.mandatory;
-    }
+  protected static CreatedTimePartStructure getInstance() {
+    return createdTimePartStructure;
+  }
 
-    public boolean isPopulatedByRepository()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.populatedByRepository;
-    }
+  public String getDisplayName()
+    throws org.osid.repository.RepositoryException {
+    return this.displayName;
+  }
 
-    public boolean isRepeatable()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.repeatable;
-    }
+  public String getDescription()
+    throws org.osid.repository.RepositoryException {
+    return this.description;
+  }
 
-    protected CreatedTimePartStructure()
-    {
-        try
-        {
-            this.createdTimerPartStructureId = Utilities.getIdManager().getId("CreatedTimePartStructureId");
-        }
-        catch (Throwable t)
-        {
-        }        
-    }
+  public boolean isMandatory() throws org.osid.repository.RepositoryException {
+    return this.mandatory;
+  }
 
-    public void updateDisplayName(String displayName)
-    throws org.osid.repository.RepositoryException
-    {
-        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
-    }
+  public boolean isPopulatedByRepository()
+    throws org.osid.repository.RepositoryException {
+    return this.populatedByRepository;
+  }
 
-    public org.osid.shared.Id getId()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.createdTimerPartStructureId;
-    }
+  public boolean isRepeatable() throws org.osid.repository.RepositoryException {
+    return this.repeatable;
+  }
 
-    public org.osid.shared.Type getType()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.type;
-    }
+  protected CreatedTimePartStructure() {
+    try {
+      this.createdTimerPartStructureId =
+        Utilities.getIdManager().getId("CreatedTimePartStructureId");
+    } catch (Throwable t) {}
+  }
 
-    public org.osid.repository.RecordStructure getRecordStructure()
-    throws org.osid.repository.RepositoryException
-    {
-        return RecordStructure.getInstance();
-    }
+  public void updateDisplayName(String displayName)
+    throws org.osid.repository.RepositoryException {
+    throw new org.osid.repository.RepositoryException(
+      org.osid.OsidException.UNIMPLEMENTED
+    );
+  }
 
-    public boolean validatePart(org.osid.repository.Part part)
-    throws org.osid.repository.RepositoryException
-    {
-        return true;
-    }
+  public org.osid.shared.Id getId()
+    throws org.osid.repository.RepositoryException {
+    return this.createdTimerPartStructureId;
+  }
 
-    public org.osid.repository.PartStructureIterator getPartStructures()
-    throws org.osid.repository.RepositoryException
-    {
-        return new PartStructureIterator(new java.util.Vector());
-    }
+  public org.osid.shared.Type getType()
+    throws org.osid.repository.RepositoryException {
+    return this.type;
+  }
+
+  public org.osid.repository.RecordStructure getRecordStructure()
+    throws org.osid.repository.RepositoryException {
+    return RecordStructure.getInstance();
+  }
+
+  public boolean validatePart(org.osid.repository.Part part)
+    throws org.osid.repository.RepositoryException {
+    return true;
+  }
+
+  public org.osid.repository.PartStructureIterator getPartStructures()
+    throws org.osid.repository.RepositoryException {
+    return new PartStructureIterator(new java.util.Vector());
+  }
 }

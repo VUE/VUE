@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -28,12 +28,14 @@ Repository OSID Assets may be present in VUE maps or other constructs.  Since th
  no longer available or because the user has insufficient permission.
  */
 
-public interface AssetResolver
-{
-	public AssetReference getAssetReference(org.osid.shared.Id assetId,
-											org.osid.shared.Id repositoryId);
+public interface AssetResolver {
+  public AssetReference getAssetReference(
+    org.osid.shared.Id assetId,
+    org.osid.shared.Id repositoryId
+  );
 
-	public org.osid.repository.Asset getAsset(String osidLoadKey,
-											  String assetIdString)
-		throws org.osid.repository.RepositoryException;
+  public org.osid.repository.Asset getAsset(
+    String osidLoadKey,
+    String assetIdString
+  ) throws org.osid.repository.RepositoryException;
 }

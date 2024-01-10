@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -20,91 +20,95 @@
 
 package tufts.vue;
 
+import java.awt.*;
+import java.awt.event.*;
 /**
  * @version $Revision: 1.5 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
-import java.awt.event.*;
 import javax.swing.event.*;
-import java.awt.*;
 
-public class EditLibraryDialog extends JDialog implements java.awt.event.ActionListener {
+public class EditLibraryDialog
+  extends JDialog
+  implements java.awt.event.ActionListener {
 
-	JPanel editLibraryPanel = new JPanel();
+  JPanel editLibraryPanel = new JPanel();
 
-	JPanel buttonPanel = new JPanel();
-	JButton okButton = new JButton(VueResources.getString("button.ok.label"));
+  JPanel buttonPanel = new JPanel();
+  JButton okButton = new JButton(VueResources.getString("button.ok.label"));
 
-	java.awt.GridBagConstraints gbConstraints;
+  java.awt.GridBagConstraints gbConstraints;
 
-	public EditLibraryDialog() {
-		super(VUE.getDialogParentAsFrame(), "EDIT LIBRARY", true);
-		try {
-			editLibraryPanel.setBackground(VueResources.getColor("White"));
-			setBackground(VueResources.getColor("White"));
+  public EditLibraryDialog() {
+    super(VUE.getDialogParentAsFrame(), "EDIT LIBRARY", true);
+    try {
+      editLibraryPanel.setBackground(VueResources.getColor("White"));
+      setBackground(VueResources.getColor("White"));
 
-			java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
-			gbConstraints = new java.awt.GridBagConstraints();
-			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
-			gbConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-			editLibraryPanel.setLayout(gbLayout);
+      java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+      gbConstraints = new java.awt.GridBagConstraints();
+      gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+      gbConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+      editLibraryPanel.setLayout(gbLayout);
 
-			makePanel();
+      makePanel();
 
-			okButton.addActionListener(this);
-			buttonPanel.add(okButton);
-			okButton.setBackground(VueResources.getColor("Orange")); // TODO: Why is this BLUE??
+      okButton.addActionListener(this);
+      buttonPanel.add(okButton);
+      okButton.setBackground(VueResources.getColor("Orange")); // TODO: Why is this BLUE??
 
-			// populate();
+      // populate();
 
-			getContentPane().add(editLibraryPanel, BorderLayout.CENTER);
-			pack();
-			setLocation(300, 300);
-			setSize(new Dimension(480, 300));
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-		setVisible(true);
-	}
+      getContentPane().add(editLibraryPanel, BorderLayout.CENTER);
+      pack();
+      setLocation(300, 300);
+      setSize(new Dimension(480, 300));
+    } catch (Throwable t) {
+      t.printStackTrace();
+    }
+    setVisible(true);
+  }
 
-	private void makePanel() {
-		try {
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 0;
-			editLibraryPanel.add(new JLabel(VueResources.getString("jlabel.underconstruction")), gbConstraints);
+  private void makePanel() {
+    try {
+      gbConstraints.gridx = 0;
+      gbConstraints.gridy = 0;
+      editLibraryPanel.add(
+        new JLabel(VueResources.getString("jlabel.underconstruction")),
+        gbConstraints
+      );
 
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 1;
-			editLibraryPanel.add(buttonPanel, gbConstraints);
-			getRootPane().setDefaultButton(okButton);
+      gbConstraints.gridx = 0;
+      gbConstraints.gridy = 1;
+      editLibraryPanel.add(buttonPanel, gbConstraints);
+      getRootPane().setDefaultButton(okButton);
+    } catch (Throwable t) {
+      t.printStackTrace();
+    }
+  }
 
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
+  public void update(int check) {
+    try {
+      getContentPane().remove(editLibraryPanel);
+      getContentPane().add(editLibraryPanel, BorderLayout.CENTER);
+      getContentPane().repaint();
+      getContentPane().validate();
+      pack();
+      setVisible(true);
+      super.setVisible(true);
+    } catch (Throwable t) {
+      t.printStackTrace();
+    }
+  }
 
-	public void update(int check) {
-		try {
-			getContentPane().remove(editLibraryPanel);
-			getContentPane().add(editLibraryPanel, BorderLayout.CENTER);
-			getContentPane().repaint();
-			getContentPane().validate();
-			pack();
-			setVisible(true);
-			super.setVisible(true);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
+  public void actionPerformed(java.awt.event.ActionEvent ae) {
+    if (ae.getActionCommand().equals("OK")) {
+      setVisible(false);
+    }
+  }
 
-	public void actionPerformed(java.awt.event.ActionEvent ae) {
-		if (ae.getActionCommand().equals("OK")) {
-			setVisible(false);
-		}
-	}
-
-	public String toString() {
-		return "EditLibraryDialog";
-	}
+  public String toString() {
+    return "EditLibraryDialog";
+  }
 }

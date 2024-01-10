@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -22,48 +22,42 @@ package tufts.vue;
  */
 
 public class MapViewerEvent extends EventRaiser<java.awt.Component> {
-    public static final int DISPLAYED = 1;
-    public static final int HIDDEN = 2;
-    public static final int PAN = 4;
-    public static final int ZOOM = 8;
-    public static final int FOCUSED = 16;
 
-    public final int id;
+  public static final int DISPLAYED = 1;
+  public static final int HIDDEN = 2;
+  public static final int PAN = 4;
+  public static final int ZOOM = 8;
+  public static final int FOCUSED = 16;
 
-    public MapViewerEvent(MapViewer mapViewer, int id) {
-        super(mapViewer, MapViewer.Listener.class);
-        this.id = id;
-    }
+  public final int id;
 
-    public int getID() {
-        return id;
-    }
+  public MapViewerEvent(MapViewer mapViewer, int id) {
+    super(mapViewer, MapViewer.Listener.class);
+    this.id = id;
+  }
 
-    public MapViewer getMapViewer() {
-        return (MapViewer) getSource();
-    }
+  public int getID() {
+    return id;
+  }
 
-    public boolean isActivationEvent() {
-        return (id & (DISPLAYED | FOCUSED)) != 0;
-    }
+  public MapViewer getMapViewer() {
+    return (MapViewer) getSource();
+  }
 
-    public void dispatch(java.awt.Component listener) {
-        ((MapViewer.Listener) listener).mapViewerEventRaised(this);
-    }
+  public boolean isActivationEvent() {
+    return (id & (DISPLAYED | FOCUSED)) != 0;
+  }
 
-    public String toString() {
-        String name = null;
-        if (id == DISPLAYED)
-            name = "DISPLAYED";
-        else if (id == HIDDEN)
-            name = "HIDDEN   ";
-        else if (id == PAN)
-            name = "PAN      ";
-        else if (id == ZOOM)
-            name = "ZOOM     ";
-        else if (id == FOCUSED)
-            name = "FOCUSED  ";
-        return "MapViewerEvent[" + name + " " + getSource() + "]";
-    }
+  public void dispatch(java.awt.Component listener) {
+    ((MapViewer.Listener) listener).mapViewerEventRaised(this);
+  }
 
+  public String toString() {
+    String name = null;
+    if (id == DISPLAYED) name = "DISPLAYED"; else if (id == HIDDEN) name =
+      "HIDDEN   "; else if (id == PAN) name = "PAN      "; else if (
+      id == ZOOM
+    ) name = "ZOOM     "; else if (id == FOCUSED) name = "FOCUSED  ";
+    return "MapViewerEvent[" + name + " " + getSource() + "]";
+  }
 }

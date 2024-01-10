@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -15,12 +15,10 @@
 
 package edu.tufts.vue.preferences.ui.tree;
 
+import edu.tufts.vue.preferences.interfaces.VuePreference;
 import java.util.prefs.BackingStoreException;
-
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
-
-import edu.tufts.vue.preferences.interfaces.VuePreference;
 
 /**
  * @author Mike Korcynski
@@ -28,39 +26,36 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
  */
 public class PrefTreeNode extends DefaultMutableTreeNode {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	String pref;
+  String pref;
 
-	String nodeName;
+  String nodeName;
 
-	VuePreference vuePref;
+  VuePreference vuePref;
 
-	public PrefTreeNode(VuePreference pref) throws BackingStoreException {
-		this.pref = pref.getTitle();
-		this.vuePref = pref;
+  public PrefTreeNode(VuePreference pref) throws BackingStoreException {
+    this.pref = pref.getTitle();
+    this.vuePref = pref;
+  }
 
-	}
+  public VuePreference getPrefObject() {
+    return vuePref;
+  }
 
-	public VuePreference getPrefObject() {
-		return vuePref;
-	}
+  public boolean isLeaf() {
+    return true;
+  }
 
-	public boolean isLeaf() {
-		return true;
-	}
+  public int getChildCount() {
+    return 0;
+  }
 
-	public int getChildCount() {
-		return 0;
-	}
+  public TreeNode getChildAt(int childIndex) {
+    return new DefaultMutableTreeNode(pref);
+  }
 
-	public TreeNode getChildAt(int childIndex) {
-		return new DefaultMutableTreeNode(pref);
-
-	}
-
-	public String toString() {
-
-		return pref;
-	}
+  public String toString() {
+    return pref;
+  }
 }

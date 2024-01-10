@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -22,37 +22,30 @@ package tufts.vue;
  * @author Scott Fraize
  *
  */
-public class UndoableThread extends Thread
-{
-    private Object undoActionMarker;
+public class UndoableThread extends Thread {
 
-    public UndoableThread(String name, UndoManager undoManager) {
-        super("UndoableThread: " + name);
-        setDaemon(true);
-        if (undoManager != null)
-            undoManager.attachThreadToNextMark(this);
-        // it's okay if there was no UndoManger: this happens
-        // during map loading.
-    }
+  private Object undoActionMarker;
 
+  public UndoableThread(String name, UndoManager undoManager) {
+    super("UndoableThread: " + name);
+    setDaemon(true);
+    if (undoManager != null) undoManager.attachThreadToNextMark(this);
+    // it's okay if there was no UndoManger: this happens
+    // during map loading.
+  }
 
-    // called back by undo manager during attach
-    void setMarker(Object o) {
-        this.undoActionMarker = o;
-    }
+  // called back by undo manager during attach
+  void setMarker(Object o) {
+    this.undoActionMarker = o;
+  }
 
-    // called by undo manager
-    Object getMarker() {
-        return this.undoActionMarker;
-    }
+  // called by undo manager
+  Object getMarker() {
+    return this.undoActionMarker;
+  }
 
-    public void start() {
-        if (false && DEBUG.CASTOR)
-            run(); // run synchronously
-        else
-            super.start();
-    }
-        
-
+  public void start() {
+    if (false && DEBUG.CASTOR) run(); // run synchronously
+    else super.start();
+  }
 }
-

@@ -1,13 +1,11 @@
 package tufts.osid.types;
 
-public class VueRecordStructureType
-extends org.osid.shared.Type
-{
-    public VueRecordStructureType()
-    {
-        super ("tufts.edu","recordStructure","vue");
-    }
-/**
+public class VueRecordStructureType extends org.osid.shared.Type {
+
+  public VueRecordStructureType() {
+    super("tufts.edu", "recordStructure", "vue");
+  }
+  /**
 <p>MIT O.K.I&#46; SID Implementation License.
   <p>	<b>Copyright and license statement:</b>
   </p>  <p>	Copyright &copy; 2003 Massachusetts Institute of

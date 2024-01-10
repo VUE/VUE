@@ -3,7 +3,7 @@
  *
  * Created on July 23, 2008, 6:06 PM
  *
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -22,59 +22,58 @@
  * @author akumar03
  */
 package edu.tufts.vue.dataset;
-import java.util.*;
-import java.io.*;
-import tufts.vue.*;
+
 import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
+import java.io.*;
+import java.util.*;
+import tufts.vue.*;
 
+public class FolderDataset extends Dataset {
 
-public class FolderDataset  extends Dataset {
-	 public static String DEFAULT_METADATA_LABEL = "default";
-	    
-    /** Creates a new instance of ListDataset */
-    public FolderDataset() {
+  public static String DEFAULT_METADATA_LABEL = "default";
+
+  /** Creates a new instance of ListDataset */
+  public FolderDataset() {}
+
+  public void loadDataset() throws Exception {}
+
+  public LWMap createMap() throws Exception {
+    Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
+    ArrayList<String> heading = new ArrayList<String>();
+    heading.add("label");
+    heading.add("resource");
+    setHeading(heading);
+    LWMap map = new LWMap(getMapName(fileName));
+    File file = new File(fileName);
+    if (!file.isDirectory()) throw new Exception(
+      "FolderDataset.loadDataset: The file " + fileName + " is not a folder"
+    );
+    File[] children = file.listFiles();
+    List<LWComponent> nodeList = new ArrayList<LWComponent>();
+    for (int i = 0; i < children.length; i++) {
+      String nodeLabel = children[i].getName();
+
+      //               node.setLabel(nodeLabel);
+      String key = ((getHeading() == null) || getHeading().size() < 1)
+        ? DEFAULT_METADATA_LABEL
+        : getHeading().get(1);
+
+      Resource resource = map.getResourceFactory().get(children[i]);
+      LWNode node = new LWNode(nodeLabel);
+      node.setResource(resource);
+
+      VueMetadataElement vm = new VueMetadataElement();
+      vm.setKey(key);
+      vm.setValue(children[i].getAbsolutePath());
+      vm.setType(VueMetadataElement.CATEGORY);
+      node.getMetadataList().addElement(vm);
+
+      node.layout();
+      map.add(node);
+      nodeList.add(node);
     }
-    public  void loadDataset() throws Exception{
-         
-      
-    }
-    
-    
-    public LWMap createMap() throws Exception{
-    	Map<String, LWNode> nodeMap = new HashMap<String, LWNode>();
-    	  ArrayList<String> heading = new ArrayList<String>();
-          heading.add("label");
-          heading.add("resource");
-          setHeading(heading);
-          LWMap map  = new LWMap(getMapName(fileName));
-          File file = new File(fileName);
-          if(!file.isDirectory()) throw new Exception("FolderDataset.loadDataset: The file " + fileName +" is not a folder");
-          File[] children = file.listFiles();
-          List<LWComponent> nodeList = new ArrayList<LWComponent>();
-          for(int i =0;i<children.length;i++) { 
-              String nodeLabel = children[i].getName();
-              
-//               node.setLabel(nodeLabel);
-                  String key = ((getHeading() == null) || getHeading().size() < 1) ? DEFAULT_METADATA_LABEL : getHeading().get(1);
-                  
- 
-                      Resource resource = map.getResourceFactory().get(children[i]);
-                      LWNode node = new LWNode(nodeLabel);
-                      node.setResource(resource);
-                      
-                      
-                      VueMetadataElement vm = new VueMetadataElement();
-                      vm.setKey(key);
-                      vm.setValue(children[i].getAbsolutePath());
-                      vm.setType(VueMetadataElement.CATEGORY);
-                      node.getMetadataList().addElement(vm);
-                      
-                  node.layout();
-                  map.add(node);
-                  nodeList.add(node);
-          }
-          LayoutAction.random.act(new LWSelection(nodeList));
-        return  map;
-    }
+    LayoutAction.random.act(new LWSelection(nodeList));
+    return map;
+  }
 }

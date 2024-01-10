@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -15,203 +15,208 @@
 package tufts.oki.dr.fedora;
 
 public class DigitalRepositoryManager
-implements osid.dr.DigitalRepositoryManager
-{
-    private osid.OsidOwner owner = null;
-    private java.util.Map configuration = null;
+  implements osid.dr.DigitalRepositoryManager {
 
-    public osid.OsidOwner getOwner()
-    throws osid.dr.DigitalRepositoryException
-    {
-        return this.owner;
+  private osid.OsidOwner owner = null;
+  private java.util.Map configuration = null;
+
+  public osid.OsidOwner getOwner() throws osid.dr.DigitalRepositoryException {
+    return this.owner;
+  }
+
+  public void updateOwner(osid.OsidOwner owner)
+    throws osid.dr.DigitalRepositoryException {
+    this.owner = owner;
+  }
+
+  public void updateConfiguration(java.util.Map configuration)
+    throws osid.dr.DigitalRepositoryException {
+    this.configuration = configuration;
+  }
+
+  public osid.dr.DigitalRepository createDigitalRepository(
+    String displayName,
+    String description,
+    osid.shared.Type drType
+  ) throws osid.dr.DigitalRepositoryException {
+    if ((displayName == null) || (description == null) || (drType == null)) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
+    }
+    throw new osid.dr.DigitalRepositoryException(
+      osid.OsidException.UNIMPLEMENTED
+    );
+  }
+
+  public void deleteDigitalRepository(osid.shared.Id drId)
+    throws osid.dr.DigitalRepositoryException {
+    if (drId == null) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
+    }
+    throw new osid.dr.DigitalRepositoryException(
+      osid.OsidException.UNIMPLEMENTED
+    );
+  }
+
+  public osid.dr.DigitalRepositoryIterator getDigitalRepositories()
+    throws osid.dr.DigitalRepositoryException {
+    java.util.Vector result = new java.util.Vector();
+
+    try {
+      result.addElement(
+        new DR(
+          "fedora.conf",
+          "",
+          "Tufts Digital Library",
+          "",
+          new java.net.URL("http", "snowflake.lib.tufts.edu", 8080, "fedora/"),
+          "test",
+          "test"
+        )
+      );
+    } catch (Throwable t) {}
+    // insert code here to add elements to result vector
+    return new DigitalRepositoryIterator(result);
+  }
+
+  public osid.dr.DigitalRepositoryIterator getDigitalRepositoriesByType(
+    osid.shared.Type drType
+  ) throws osid.dr.DigitalRepositoryException {
+    if (drType == null) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
+    }
+    java.util.Vector result = new java.util.Vector();
+    // insert code here to add elements to result vector
+    return new DigitalRepositoryIterator(result);
+  }
+
+  public osid.dr.DigitalRepository getDigitalRepository(osid.shared.Id drId)
+    throws osid.dr.DigitalRepositoryException {
+    if (drId == null) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
     }
 
-    public void updateOwner(osid.OsidOwner owner)
-    throws osid.dr.DigitalRepositoryException
-    {
-        this.owner = owner;
+    throw new osid.dr.DigitalRepositoryException(
+      osid.OsidException.UNIMPLEMENTED
+    );
+  }
+
+  public osid.dr.Asset getAsset(osid.shared.Id assetId)
+    throws osid.dr.DigitalRepositoryException {
+    if (assetId == null) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
     }
 
-    public void updateConfiguration(java.util.Map configuration)
-    throws osid.dr.DigitalRepositoryException
-    {
-        this.configuration = configuration;
+    throw new osid.dr.DigitalRepositoryException(
+      osid.OsidException.UNIMPLEMENTED
+    );
+  }
+
+  public osid.dr.Asset getAssetByDate(
+    osid.shared.Id assetId,
+    java.util.Calendar date
+  ) throws osid.dr.DigitalRepositoryException {
+    if (assetId == null) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
     }
 
-    public osid.dr.DigitalRepository createDigitalRepository(String displayName
-                                                           , String description
-                                                           , osid.shared.Type drType)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if ( (displayName == null) || (description == null) || (drType == null) )
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-        throw new osid.dr.DigitalRepositoryException(osid.OsidException.UNIMPLEMENTED);
+    throw new osid.dr.DigitalRepositoryException(
+      osid.OsidException.UNIMPLEMENTED
+    );
+  }
+
+  public osid.shared.CalendarIterator getAssetDates(osid.shared.Id assetId)
+    throws osid.dr.DigitalRepositoryException {
+    if (assetId == null) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
     }
 
-    public void deleteDigitalRepository(osid.shared.Id drId)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if (drId == null)
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-        throw new osid.dr.DigitalRepositoryException(osid.OsidException.UNIMPLEMENTED);
+    java.util.Vector result = new java.util.Vector();
+    // insert code here to add elements to result vector
+    try {
+      return new CalendarIterator(result);
+    } catch (osid.OsidException oex) {
+      System.out.println(oex.getMessage());
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.OPERATION_FAILED
+      );
+    }
+  }
+
+  public osid.dr.AssetIterator getAssets(
+    osid.dr.DigitalRepository[] repositories,
+    java.io.Serializable searchCriteria,
+    osid.shared.Type searchType
+  ) throws osid.dr.DigitalRepositoryException {
+    if ((repositories == null) || (searchCriteria == null)) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
     }
 
-    public osid.dr.DigitalRepositoryIterator getDigitalRepositories()
-    throws osid.dr.DigitalRepositoryException
-    {
-        java.util.Vector result = new java.util.Vector();
-        
-        try
-        {
-            result.addElement(new DR("fedora.conf",
-                                     "",
-                                     "Tufts Digital Library",
-                                     "",
-                                     new java.net.URL("http","snowflake.lib.tufts.edu",8080,"fedora/"),
-                                     "test",
-                                     "test"));
+    // just call get assets on each dr
+    java.util.Vector result = new java.util.Vector();
+    try {
+      for (int i = 0, length = repositories.length; i < length; i++) {
+        osid.dr.AssetIterator assetIterator =
+          repositories[i].getAssetsBySearch(searchCriteria, searchType);
+        while (assetIterator.hasNext()) {
+          result.addElement(assetIterator.next());
         }
-        catch (Throwable t) {}
-        // insert code here to add elements to result vector
-        return new DigitalRepositoryIterator(result);
+      }
+    } catch (Exception ex) {
+      System.out.println(ex.getMessage());
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.OPERATION_FAILED
+      );
+    }
+    return new AssetIterator(result);
+  }
+
+  public osid.shared.Id copyAsset(
+    osid.dr.DigitalRepository dr,
+    osid.shared.Id assetId
+  ) throws osid.dr.DigitalRepositoryException {
+    if ((dr == null) || (assetId == null)) {
+      throw new osid.dr.DigitalRepositoryException(
+        osid.dr.DigitalRepositoryException.NULL_ARGUMENT
+      );
     }
 
-    public osid.dr.DigitalRepositoryIterator getDigitalRepositoriesByType(osid.shared.Type drType)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if (drType == null)
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-        java.util.Vector result = new java.util.Vector();
-        // insert code here to add elements to result vector
-        return new DigitalRepositoryIterator(result);
+    throw new osid.dr.DigitalRepositoryException(
+      osid.OsidException.UNIMPLEMENTED
+    );
+  }
+
+  public osid.shared.TypeIterator getDigitalRepositoryTypes()
+    throws osid.dr.DigitalRepositoryException {
+    try {
+      java.util.Vector result = new java.util.Vector();
+      result.addElement(new Type("dr", "tufts.edu", "fedora_image", ""));
+      return new TypeIterator(result);
+    } catch (osid.OsidException oex) {
+      System.out.println(oex.getMessage());
     }
+    throw new osid.dr.DigitalRepositoryException(
+      osid.dr.DigitalRepositoryException.OPERATION_FAILED
+    );
+  }
 
-    public osid.dr.DigitalRepository getDigitalRepository(osid.shared.Id drId)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if (drId == null)
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-
-        throw new osid.dr.DigitalRepositoryException(osid.OsidException.UNIMPLEMENTED);  
-    }
-
-    public osid.dr.Asset getAsset(osid.shared.Id assetId)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if (assetId == null)
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-
-        throw new osid.dr.DigitalRepositoryException(osid.OsidException.UNIMPLEMENTED);  
-    }
-
-    public osid.dr.Asset getAssetByDate(osid.shared.Id assetId
-                                      , java.util.Calendar date)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if (assetId == null)
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-
-        throw new osid.dr.DigitalRepositoryException(osid.OsidException.UNIMPLEMENTED);  
-    }
-
-    public osid.shared.CalendarIterator getAssetDates(osid.shared.Id assetId)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if (assetId == null)
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-
-        java.util.Vector result = new java.util.Vector();
-        // insert code here to add elements to result vector
-        try
-        {
-            return new CalendarIterator(result);
-        }
-        catch(osid.OsidException oex)
-        {
-            System.out.println(oex.getMessage());
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.OPERATION_FAILED);
-        }
-    }
-
-    public osid.dr.AssetIterator getAssets(osid.dr.DigitalRepository[] repositories
-                                        , java.io.Serializable searchCriteria
-                                        , osid.shared.Type searchType)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if ( (repositories == null) || (searchCriteria == null) )
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-
-        // just call get assets on each dr
-        java.util.Vector result = new java.util.Vector();    
-        try
-        {
-            for (int i=0, length = repositories.length; i < length; i++)
-            {
-                osid.dr.AssetIterator assetIterator = 
-                    repositories[i].getAssetsBySearch(searchCriteria,searchType);
-                while (assetIterator.hasNext())
-                {
-                    result.addElement(assetIterator.next());
-                }
-            }
-        }
-        catch(Exception ex)
-        {
-            System.out.println(ex.getMessage());
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.OPERATION_FAILED);
-        }
-        return new AssetIterator(result);
-    }
-
-    public osid.shared.Id copyAsset(osid.dr.DigitalRepository dr
-                                  , osid.shared.Id assetId)
-    throws osid.dr.DigitalRepositoryException
-    {
-        if ( (dr == null) || (assetId == null) )
-        {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
-        }
-
-        throw new osid.dr.DigitalRepositoryException(osid.OsidException.UNIMPLEMENTED);
-    }
-
-    public osid.shared.TypeIterator getDigitalRepositoryTypes()
-    throws osid.dr.DigitalRepositoryException
-    {
-        try
-        {
-            java.util.Vector result = new java.util.Vector();
-            result.addElement(new Type("dr","tufts.edu","fedora_image",""));
-            return new TypeIterator(result);
-        }
-        catch (osid.OsidException oex)
-        {
-            System.out.println(oex.getMessage());
-        }
-        throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.OPERATION_FAILED);
-    }
-
-    public void osidVersion_1_0()
-    throws osid.dr.DigitalRepositoryException
-    {
-    }
-/**
+  public void osidVersion_1_0() throws osid.dr.DigitalRepositoryException {}
+  /**
 <p>MIT O.K.I&#46; SID Implementation License.
   <p>	<b>Copyright and license statement:</b>
   </p>  <p>	Copyright &copy; 2003 Massachusetts Institute of

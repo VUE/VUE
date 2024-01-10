@@ -1,11 +1,11 @@
- /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+/*
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -15,8 +15,7 @@
 
 package tufts.vue;
 
-import tufts.vue.gui.*;
-
+import edu.tufts.vue.preferences.implementations.ColorPreference;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -30,12 +29,11 @@ import java.awt.event.ItemListener;
 import java.awt.geom.RectangularShape;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
 import javax.swing.AbstractButton;
-import javax.swing.JLabel;
-import javax.swing.Icon;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JSeparator;
 import javax.swing.ListCellRenderer;
@@ -43,191 +41,204 @@ import javax.swing.SwingConstants;
 import javax.swing.border.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import edu.tufts.vue.preferences.implementations.ColorPreference;
+import tufts.vue.gui.*;
 
 /**
  * This creates an editor panel for LWNode's
  *
  * @version $Revision: 1.18 $ / $Date: 2010-02-03 19:17:40 $ / $Author: mike $
 < */
- 
-public class FillToolPanel extends ToolPanel implements ComponentListener
-{
-    /** fill button **/
-    //protected ColorMenuButton mFillColorButton;
-    static ColorMenuButton mFillColorButton; // static hack till all the format tool code in once place
-    /** stroke color editor button **/
-    protected ColorMenuButton mStrokeColorButton;
-    private final Color [] fillColors = VueResources.getColorArray("fillColorValues");
+
+public class FillToolPanel extends ToolPanel implements ComponentListener {
+
+  /** fill button **/
+  //protected ColorMenuButton mFillColorButton;
+  static ColorMenuButton mFillColorButton; // static hack till all the format tool code in once place
+  /** stroke color editor button **/
+  protected ColorMenuButton mStrokeColorButton;
+  private final Color[] fillColors = VueResources.getColorArray(
+    "fillColorValues"
+  );
   //   private final String [] fillColorNames = VueResources.getStringArray("fillColorNames");
-     private final Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
-     private final String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
-     private final JLabel fillLabel = new JLabel(VueResources.getString("filltoolpanel.fill"));
-     private final JLabel lineLabel = new JLabel(VueResources.getString("filltoolpanel.line"));
-     private final ColorPreference fillPrefColor = ColorPreference.create(
-				edu.tufts.vue.preferences.PreferenceConstants.FORMATTING_CATEGORY,
-				"fillColor", 
-				"Fill Color", 
-				"Remember Fill Color?",
-				VueResources.getColor("defaultFillColor"),
-				false);
-     
-     private final ColorPreference strokePrefColor = ColorPreference.create(
-				edu.tufts.vue.preferences.PreferenceConstants.FORMATTING_CATEGORY,
-				"strokeColor", 
-				"Stroke Color", 
-				"Remember Stroke Color?",
-				VueResources.getColor("defaultStrokeColor"),
-				false);
-    public FillToolPanel() {
+  private final Color[] strokeColors = VueResources.getColorArray(
+    "strokeColorValues"
+  );
+  private final String[] strokeColorNames = VueResources.getStringArray(
+    "strokeColorNames"
+  );
+  private final JLabel fillLabel = new JLabel(
+    VueResources.getString("filltoolpanel.fill")
+  );
+  private final JLabel lineLabel = new JLabel(
+    VueResources.getString("filltoolpanel.line")
+  );
+  private final ColorPreference fillPrefColor = ColorPreference.create(
+    edu.tufts.vue.preferences.PreferenceConstants.FORMATTING_CATEGORY,
+    "fillColor",
+    "Fill Color",
+    "Remember Fill Color?",
+    VueResources.getColor("defaultFillColor"),
+    false
+  );
 
-        //setBorder(BorderFactory.createLineBorder(Color.red));
-    }
-    
-    public void buildBox()
-    {
-    	 //-------------------------------------------------------
-        // Fill Color menu
-        //-------------------------------------------------------
-        //TODO: need to come back here and move these tooltips into properties. -mikek         
-        mFillColorButton = new ColorMenuButton(fillColors, true);
-        mFillColorButton.setPropertyKey(LWKey.FillColor);
-        //tufts.Util.printStackTrace("LOADING FILL COLOR BUTTON WITH " + tufts.Util.tags(fillPrefColor.getValue()));
-        mFillColorButton.setColor((Color)fillPrefColor.getValue());
-        mFillColorButton.setToolTipText("Fill Color");
-        //mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
-        mFillColorButton.addPropertyChangeListener(new PropertyChangeListener() {	
-                public void propertyChange(PropertyChangeEvent e) {
-                    if (e instanceof LWPropertyChangeEvent)
-                        fillPrefColor.setValue(mFillColorButton.getColor());
-                }        	
-        });
-        //-------------------------------------------------------
-        // Stroke Color menu
-        //-------------------------------------------------------
-        
-        mStrokeColorButton = new ColorMenuButton(strokeColors, true);
-        mStrokeColorButton.setPropertyKey(LWKey.StrokeColor);
-        mStrokeColorButton.setColor((Color)strokePrefColor.getValue());
-        //mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
-        mStrokeColorButton.setToolTipText("Stroke Color");
-        //mStrokeColorButton.addPropertyChangeListener(this);
-        mStrokeColorButton.addPropertyChangeListener(new PropertyChangeListener() {	
-                public void propertyChange(PropertyChangeEvent e) {
-                    if (e instanceof LWPropertyChangeEvent)
-                        strokePrefColor.setValue(mStrokeColorButton.getColor());							
-                }        	
-        });
+  private final ColorPreference strokePrefColor = ColorPreference.create(
+    edu.tufts.vue.preferences.PreferenceConstants.FORMATTING_CATEGORY,
+    "strokeColor",
+    "Stroke Color",
+    "Remember Stroke Color?",
+    VueResources.getColor("defaultStrokeColor"),
+    false
+  );
 
-        lineLabel.addMouseListener(new MouseAdapter() {
-                // double-click on stroke color label swaps in with fill color
-                public void mouseClicked(java.awt.event.MouseEvent e) {
-                    if (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) {
-                        final Color fill = mFillColorButton.getColor();
-                        final Color stroke = mStrokeColorButton.getColor();
-                        mFillColorButton.selectValue(stroke);
-                        mStrokeColorButton.selectValue(fill);
-                        
-                    }
-                }
-            });
-        
-        fillLabel.setLabelFor(mFillColorButton);
- 		fillLabel.setForeground(new Color(51,51,51));
- 		fillLabel.setFont(tufts.vue.VueConstants.SmallFont);
+  public FillToolPanel() {
+    //setBorder(BorderFactory.createLineBorder(Color.red));
+  }
 
- 		lineLabel.setLabelFor(mStrokeColorButton);
- 		lineLabel.setForeground(new Color(51,51,51));
- 		lineLabel.setFont(tufts.vue.VueConstants.SmallFont);
- 		
- 		if (tufts.Util.isMacPlatform())
-    		buildBoxMac();
-    	else
-    		buildBoxWin();
- 		
-    	VUE.getFormatDock().addComponentListener(this);
-    }
-    public void buildBoxWin()
-    {
-  	    GridBagConstraints gbc = new GridBagConstraints();
-     	gbc.insets = new Insets(6,3,0,0);    
-        gbc.gridx = 0;
- 		gbc.gridy = 0;    		
- 		gbc.gridwidth = 1;
- 		//gbc.gridheight=1;
- 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.anchor = GridBagConstraints.EAST;
- 		
- 		
- 		getBox().add(fillLabel,gbc);
-         
-        gbc.gridx = 0;
- 		gbc.gridy = 1;    		
- 		gbc.gridwidth = 1; // next-to-last in row
- 	//	gbc.gridheight=1;
- 		gbc.insets = new Insets(0,3,6,0);
- 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.anchor = GridBagConstraints.EAST;
- 		
-        
- 		getBox().add(lineLabel,gbc);
-         
- 	  	gbc.gridx = 1;
- 	 	gbc.gridy = 0;    				
- 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.insets = new Insets(5,0,0,0);
- 	 			
- 		gbc.anchor = GridBagConstraints.WEST;
- 		getBox().add(mFillColorButton, gbc);
- 	
- 		gbc.gridx = 1;
- 	    gbc.gridy = 1;    				
- 	    gbc.fill = GridBagConstraints.NONE; // the label never grows
- 	    gbc.insets = new Insets(0,0,5,0);
-	    gbc.anchor = GridBagConstraints.WEST;		
- 	    getBox().add(mStrokeColorButton, gbc); 	        	 	         	                                           
-    }
-    public void buildBoxMac()
-    {
-  	   GridBagConstraints gbc = new GridBagConstraints();
-     	gbc.insets = new Insets(3,3,5,3);    
-        gbc.gridx = 0;
- 		gbc.gridy = 0;    		
- 		gbc.gridwidth = 1;
- 		gbc.gridheight=1;
- 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.anchor = GridBagConstraints.NORTHEAST; 		
- 		getBox().add(fillLabel,gbc);
-         
-        gbc.gridx = 0;
- 		gbc.gridy = 1;    		
- 		gbc.gridwidth = 1; // next-to-last in row
- 		gbc.gridheight=1;
- 		gbc.insets = new Insets(8,3,1,3);
- 		gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
- 		gbc.anchor = GridBagConstraints.NORTHEAST; 		        
- 		getBox().add(lineLabel,gbc);
-         
-	  	gbc.gridx = 1;
-	 	gbc.gridy = 0;    				
-		gbc.fill = GridBagConstraints.NONE; // the label never grows
-		gbc.insets = new Insets(1,2,4,3);
-		gbc.anchor = GridBagConstraints.SOUTHWEST;
-   		getBox().add(mFillColorButton, gbc);
+  public void buildBox() {
+    //-------------------------------------------------------
+    // Fill Color menu
+    //-------------------------------------------------------
+    //TODO: need to come back here and move these tooltips into properties. -mikek
+    mFillColorButton = new ColorMenuButton(fillColors, true);
+    mFillColorButton.setPropertyKey(LWKey.FillColor);
+    //tufts.Util.printStackTrace("LOADING FILL COLOR BUTTON WITH " + tufts.Util.tags(fillPrefColor.getValue()));
+    mFillColorButton.setColor((Color) fillPrefColor.getValue());
+    mFillColorButton.setToolTipText("Fill Color");
+    //mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
+    mFillColorButton.addPropertyChangeListener(
+      new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          if (e instanceof LWPropertyChangeEvent) fillPrefColor.setValue(
+            mFillColorButton.getColor()
+          );
+        }
+      }
+    );
+    //-------------------------------------------------------
+    // Stroke Color menu
+    //-------------------------------------------------------
 
-   		gbc.gridx = 1;
- 	    gbc.gridy = 1;    				
- 	    gbc.fill = GridBagConstraints.NONE; // the label never grows
- 	    gbc.insets = new Insets(4,2,1,3);
-	    gbc.anchor = GridBagConstraints.SOUTHWEST;		
- 	    getBox().add(mStrokeColorButton, gbc); 	        	     	                                           
-    }
-    
-    public boolean isPreferredType(Object o) {
-        return o instanceof LWNode;
-    }
-    /*
+    mStrokeColorButton = new ColorMenuButton(strokeColors, true);
+    mStrokeColorButton.setPropertyKey(LWKey.StrokeColor);
+    mStrokeColorButton.setColor((Color) strokePrefColor.getValue());
+    //mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
+    mStrokeColorButton.setToolTipText("Stroke Color");
+    //mStrokeColorButton.addPropertyChangeListener(this);
+    mStrokeColorButton.addPropertyChangeListener(
+      new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+          if (e instanceof LWPropertyChangeEvent) strokePrefColor.setValue(
+            mStrokeColorButton.getColor()
+          );
+        }
+      }
+    );
+
+    lineLabel.addMouseListener(
+      new MouseAdapter() {
+        // double-click on stroke color label swaps in with fill color
+        public void mouseClicked(java.awt.event.MouseEvent e) {
+          if (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) {
+            final Color fill = mFillColorButton.getColor();
+            final Color stroke = mStrokeColorButton.getColor();
+            mFillColorButton.selectValue(stroke);
+            mStrokeColorButton.selectValue(fill);
+          }
+        }
+      }
+    );
+
+    fillLabel.setLabelFor(mFillColorButton);
+    fillLabel.setForeground(new Color(51, 51, 51));
+    fillLabel.setFont(tufts.vue.VueConstants.SmallFont);
+
+    lineLabel.setLabelFor(mStrokeColorButton);
+    lineLabel.setForeground(new Color(51, 51, 51));
+    lineLabel.setFont(tufts.vue.VueConstants.SmallFont);
+
+    if (tufts.Util.isMacPlatform()) buildBoxMac(); else buildBoxWin();
+
+    VUE.getFormatDock().addComponentListener(this);
+  }
+
+  public void buildBoxWin() {
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(6, 3, 0, 0);
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 1;
+    //gbc.gridheight=1;
+    gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
+    gbc.anchor = GridBagConstraints.EAST;
+
+    getBox().add(fillLabel, gbc);
+
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridwidth = 1; // next-to-last in row
+    //	gbc.gridheight=1;
+    gbc.insets = new Insets(0, 3, 6, 0);
+    gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
+    gbc.anchor = GridBagConstraints.EAST;
+
+    getBox().add(lineLabel, gbc);
+
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
+    gbc.insets = new Insets(5, 0, 0, 0);
+
+    gbc.anchor = GridBagConstraints.WEST;
+    getBox().add(mFillColorButton, gbc);
+
+    gbc.gridx = 1;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.NONE; // the label never grows
+    gbc.insets = new Insets(0, 0, 5, 0);
+    gbc.anchor = GridBagConstraints.WEST;
+    getBox().add(mStrokeColorButton, gbc);
+  }
+
+  public void buildBoxMac() {
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(3, 3, 5, 3);
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 1;
+    gbc.gridheight = 1;
+    gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
+    gbc.anchor = GridBagConstraints.NORTHEAST;
+    getBox().add(fillLabel, gbc);
+
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridwidth = 1; // next-to-last in row
+    gbc.gridheight = 1;
+    gbc.insets = new Insets(8, 3, 1, 3);
+    gbc.fill = GridBagConstraints.VERTICAL; // the label never grows
+    gbc.anchor = GridBagConstraints.NORTHEAST;
+    getBox().add(lineLabel, gbc);
+
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.NONE; // the label never grows
+    gbc.insets = new Insets(1, 2, 4, 3);
+    gbc.anchor = GridBagConstraints.SOUTHWEST;
+    getBox().add(mFillColorButton, gbc);
+
+    gbc.gridx = 1;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.NONE; // the label never grows
+    gbc.insets = new Insets(4, 2, 1, 3);
+    gbc.anchor = GridBagConstraints.SOUTHWEST;
+    getBox().add(mStrokeColorButton, gbc);
+  }
+
+  public boolean isPreferredType(Object o) {
+    return o instanceof LWNode;
+  }
+
+  /*
     static class ShapeMenuButton extends VueComboMenu<RectangularShape>
     {
         public ShapeMenuButton() {
@@ -307,11 +318,12 @@ public class FillToolPanel extends ToolPanel implements ComponentListener
         		return this;
         	}
         	/** @return new icon for the given shape */
-            protected Icon makeIcon(Object value) {
-                RectangularShape shape = (RectangularShape) value;
-                return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
-            }
-        	 /* @return new icon for the given shape *
+  protected Icon makeIcon(Object value) {
+    RectangularShape shape = (RectangularShape) value;
+    return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
+  }
+
+  /* @return new icon for the given shape *
           //  protected Icon makeIcon(RectangularShape shape) {
           //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
           //  }
@@ -321,7 +333,7 @@ public class FillToolPanel extends ToolPanel implements ComponentListener
     }
 */
 
-    /*
+  /*
     static class LinkMenuButton extends VueComboMenu<Object>
     {
         public LinkMenuButton() {
@@ -403,34 +415,37 @@ public class FillToolPanel extends ToolPanel implements ComponentListener
   
     */
 
-    
-    public static void main(String[] args) {
-        System.out.println("NodeToolPanel:main");
-        VUE.init(args);
-        LWCToolPanel.debug = true;
-        VueUtil.displayComponent(new NodeToolPanel());
-    }
+  public static void main(String[] args) {
+    System.out.println("NodeToolPanel:main");
+    VUE.init(args);
+    LWCToolPanel.debug = true;
+    VueUtil.displayComponent(new NodeToolPanel());
+  }
 
-	public void componentHidden(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+  public void componentHidden(ComponentEvent arg0) {
+    // TODO Auto-generated method stub
 
-	public void componentMoved(ComponentEvent arg0) {
-		   if ((mFillColorButton != null) && (mFillColorButton.getPopupWindow().isVisible()))
-			   mFillColorButton.getPopupWindow().setVisible(false);
-		   
-		   if ((mStrokeColorButton != null) && (mStrokeColorButton.getPopupWindow().isVisible()))
-			   mStrokeColorButton.getPopupWindow().setVisible(false);		    		    		    		
-	}
+  }
 
-	public void componentResized(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+  public void componentMoved(ComponentEvent arg0) {
+    if (
+      (mFillColorButton != null) &&
+      (mFillColorButton.getPopupWindow().isVisible())
+    ) mFillColorButton.getPopupWindow().setVisible(false);
 
-	public void componentShown(ComponentEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+    if (
+      (mStrokeColorButton != null) &&
+      (mStrokeColorButton.getPopupWindow().isVisible())
+    ) mStrokeColorButton.getPopupWindow().setVisible(false);
+  }
+
+  public void componentResized(ComponentEvent arg0) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public void componentShown(ComponentEvent arg0) {
+    // TODO Auto-generated method stub
+
+  }
 }

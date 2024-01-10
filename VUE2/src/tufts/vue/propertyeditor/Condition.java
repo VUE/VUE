@@ -1,4 +1,5 @@
 package tufts.vue.propertyeditor;
+
 /**
  * Condition.java
  *
@@ -6,133 +7,126 @@ package tufts.vue.propertyeditor;
  * by the Apache Axis 1.3 Oct 05, 2005 (05:23:37 EDT) WSDL2Java emitter.
  */
 
+public class Condition implements java.io.Serializable {
 
-public class Condition  implements java.io.Serializable {
-    private java.lang.String property;
+  private java.lang.String property;
 
-    private ComparisonOperator operator;
+  private ComparisonOperator operator;
 
-    private java.lang.String value;
+  private java.lang.String value;
 
-    public Condition() {
+  public Condition() {}
+
+  public Condition(
+    java.lang.String property,
+    ComparisonOperator operator,
+    java.lang.String value
+  ) {
+    this.property = property;
+    this.operator = operator;
+    this.value = value;
+  }
+
+  /**
+   * Gets the property value for this Condition.
+   *
+   * @return property
+   */
+  public java.lang.String getProperty() {
+    return property;
+  }
+
+  /**
+   * Sets the property value for this Condition.
+   *
+   * @param property
+   */
+  public void setProperty(java.lang.String property) {
+    this.property = property;
+  }
+
+  /**
+   * Gets the operator value for this Condition.
+   *
+   * @return operator
+   */
+  public ComparisonOperator getOperator() {
+    return operator;
+  }
+
+  /**
+   * Sets the operator value for this Condition.
+   *
+   * @param operator
+   */
+  public void setOperator(ComparisonOperator operator) {
+    this.operator = operator;
+  }
+
+  /**
+   * Gets the value value for this Condition.
+   *
+   * @return value
+   */
+  public java.lang.String getValue() {
+    return value;
+  }
+
+  /**
+   * Sets the value value for this Condition.
+   *
+   * @param value
+   */
+  public void setValue(java.lang.String value) {
+    this.value = value;
+  }
+
+  private java.lang.Object __equalsCalc = null;
+
+  public synchronized boolean equals(java.lang.Object obj) {
+    if (!(obj instanceof Condition)) return false;
+    Condition other = (Condition) obj;
+    if (obj == null) return false;
+    if (this == obj) return true;
+    if (__equalsCalc != null) {
+      return (__equalsCalc == obj);
     }
+    __equalsCalc = obj;
+    boolean _equals;
+    _equals =
+      true &&
+      ((this.property == null && other.getProperty() == null) ||
+        (this.property != null && this.property.equals(other.getProperty()))) &&
+      ((this.operator == null && other.getOperator() == null) ||
+        (this.operator != null && this.operator.equals(other.getOperator()))) &&
+      ((this.value == null && other.getValue() == null) ||
+        (this.value != null && this.value.equals(other.getValue())));
+    __equalsCalc = null;
+    return _equals;
+  }
 
-    public Condition(
-           java.lang.String property,
-           ComparisonOperator operator,
-           java.lang.String value) {
-           this.property = property;
-           this.operator = operator;
-           this.value = value;
+  private boolean __hashCodeCalc = false;
+
+  public synchronized int hashCode() {
+    if (__hashCodeCalc) {
+      return 0;
     }
-
-
-    /**
-     * Gets the property value for this Condition.
-     * 
-     * @return property
-     */
-    public java.lang.String getProperty() {
-        return property;
+    __hashCodeCalc = true;
+    int _hashCode = 1;
+    if (getProperty() != null) {
+      _hashCode += getProperty().hashCode();
     }
-
-
-    /**
-     * Sets the property value for this Condition.
-     * 
-     * @param property
-     */
-    public void setProperty(java.lang.String property) {
-        this.property = property;
+    if (getOperator() != null) {
+      _hashCode += getOperator().hashCode();
     }
-
-
-    /**
-     * Gets the operator value for this Condition.
-     * 
-     * @return operator
-     */
-    public ComparisonOperator getOperator() {
-        return operator;
+    if (getValue() != null) {
+      _hashCode += getValue().hashCode();
     }
-
-
-    /**
-     * Sets the operator value for this Condition.
-     * 
-     * @param operator
-     */
-    public void setOperator(ComparisonOperator operator) {
-        this.operator = operator;
-    }
-
-
-    /**
-     * Gets the value value for this Condition.
-     * 
-     * @return value
-     */
-    public java.lang.String getValue() {
-        return value;
-    }
-
-
-    /**
-     * Sets the value value for this Condition.
-     * 
-     * @param value
-     */
-    public void setValue(java.lang.String value) {
-        this.value = value;
-    }
-
-    private java.lang.Object __equalsCalc = null;
-    public synchronized boolean equals(java.lang.Object obj) {
-        if (!(obj instanceof Condition)) return false;
-        Condition other = (Condition) obj;
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (__equalsCalc != null) {
-            return (__equalsCalc == obj);
-        }
-        __equalsCalc = obj;
-        boolean _equals;
-        _equals = true && 
-            ((this.property==null && other.getProperty()==null) || 
-             (this.property!=null &&
-              this.property.equals(other.getProperty()))) &&
-            ((this.operator==null && other.getOperator()==null) || 
-             (this.operator!=null &&
-              this.operator.equals(other.getOperator()))) &&
-            ((this.value==null && other.getValue()==null) || 
-             (this.value!=null &&
-              this.value.equals(other.getValue())));
-        __equalsCalc = null;
-        return _equals;
-    }
-
-    private boolean __hashCodeCalc = false;
-    public synchronized int hashCode() {
-        if (__hashCodeCalc) {
-            return 0;
-        }
-        __hashCodeCalc = true;
-        int _hashCode = 1;
-        if (getProperty() != null) {
-            _hashCode += getProperty().hashCode();
-        }
-        if (getOperator() != null) {
-            _hashCode += getOperator().hashCode();
-        }
-        if (getValue() != null) {
-            _hashCode += getValue().hashCode();
-        }
-        __hashCodeCalc = false;
-        return _hashCode;
-    }
-
-    // Type metadata
-/*    private static org.apache.axis.description.TypeDesc typeDesc =
+    __hashCodeCalc = false;
+    return _hashCode;
+  }
+  // Type metadata
+  /*    private static org.apache.axis.description.TypeDesc typeDesc =
         new org.apache.axis.description.TypeDesc(Condition.class, true);
 
     static {

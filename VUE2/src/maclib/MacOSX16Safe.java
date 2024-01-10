@@ -14,66 +14,72 @@ import com.apple.eawt.ApplicationEvent;
  * class-loading failure.
  */
 public class MacOSX16Safe { // technically, Snow-Leopard safe
-	protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MacOSX.class);
-	protected static boolean DEBUG = false;
 
-	public interface ApplicationListener {
-		public boolean handleOpenFile(String filename);
+  protected static final org.apache.log4j.Logger Log =
+    org.apache.log4j.Logger.getLogger(MacOSX.class);
+  protected static boolean DEBUG = false;
 
-		public boolean handleQuit();
+  public interface ApplicationListener {
+    public boolean handleOpenFile(String filename);
 
-		public boolean handleAbout();
+    public boolean handleQuit();
 
-		public boolean handlePreferences();
-	}
+    public boolean handleAbout();
 
-	public static void registerApplicationListener(final ApplicationListener listener) {
-		final com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
+    public boolean handlePreferences();
+  }
 
-		application.addPreferencesMenuItem();
-		application.setEnabledPreferencesMenu(true);
+  public static void registerApplicationListener(
+    final ApplicationListener listener
+  ) {
+    final com.apple.eawt.Application application =
+      com.apple.eawt.Application.getApplication();
 
-		application.addApplicationListener(new com.apple.eawt.ApplicationListener() {
-			public void handleOpenFile(ApplicationEvent e) {
-				e.setHandled(listener.handleOpenFile(e.getFilename()));
-			}
+    application.addPreferencesMenuItem();
+    application.setEnabledPreferencesMenu(true);
 
-			public void handleQuit(ApplicationEvent e) {
-				// Note: if handled is set to true, Apple code will quit the app when this
-				// returns.
-				e.setHandled(listener.handleQuit());
-			}
+    application.addApplicationListener(
+      new com.apple.eawt.ApplicationListener() {
+        public void handleOpenFile(ApplicationEvent e) {
+          e.setHandled(listener.handleOpenFile(e.getFilename()));
+        }
 
-			public void handleAbout(ApplicationEvent e) {
-				e.setHandled(listener.handleAbout());
-			}
+        public void handleQuit(ApplicationEvent e) {
+          // Note: if handled is set to true, Apple code will quit the app when this
+          // returns.
+          e.setHandled(listener.handleQuit());
+        }
 
-			public void handlePreferences(ApplicationEvent e) {
-				e.setHandled(listener.handlePreferences());
-			}
+        public void handleAbout(ApplicationEvent e) {
+          e.setHandled(listener.handleAbout());
+        }
 
-			public void handleOpenApplication(ApplicationEvent e) {
-				if (DEBUG)
-					out("OSX APPLCATION OPEN " + e);
-			}
+        public void handlePreferences(ApplicationEvent e) {
+          e.setHandled(listener.handlePreferences());
+        }
 
-			public void handleReOpenApplication(ApplicationEvent e) {
-				out("OSX APPLICATION RE-OPEN " + e);
-			}
+        public void handleOpenApplication(ApplicationEvent e) {
+          if (DEBUG) out("OSX APPLCATION OPEN " + e);
+        }
 
-			public void handlePrintFile(ApplicationEvent e) {
-				out("OSX APPLICATION PRINT FILE " + e);
-			}
-		});
-	}
+        public void handleReOpenApplication(ApplicationEvent e) {
+          out("OSX APPLICATION RE-OPEN " + e);
+        }
 
-	protected static void out(String s) {
-		// System.out.println("MacOSX lib: " + s);
-		Log.debug(s);
-	}
+        public void handlePrintFile(ApplicationEvent e) {
+          out("OSX APPLICATION PRINT FILE " + e);
+        }
+      }
+    );
+  }
 
-	protected static void errout(String s) {
-		// System.err.println("MacOSX lib: " + s);
-		Log.warn(s);
-	}
+  protected static void out(String s) {
+    // System.out.println("MacOSX lib: " + s);
+    Log.debug(s);
+  }
+
+  protected static void errout(String s) {
+    // System.err.println("MacOSX lib: " + s);
+    Log.warn(s);
+  }
 }

@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -13,33 +13,29 @@
  * permissions and limitations under the License.
  */
 
-
 package tufts.vue.action;
 
-import tufts.vue.*;
 import edu.tufts.vue.compare.*;
-
+import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-
 import javax.swing.*;
-import java.awt.event.*;
-
+import tufts.vue.*;
 
 public class AnalyzeCM extends VueAction {
-    
-    //private MergeMapsChooser mmc = null;
-    
-    private tufts.vue.gui.DockWindow w = null;
-    
-    /** Creates a new instance of AnalyzeCM */
-    public AnalyzeCM(String label) {
-        super(label);
-    }
-    
-    public void actionPerformed(ActionEvent e) {
-// Functionality moved to MergeMapsChooser Dialog and LWMergeMap 1/26/2007
-/*        try {
+
+  //private MergeMapsChooser mmc = null;
+
+  private tufts.vue.gui.DockWindow w = null;
+
+  /** Creates a new instance of AnalyzeCM */
+  public AnalyzeCM(String label) {
+    super(label);
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    // Functionality moved to MergeMapsChooser Dialog and LWMergeMap 1/26/2007
+    /*        try {
             ArrayList<ConnectivityMatrix> list = new ArrayList();
             LWMap referenceMap = null;
             Iterator<LWMap> i =   VUE.getLeftTabbedPane().getAllMaps();
@@ -83,47 +79,43 @@ public class AnalyzeCM extends VueAction {
         } catch(Exception ex) {
             ex.printStackTrace();
         }*/
-        
-        
-        final int MMC_VERSION = 1;
-        
-        if(MMC_VERSION == 1)
-        {
-          if(w==null)
-          {
-            w = tufts.vue.gui.GUI.createDockWindow(VueResources.getString("dialog.mergemap.title"));
-            w.setLocation(200,200);
-            edu.tufts.vue.compare.ui.MergeMapsControlPanel mmcp = new edu.tufts.vue.compare.ui.MergeMapsControlPanel(w);
-          }
-          else
-            w.setVisible(true);
-        }
-        
-        // if(MMC_VERSION == 0)
-        // {
-        //   tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
-        //   if(w==null)
-        //   {
-        //    mmc = new MergeMapsChooser();
-        //    w = tufts.vue.gui.GUI.createDockWindow(VueResources.getString("dialog.mergemap.title"),mmc);
-        //    MergeMapsChooser.setDockWindow(w); 
-        //    //$
-        //          //MergeMapsChooser.loadDefaultStyle();
-        //          //mmc.refreshSettings();
-        //    //$
-        //   }
-        //   if(!w.isVisible())
-        //   {
-        //     if(!(VUE.getActiveMap() instanceof LWMergeMap))
-        //     MergeMapsChooser.loadDefaultStyle();
-        //     mmc.refreshSettings();
-        //     w.setLocation(200,200);
-        //     w.pack();
-        //     w.setVisible(true);
-        //   } 
-        // }
-                
+
+    final int MMC_VERSION = 1;
+
+    if (MMC_VERSION == 1) {
+      if (w == null) {
+        w =
+          tufts.vue.gui.GUI.createDockWindow(
+            VueResources.getString("dialog.mergemap.title")
+          );
+        w.setLocation(200, 200);
+        edu.tufts.vue.compare.ui.MergeMapsControlPanel mmcp =
+          new edu.tufts.vue.compare.ui.MergeMapsControlPanel(w);
+      } else w.setVisible(true);
     }
-    
-    
+    // if(MMC_VERSION == 0)
+    // {
+    //   tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
+    //   if(w==null)
+    //   {
+    //    mmc = new MergeMapsChooser();
+    //    w = tufts.vue.gui.GUI.createDockWindow(VueResources.getString("dialog.mergemap.title"),mmc);
+    //    MergeMapsChooser.setDockWindow(w);
+    //    //$
+    //          //MergeMapsChooser.loadDefaultStyle();
+    //          //mmc.refreshSettings();
+    //    //$
+    //   }
+    //   if(!w.isVisible())
+    //   {
+    //     if(!(VUE.getActiveMap() instanceof LWMergeMap))
+    //     MergeMapsChooser.loadDefaultStyle();
+    //     mmc.refreshSettings();
+    //     w.setLocation(200,200);
+    //     w.pack();
+    //     w.setVisible(true);
+    //   }
+    // }
+
+  }
 }

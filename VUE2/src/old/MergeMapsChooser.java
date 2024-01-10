@@ -1,12 +1,11 @@
-
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -24,21 +23,13 @@
 
 package tufts.vue;
 
-import edu.tufts.vue.compare.ui.BaseMapChoiceSelector;
-import java.awt.geom.Point2D;
-import tufts.vue.action.ActionUtil;
-import tufts.vue.gui.VueButton;
-import tufts.vue.gui.DockWindow;
-import tufts.vue.gui.VueFileChooser;
-
 import edu.tufts.vue.compare.ConnectivityMatrix;
-import edu.tufts.vue.compare.VoteAggregate;
 import edu.tufts.vue.compare.Util;
+import edu.tufts.vue.compare.VoteAggregate;
 import edu.tufts.vue.compare.WeightAggregate;
+import edu.tufts.vue.compare.ui.BaseMapChoiceSelector;
 import edu.tufts.vue.compare.ui.WeightVisualizationSettingsPanel;
-
 import edu.tufts.vue.style.*;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -51,6 +42,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,10 +64,21 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import tufts.vue.action.ActionUtil;
+import tufts.vue.gui.DockWindow;
+import tufts.vue.gui.VueButton;
+import tufts.vue.gui.VueFileChooser;
 
-public class MergeMapsChooser extends JPanel
-    implements ActiveListener<LWMap>, ActionListener, ChangeListener, LWComponent.Listener {
-  private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MergeMapsChooser.class);
+public class MergeMapsChooser
+  extends JPanel
+  implements
+    ActiveListener<LWMap>,
+    ActionListener,
+    ChangeListener,
+    LWComponent.Listener {
+
+  private static final org.apache.log4j.Logger Log =
+    org.apache.log4j.Logger.getLogger(MergeMapsChooser.class);
 
   private static DockWindow p;
   private LWMap activeMap;
@@ -111,22 +114,37 @@ public class MergeMapsChooser extends JPanel
 
   private List<LWMap> mapList = new ArrayList<LWMap>();
 
-  private HashMap<LWMap, SelectPanel> selectPanels = new HashMap<LWMap, SelectPanel>();
+  private HashMap<LWMap, SelectPanel> selectPanels = new HashMap<
+    LWMap,
+    SelectPanel
+  >();
 
   private GridBagLayout baseGridBag;
   private JLabel baseLabel;
 
   private JTabbedPane vueTabbedPane = VUE.getTabbedPane();
 
-  private JButton closeButton = new JButton(VueResources.getString("button.close.label"));
-  private JButton undoButton = new JButton(VueResources.getString("button.undo.label"));
+  private JButton closeButton = new JButton(
+    VueResources.getString("button.close.label")
+  );
+  private JButton undoButton = new JButton(
+    VueResources.getString("button.undo.label")
+  );
   private int undoCount;
 
-  public final static String ALL_TEXT = VueResources.getString("mergemapchooser.choice.currentlyopened");
-  public final static String LIST_TEXT = VueResources.getString("mergemapchooser.browsemap");
-  public final static String SELECT_MESSAGE = VueResources.getString("mergemapchooser.selectmaps");
+  public static final String ALL_TEXT = VueResources.getString(
+    "mergemapchooser.choice.currentlyopened"
+  );
+  public static final String LIST_TEXT = VueResources.getString(
+    "mergemapchooser.browsemap"
+  );
+  public static final String SELECT_MESSAGE = VueResources.getString(
+    "mergemapchooser.selectmaps"
+  );
 
-  public final static String defineThresholdMessage = VueResources.getString("mergemapchooser.threshold");
+  public static final String defineThresholdMessage = VueResources.getString(
+    "mergemapchooser.threshold"
+  );
 
   public final int ALL_OPEN_CHOICE = 0;
   public final int FILE_LIST_CHOICE = 1;
@@ -135,8 +153,12 @@ public class MergeMapsChooser extends JPanel
   public final int BASE_FROM_BROWSE = 1;
 
   public final String otherString = "other";
-  public static final String BASE_SELECT_STRING = VueResources.getString("mergemapchooser.select");
-  public static final String BASE_OTHER_STRING = VueResources.getString("mergemapchooser.other");
+  public static final String BASE_SELECT_STRING = VueResources.getString(
+    "mergemapchooser.select"
+  );
+  public static final String BASE_OTHER_STRING = VueResources.getString(
+    "mergemapchooser.other"
+  );
 
   public final int TAB_BORDER_SIZE = 20;
 
@@ -145,8 +167,13 @@ public class MergeMapsChooser extends JPanel
   // public static final MMCKey KEY_LINK_CHANGE = new
   // MMCKey("linkThresholdSliderValue", "integer");
 
-  public static final MMCKey KEY_NODE_CHANGE = new MMCKey("nodeThresholdSliderValue");
-  public static final MMCKey KEY_LINK_CHANGE = new MMCKey("linkThresholdSliderValue");
+  public static final MMCKey KEY_NODE_CHANGE = new MMCKey(
+    "nodeThresholdSliderValue"
+  );
+  public static final MMCKey KEY_LINK_CHANGE = new MMCKey(
+    "linkThresholdSliderValue"
+  );
+
   // will require a refill (recreate) for weight maps as well..
   // public static final MMCKey KEY_FILTER_CHANGE = new
   // MMCKey("filterChoiceChange");
@@ -157,37 +184,40 @@ public class MergeMapsChooser extends JPanel
 
   /** @deprecated -- I don't think this is used at all anymore -- SMF 2012-07 */
   public MergeMapsChooser() {
-    if (true)
-      throw new UnsupportedOperationException("DEPRECATED");
+    if (true) throw new UnsupportedOperationException("DEPRECATED");
 
-    closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        // setVisible(false);
-        p.dispose();
-        setDockWindow(null);
-        // p.dispose();
-      }
-    });
-
-    undoButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        // VUE.getUndoManager().undo();
-        VUE.getActiveMap().getUndoManager().undo();
-        if (VUE.getActiveMap() instanceof LWMergeMap) {
-          LWMergeMap am = (LWMergeMap) VUE.getActiveMap();
-          am.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
-          am.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
-          // am.setFilterOnBaseMap(filterChoice.isSelected());
-        }
-        if (undoCount == 1) {
-          VUE.getActiveMap().getUndoManager().flush();
-          undoButton.setEnabled(false);
-          undoCount = 0;
-        } else {
-          undoCount--;
+    closeButton.addActionListener(
+      new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          // setVisible(false);
+          p.dispose();
+          setDockWindow(null);
+          // p.dispose();
         }
       }
-    });
+    );
+
+    undoButton.addActionListener(
+      new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          // VUE.getUndoManager().undo();
+          VUE.getActiveMap().getUndoManager().undo();
+          if (VUE.getActiveMap() instanceof LWMergeMap) {
+            LWMergeMap am = (LWMergeMap) VUE.getActiveMap();
+            am.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
+            am.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
+            // am.setFilterOnBaseMap(filterChoice.isSelected());
+          }
+          if (undoCount == 1) {
+            VUE.getActiveMap().getUndoManager().flush();
+            undoButton.setEnabled(false);
+            undoCount = 0;
+          } else {
+            undoCount--;
+          }
+        }
+      }
+    );
 
     vueTabbedPane.addChangeListener(this);
     loadDefaultStyle();
@@ -217,9 +247,15 @@ public class MergeMapsChooser extends JPanel
      * }
      */
     selectPanelHolder.add(sp);
-    mTabbedPane.addTab(VueResources.getString("mergemapchooser.selectmaps"), selectPanelHolder);
+    mTabbedPane.addTab(
+      VueResources.getString("mergemapchooser.selectmaps"),
+      selectPanelHolder
+    );
     setUpBasePanel();
-    mTabbedPane.addTab(VueResources.getString("mergemapchooser.basemap"), basePanel);
+    mTabbedPane.addTab(
+      VueResources.getString("mergemapchooser.basemap"),
+      basePanel
+    );
     setIntervalBoundaries();
     setUpVizPanel();
     vizPane = new JPanel();
@@ -227,7 +263,10 @@ public class MergeMapsChooser extends JPanel
     vizPane.setLayout(vizPaneLayout);
     vizPane.add(vizPanel);
     vizPane.add(votePanel);
-    mTabbedPane.addTab(VueResources.getString("mergemapchooser.visualizationsettings"), vizPane);
+    mTabbedPane.addTab(
+      VueResources.getString("mergemapchooser.visualizationsettings"),
+      vizPane
+    );
 
     add(BorderLayout.CENTER, mTabbedPane);
     add(BorderLayout.SOUTH, buttonPane);
@@ -284,16 +323,18 @@ public class MergeMapsChooser extends JPanel
     // $
     // if(p!=null)
     // {
-    basePanel.addMouseListener(new java.awt.event.MouseAdapter() {
-      // static int c =0;
+    basePanel.addMouseListener(
+      new java.awt.event.MouseAdapter() {
+        // static int c =0;
 
-      public void mouseEntered(java.awt.event.MouseEvent me) {
-        // System.out.println("basePanel mouse entered: " + (c++) + " me: "+ me);
-        if (baseChoice != null) {
-          baseChoice.updateUI();
+        public void mouseEntered(java.awt.event.MouseEvent me) {
+          // System.out.println("basePanel mouse entered: " + (c++) + " me: "+ me);
+          if (baseChoice != null) {
+            baseChoice.updateUI();
+          }
         }
       }
-    });
+    );
     // }
     // $
 
@@ -331,7 +372,10 @@ public class MergeMapsChooser extends JPanel
 
     // baseChoice.addItem(BASE_OTHER_STRING);
     // baseChoice.setRenderer(new MapChoiceCellRenderer());
-    JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"), JLabel.LEFT);
+    JLabel helpLabel = new JLabel(
+      VueResources.getIcon("helpIcon.raw"),
+      JLabel.LEFT
+    );
     baseConstraints.fill = GridBagConstraints.HORIZONTAL;
     baseGridBag.setConstraints(baseLabel, baseConstraints);
     baseInnerPanel.add(baseLabel);
@@ -345,19 +389,22 @@ public class MergeMapsChooser extends JPanel
     setUpBasePanelBrowse();
     baseChoice.addActionListener(this);
     baseBrowseButton.addActionListener(this);
-
   }
 
   public void setUpBasePanelBrowse() {
-    baseBrowsePanel = new JPanel() {
-      public Dimension getMaximumSize() {
-        return new Dimension(400, 30);
-      }
-    };
+    baseBrowsePanel =
+      new JPanel() {
+        public Dimension getMaximumSize() {
+          return new Dimension(400, 30);
+        }
+      };
     GridBagLayout baseBrowseGridBag = new GridBagLayout();
     baseBrowsePanel.setLayout(baseGridBag);
     GridBagConstraints baseBrowseConstraints = new GridBagConstraints();
-    JLabel basePanelMapLabel = new JLabel(VueResources.getString("jlabel.map"), JLabel.RIGHT) {
+    JLabel basePanelMapLabel = new JLabel(
+      VueResources.getString("jlabel.map"),
+      JLabel.RIGHT
+    ) {
       public Dimension getPreferredSize() {
         return baseLabel.getPreferredSize();
       }
@@ -370,14 +417,14 @@ public class MergeMapsChooser extends JPanel
     baseBrowseConstraints.weightx = 1.0;
     baseGridBag.setConstraints(baseFileField, baseBrowseConstraints);
     baseBrowsePanel.add(baseFileField);
-    baseBrowseButton = new JButton(VueResources.getString("button.browse.label"));
+    baseBrowseButton =
+      new JButton(VueResources.getString("button.browse.label"));
     baseBrowseConstraints.weightx = 0.0;
     baseGridBag.setConstraints(baseBrowseButton, baseBrowseConstraints);
     baseBrowsePanel.add(baseBrowseButton);
   }
 
   public void refreshBaseChoices() {
-
     // $
     if (baseChoice != null) {
       // baseChoice.refreshModel();
@@ -467,17 +514,20 @@ public class MergeMapsChooser extends JPanel
   }
 
   public void setUpVizPanel() {
-    vizPanel = new JPanel() {
-      public Dimension getMaximumSize() {
-        return new Dimension(400, 30);
-      }
-    };
+    vizPanel =
+      new JPanel() {
+        public Dimension getMaximumSize() {
+          return new Dimension(400, 30);
+        }
+      };
     GridBagLayout vizLayout = new GridBagLayout();
     GridBagConstraints vizConstraints = new GridBagConstraints();
     vizPanel.setLayout(vizLayout);
     vizLabel = new JLabel(VueResources.getString("jlabel.selectvisualmode"));
-    String[] vizChoices = { VueResources.getString("dialog.visualizationsettings.vote"),
-        VueResources.getString("dialog.visualizationsettings.weight") };
+    String[] vizChoices = {
+      VueResources.getString("dialog.visualizationsettings.vote"),
+      VueResources.getString("dialog.visualizationsettings.weight"),
+    };
     vizChoice = new JComboBox(vizChoices);
     filterChoice = new JCheckBox("Filter on Base Map?");
     /*
@@ -508,7 +558,10 @@ public class MergeMapsChooser extends JPanel
     vizLayout.setConstraints(vizChoice, vizConstraints);
     vizPanel.add(vizChoice);
     vizConstraints.gridwidth = GridBagConstraints.REMAINDER;
-    JLabel helpLabel = new JLabel(VueResources.getIcon("helpIcon.raw"), JLabel.LEFT);
+    JLabel helpLabel = new JLabel(
+      VueResources.getIcon("helpIcon.raw"),
+      JLabel.LEFT
+    );
     vizLayout.setConstraints(helpLabel, vizConstraints);
     vizPanel.add(helpLabel);
     vizLayout.setConstraints(filterChoice, vizConstraints);
@@ -543,8 +596,14 @@ public class MergeMapsChooser extends JPanel
      * };
      */
 
-    JLabel moreLabel = new JLabel(VueResources.getString("jlabel.more"), JLabel.LEFT);
-    JLabel lessLabel = new JLabel(VueResources.getString("jlabel.less"), JLabel.RIGHT);
+    JLabel moreLabel = new JLabel(
+      VueResources.getString("jlabel.more"),
+      JLabel.LEFT
+    );
+    JLabel lessLabel = new JLabel(
+      VueResources.getString("jlabel.less"),
+      JLabel.RIGHT
+    );
 
     // JLabel moreLabel = new JLabel("<< more nodes",JLabel.LEFT);
     // moreLabel.setFont(new Font("Courier",Font.PLAIN,10));
@@ -556,11 +615,13 @@ public class MergeMapsChooser extends JPanel
     moreLessLabel.add(BorderLayout.EAST, lessLabel);
 
     nodeThresholdSlider = new JSlider(0, 100, 50);
-    nodeThresholdSlider.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mousePressed(java.awt.event.MouseEvent me) {
-        mousePressed = true;
+    nodeThresholdSlider.addMouseListener(
+      new java.awt.event.MouseAdapter() {
+        public void mousePressed(java.awt.event.MouseEvent me) {
+          mousePressed = true;
+        }
       }
-    });
+    );
     nodeThresholdSlider.setPaintTicks(true);
     nodeThresholdSlider.setMajorTickSpacing(10);
     nodeThresholdSlider.setPaintLabels(true);
@@ -569,12 +630,16 @@ public class MergeMapsChooser extends JPanel
     while (e.hasMoreElements()) {
       Object label = e.nextElement();
       if (label instanceof javax.swing.JComponent) {
-        ((javax.swing.JComponent) label).setFont(new Font("Courier", Font.PLAIN, 9));
+        ((javax.swing.JComponent) label).setFont(
+            new Font("Courier", Font.PLAIN, 9)
+          );
       }
     }
 
     // $
-    nodeThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    nodeThresholdSlider.setBorder(
+      javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5)
+    );
     // $
 
     JLabel nodeLabel = new JLabel(VueResources.getString("jlabel.nodes"));
@@ -646,11 +711,12 @@ public class MergeMapsChooser extends JPanel
      * percentageDisplay = new JLabel("");
      * percentageDisplay.setText(nodePercentageText);
      */
-    percentageDisplay = new JLabel(nodeThresholdSlider.getValue() + "%") {
-      public Dimension getPreferredSize() {
-        return (new JLabel("100%").getPreferredSize());
-      }
-    };
+    percentageDisplay =
+      new JLabel(nodeThresholdSlider.getValue() + "%") {
+        public Dimension getPreferredSize() {
+          return (new JLabel("100%").getPreferredSize());
+        }
+      };
     // have created methods below to turn this on and off (so that changes during
     // setup don't affect the map)
     // boolean method could be used to turn this on (if not already on) from outside
@@ -666,11 +732,13 @@ public class MergeMapsChooser extends JPanel
     votePanel.add(percentageDisplay);
 
     linkThresholdSlider = new JSlider(0, 100, 50);
-    linkThresholdSlider.addMouseListener(new java.awt.event.MouseAdapter() {
-      public void mousePressed(java.awt.event.MouseEvent me) {
-        mousePressed = true;
+    linkThresholdSlider.addMouseListener(
+      new java.awt.event.MouseAdapter() {
+        public void mousePressed(java.awt.event.MouseEvent me) {
+          mousePressed = true;
+        }
       }
-    });
+    );
     linkThresholdSlider.setPaintTicks(true);
     linkThresholdSlider.setMajorTickSpacing(10);
     linkThresholdSlider.setPaintLabels(true);
@@ -679,12 +747,16 @@ public class MergeMapsChooser extends JPanel
     while (le.hasMoreElements()) {
       Object linkLabel = le.nextElement();
       if (linkLabel instanceof javax.swing.JComponent) {
-        ((javax.swing.JComponent) linkLabel).setFont(new Font("Courier", Font.PLAIN, 9));
+        ((javax.swing.JComponent) linkLabel).setFont(
+            new Font("Courier", Font.PLAIN, 9)
+          );
       }
     }
 
     // $
-    linkThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    linkThresholdSlider.setBorder(
+      javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5)
+    );
     // $
 
     JLabel linkPanel = new JLabel(VueResources.getString("jlabel.links"));
@@ -703,11 +775,12 @@ public class MergeMapsChooser extends JPanel
     // $
     voteLayout.setConstraints(linkThresholdSlider, voteConstraints);
     votePanel.add(linkThresholdSlider);
-    linkPercentageDisplay = new JLabel(linkThresholdSlider.getValue() + "%") {
-      public Dimension getPreferredSize() {
-        return (new JLabel("100%").getPreferredSize());
-      }
-    };
+    linkPercentageDisplay =
+      new JLabel(linkThresholdSlider.getValue() + "%") {
+        public Dimension getPreferredSize() {
+          return (new JLabel("100%").getPreferredSize());
+        }
+      };
     linkThresholdSlider.addChangeListener(this);
     voteConstraints.insets = new java.awt.Insets(0, 0, 0, 40);
     // voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -722,7 +795,6 @@ public class MergeMapsChooser extends JPanel
     voteConstraints.gridy = 4;
     voteLayout.setConstraints(filterChoice, voteConstraints);
     vizPanel.add(filterChoice);
-
     // votePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
   }
 
@@ -756,7 +828,6 @@ public class MergeMapsChooser extends JPanel
 
   public void stateChanged(ChangeEvent e) {
     if (e.getSource() == nodeThresholdSlider) {
-
       /*
        * String nodePercentageText = "";
        * if(nodeThresholdSlider.getValue()<10)
@@ -780,8 +851,9 @@ public class MergeMapsChooser extends JPanel
       // focus problems with activeMap
 
       if (getActiveMap() instanceof LWMergeMap) {
-        if (!nodeThresholdSlider.getValueIsAdjusting() && mousePressed == true) {
-
+        if (
+          !nodeThresholdSlider.getValueIsAdjusting() && mousePressed == true
+        ) {
           /*
            * if(nodeChangeProgrammatic)
            * {
@@ -801,7 +873,12 @@ public class MergeMapsChooser extends JPanel
           // am.getNodeThresholdValueStack().push(am.getNodeThresholdSliderValue());
 
           KEY_NODE_CHANGE.setMMC(this);
-          LWCEvent nodeEvent = new LWCEvent(am, am, KEY_NODE_CHANGE, new Integer(am.getNodeThresholdSliderValue()));
+          LWCEvent nodeEvent = new LWCEvent(
+            am,
+            am,
+            KEY_NODE_CHANGE,
+            new Integer(am.getNodeThresholdSliderValue())
+          );
           am.setNodeThresholdSliderValue(nodeThresholdSlider.getValue());
           am.notifyProxy(nodeEvent);
           // am.getUndoManager().processEvent(nodeEvent,false);
@@ -814,23 +891,27 @@ public class MergeMapsChooser extends JPanel
           am.getUndoManager().mark("Merge Recalculate");
           undoButton.setEnabled(true);
           undoCount++;
-
         }
       }
-
     }
     if (e.getSource() == linkThresholdSlider) {
       linkPercentageDisplay.setText(linkThresholdSlider.getValue() + "%");
 
       if (getActiveMap() instanceof LWMergeMap) {
-        if (!linkThresholdSlider.getValueIsAdjusting() && mousePressed == true) {
-
+        if (
+          !linkThresholdSlider.getValueIsAdjusting() && mousePressed == true
+        ) {
           mousePressed = false;
 
           LWMergeMap am = (LWMergeMap) getActiveMap();
 
           KEY_LINK_CHANGE.setMMC(this);
-          LWCEvent nodeEvent = new LWCEvent(am, am, KEY_LINK_CHANGE, new Integer(am.getLinkThresholdSliderValue()));
+          LWCEvent nodeEvent = new LWCEvent(
+            am,
+            am,
+            KEY_LINK_CHANGE,
+            new Integer(am.getLinkThresholdSliderValue())
+          );
           am.setLinkThresholdSliderValue(linkThresholdSlider.getValue());
           am.notifyProxy(nodeEvent);
 
@@ -839,16 +920,14 @@ public class MergeMapsChooser extends JPanel
           am.getUndoManager().mark("Merge Recalculate");
           undoButton.setEnabled(true);
           undoCount++;
-
         }
       }
-
     }
     if (e.getSource() == vueTabbedPane) {
       String selectString = VueResources.getString("mergemapchooser.select");
 
-      boolean noMapsLoaded = (vueTabbedPane.getModel().getSelectedIndex() == -1);
-
+      boolean noMapsLoaded =
+        (vueTabbedPane.getModel().getSelectedIndex() == -1);
       // System.out.println("MergeMapsChooser, state changed on vueTabbedPane: no maps
       // loaded?: " + noMapsLoaded);
       // System.out.println("MergeMapsChooser, state changed on vueTabbedPane,
@@ -902,15 +981,20 @@ public class MergeMapsChooser extends JPanel
   }
 
   public void actionPerformed(ActionEvent e) {
-    if (p == null)
-      return;
+    if (p == null) return;
     if (e.getSource() == baseChoice) {
       System.out.println("MMC: action event on base choice: " + e);
-      System.out.println("MMC: action event on base choice - selected Item: " + baseChoice.getSelectedItem());
-      if (baseChoice.getItemCount() == 0 || baseChoice.getSelectedItem() == null)
-        return;
+      System.out.println(
+        "MMC: action event on base choice - selected Item: " +
+        baseChoice.getSelectedItem()
+      );
+      if (
+        baseChoice.getItemCount() == 0 || baseChoice.getSelectedItem() == null
+      ) return;
       // if(baseChoice.getSelectedItem().equals("other"));
-      if (baseChoice.getSelectedItem().equals(BaseMapChoiceSelector.OTHER_STRING)) {
+      if (
+        baseChoice.getSelectedItem().equals(BaseMapChoiceSelector.OTHER_STRING)
+      ) {
         System.out.println("MMC: other selected in base choice");
 
         if (baseBrowsePanel == null) {
@@ -928,7 +1012,9 @@ public class MergeMapsChooser extends JPanel
          * }
          */
       }
-      if (!baseChoice.getSelectedItem().equals(BaseMapChoiceSelector.OTHER_STRING)) {
+      if (
+        !baseChoice.getSelectedItem().equals(BaseMapChoiceSelector.OTHER_STRING)
+      ) {
         basePanel.remove(baseBrowsePanel);
         // basePanel.revalidate();
         // basePanel.repaint();
@@ -944,7 +1030,10 @@ public class MergeMapsChooser extends JPanel
     if (e.getSource() == baseBrowseButton) {
       VueFileChooser choose = VueFileChooser.getVueFileChooser();
       choose.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
-      choose.showDialog(this, VueResources.getString("dialog.setbasemap.title"));
+      choose.showDialog(
+        this,
+        VueResources.getString("dialog.setbasemap.title")
+      );
       selectedBaseFile = choose.getSelectedFile();
       if (selectedBaseFile != null) {
         baseFileField.setText(selectedBaseFile.getName());
@@ -976,9 +1065,7 @@ public class MergeMapsChooser extends JPanel
       }
     }
     if (e.getSource() == generate) {
-
       generateMergeMap();
-
     }
   }
 
@@ -1021,8 +1108,9 @@ public class MergeMapsChooser extends JPanel
     // set visualization settings
     map.setVisualizationSelectionType(vizChoice.getSelectedIndex());
     try {
-      if (vizChoice.getSelectedIndex() == 1)
-        map.setStyleMapFile(StyleMap.saveToUniqueUserFile());
+      if (vizChoice.getSelectedIndex() == 1) map.setStyleMapFile(
+        StyleMap.saveToUniqueUserFile()
+      );
       // System.out.println("mmc: " + map.getStyleMapFile());
       // System.out.prinltn("userfolder: ");
     } catch (Exception ex) {
@@ -1042,7 +1130,6 @@ public class MergeMapsChooser extends JPanel
       sp.generate(map);
       // mapList.clear();
     } else {
-
       // Object baseMapObject = baseChoice.getModel().getSelectedItem();
       // if(baseMapObject instanceof LWMap)
       // baseMap = (LWMap)baseMapObject;
@@ -1050,8 +1137,10 @@ public class MergeMapsChooser extends JPanel
       baseMap = baseChoice.getSelectedMap();
 
       if (baseMap == null) {
-        VueUtil.alert(VueResources.getString("dialog.basemapnot.message"),
-            VueResources.getString("dialog.basemapnot.title"));
+        VueUtil.alert(
+          VueResources.getString("dialog.basemapnot.message"),
+          VueResources.getString("dialog.basemapnot.title")
+        );
         return;
       }
 
@@ -1064,7 +1153,11 @@ public class MergeMapsChooser extends JPanel
       createWeightedMerge(map);
       MapViewer v = VUE.displayMap(map);
 
-      tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(v, map, new LWComponent.Key("Merge Map Displayed"));
+      tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(
+        v,
+        map,
+        new LWComponent.Key("Merge Map Displayed")
+      );
       v.LWCChanged(event);
 
       // v.grabVueApplicationFocus("New Merge Map",null);
@@ -1075,7 +1168,6 @@ public class MergeMapsChooser extends JPanel
       // is base map showing incorrectly until mouse over map)
       // VUE.setActiveViewer((MapViewer)(VUE.getTabbedPane().getSelectedComponent()));
       mapList.clear();
-
     } // */ to top of if/else
   }
 
@@ -1087,17 +1179,21 @@ public class MergeMapsChooser extends JPanel
     Iterator<Double> i = intervalBoundaries.iterator();
     int count = 0;
     while (i.hasNext()) {
-      if (score < i.next().doubleValue())
-        return count;
+      if (score < i.next().doubleValue()) return count;
       count++;
     }
     return 0;
   }
 
-  private void addMergeNodesForMap_WITH_STYLES(LWMergeMap mergeMap, LWMap map, WeightAggregate weightAggregate,
-      List<Style> styles) {
-    if (DEBUG.MERGE)
-      Log.debug("addMergeNodesForMap_WITH_STYLES " + mergeMap + " adding " + map);
+  private void addMergeNodesForMap_WITH_STYLES(
+    LWMergeMap mergeMap,
+    LWMap map,
+    WeightAggregate weightAggregate,
+    List<Style> styles
+  ) {
+    if (DEBUG.MERGE) Log.debug(
+      "addMergeNodesForMap_WITH_STYLES " + mergeMap + " adding " + map
+    );
 
     for (LWNode n : map.getChildrenOfType(LWNode.class)) {
       // note that similar LWMergeMap code, called elsewhere via fillAsVoteMerge
@@ -1200,9 +1296,14 @@ public class MergeMapsChooser extends JPanel
 
   // todo: replace with LWMergeMap method -- addMergeNodesFromSourceMap, already
   // used by recreateVoteMerge method in LWMergeMap and by slider in this Class...
-  private void addMergeNodesForMap_LOCAL(LWMergeMap mergeMap, LWMap map, VoteAggregate voteAggregate) {
-    if (DEBUG.MERGE)
-      Log.debug("addMergeNodesForMap_LOCAL " + mergeMap + " adding " + map);
+  private void addMergeNodesForMap_LOCAL(
+    LWMergeMap mergeMap,
+    LWMap map,
+    VoteAggregate voteAggregate
+  ) {
+    if (DEBUG.MERGE) Log.debug(
+      "addMergeNodesForMap_LOCAL " + mergeMap + " adding " + map
+    );
 
     Iterator children = map.getNodeIterator();
     while (children.hasNext()) {
@@ -1219,12 +1320,10 @@ public class MergeMapsChooser extends JPanel
           mergeMap.addNode(node);
         }
       }
-
     }
   }
 
   public void createWeightedMerge(LWMergeMap map) {
-
     // System.out.println("mmc: createWeightedMerge mapList size: " + mapList.size()
     // );
     // System.out.println("mmc: createWeightedMerge LWMerge Map mapList size: " +
@@ -1265,13 +1364,17 @@ public class MergeMapsChooser extends JPanel
     // apply styles here to make sure they get applied for all sub nodes (what
     // about sub links?)
     // todo: use applyCSS(style) -- need to plug in formatting panel
-    Iterator children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+    Iterator children = map
+      .getAllDescendents(LWComponent.ChildKind.PROPER)
+      .iterator();
 
     while (children.hasNext()) {
       LWComponent comp = (LWComponent) children.next();
       if (comp instanceof LWNode) {
         LWNode node = (LWNode) comp;
-        double score = 100 * weightAggregate.getNodeCount(Util.getMergeProperty(node)) / weightAggregate.getCount();
+        double score =
+          (100 * weightAggregate.getNodeCount(Util.getMergeProperty(node))) /
+          weightAggregate.getCount();
         if (score > 100) {
           score = 100;
         }
@@ -1282,7 +1385,9 @@ public class MergeMapsChooser extends JPanel
         // System.out.println("mmc: getInterval(score): " + getInterval(score));
         Style currStyle = nodeStyles.get(getInterval(score) - 1);
         // System.out.println("Weighted Merge Demo: " + currStyle + " score: " + score);
-        node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+        node.setFillColor(
+          Style.hexToColor(currStyle.getAttribute("background"))
+        );
       }
     }
     // compute and create nodes in Merge Map, apply just background style for now
@@ -1317,17 +1422,21 @@ public class MergeMapsChooser extends JPanel
 
     // compute and create links in Merge Map
     // Iterator children1 = map.getNodeIterator();
-    Iterator<LWComponent> children1 = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+    Iterator<LWComponent> children1 = map
+      .getAllDescendents(LWComponent.ChildKind.PROPER)
+      .iterator();
     while (children1.hasNext()) {
       LWComponent comp1 = children1.next();
-      if (comp1 instanceof LWImage)
-        continue;
+      if (comp1 instanceof LWImage) continue;
       LWNode node1 = (LWNode) comp1;
       Iterator children2 = map.getNodeIterator();
       while (children2.hasNext()) {
         LWNode node2 = (LWNode) children2.next();
         if (node2 != node1) {
-          int c = weightAggregate.getConnection(Util.getMergeProperty(node1), Util.getMergeProperty(node2));
+          int c = weightAggregate.getConnection(
+            Util.getMergeProperty(node1),
+            Util.getMergeProperty(node2)
+          );
 
           // $
           // don't know if link already drawn.. need to keep track or explicitly check for
@@ -1337,7 +1446,7 @@ public class MergeMapsChooser extends JPanel
           // $
 
           if (c > 0) {
-            double score = 100 * c / weightAggregate.getCount();
+            double score = (100 * c) / weightAggregate.getCount();
             if (score > 100) {
               score = 100;
             }
@@ -1348,7 +1457,9 @@ public class MergeMapsChooser extends JPanel
             // System.out.println("Weighted Merge Demo: " + currLinkStyle + " score: " +
             // score);
             LWLink link = new LWLink(node1, node2);
-            link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
+            link.setStrokeColor(
+              Style.hexToColor(currLinkStyle.getAttribute("background"))
+            );
             // also add label to link if present? (will be nonunique perhaps.. might make
             // sense for voting?)
             map.addLink(link);
@@ -1367,8 +1478,7 @@ public class MergeMapsChooser extends JPanel
   // weight
   // to merge -- perhaps name this "fill *as* vote merge map"
   public void createVoteMerge(LWMergeMap map) {
-    if (DEBUG.MERGE)
-      Log.debug("createVoteMerge " + map);
+    if (DEBUG.MERGE) Log.debug("createVoteMerge " + map);
 
     ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
 
@@ -1381,8 +1491,12 @@ public class MergeMapsChooser extends JPanel
     VoteAggregate voteAggregate = new VoteAggregate(cms);
 
     // todo: get these from map in order to move this function to LWMergeMap.
-    voteAggregate.setNodeThreshold((double) (nodeThresholdSlider.getValue() / 100.0));
-    voteAggregate.setLinkThreshold((double) (linkThresholdSlider.getValue() / 100.0));
+    voteAggregate.setNodeThreshold(
+      (double) (nodeThresholdSlider.getValue() / 100.0)
+    );
+    voteAggregate.setLinkThreshold(
+      (double) (linkThresholdSlider.getValue() / 100.0)
+    );
 
     // compute and create nodes in Merge Map
 
@@ -1417,15 +1531,16 @@ public class MergeMapsChooser extends JPanel
       while (children2.hasNext()) {
         LWNode node2 = (LWNode) children2.next();
         if (node2 != node1) {
-          boolean addLink = voteAggregate.isLinkVoteAboveThreshold(Util.getMergeProperty(node1),
-              Util.getMergeProperty(node2));
+          boolean addLink = voteAggregate.isLinkVoteAboveThreshold(
+            Util.getMergeProperty(node1),
+            Util.getMergeProperty(node2)
+          );
           if (addLink) {
             map.addLink(new LWLink(node1, node2));
           }
         }
       }
     }
-
   }
 
   public void refreshSettings(final LWMergeMap map) {
@@ -1457,7 +1572,7 @@ public class MergeMapsChooser extends JPanel
      * // assume base map not open, add to base map list
      * //System.out.println("mmc: about to add baseMap: " + baseMap);
      * //System.out.println("mmc: for map: " + map.getTitle());
-     * 
+     *
      * if(baseMap != null)
      * {
      * baseChoice.addItem(baseMap);
@@ -1525,7 +1640,6 @@ public class MergeMapsChooser extends JPanel
     // $
 
     startListeningToChanges();
-
   }
 
   public void setActiveMap(LWMap map) {
@@ -1587,7 +1701,6 @@ public class MergeMapsChooser extends JPanel
     } else {
       generate.setEnabled(true);
     }
-
     // selectPanelHolder.remove(sp);
     // if(selectPanels.containsKey(activeMap))
     // {
@@ -1633,7 +1746,6 @@ public class MergeMapsChooser extends JPanel
     // map.getLabel());
 
     setActiveMap(e.active);
-
     /*
      * if(p!=null)
      * {
@@ -1644,7 +1756,7 @@ public class MergeMapsChooser extends JPanel
      * //p.repaint();
      * p.showRolledUp();
      * }
-     * 
+     *
      * }
      */
   }
@@ -1658,6 +1770,7 @@ public class MergeMapsChooser extends JPanel
   }
 
   public static class MMCKey extends LWComponent.Key {
+
     private MergeMapsChooser mmc;
     private String keyString;
 
@@ -1687,9 +1800,10 @@ public class MergeMapsChooser extends JPanel
       System.out.println("mmc: KEY_NODE OR LINK CHANGE getValue");
       return 0;
     }
-  };
+  }
 
   class SelectPanel extends JPanel implements ActionListener {
+
     private JComboBox choice;
     private JTextField fileField;
     private JButton browseButton;
@@ -1706,7 +1820,6 @@ public class MergeMapsChooser extends JPanel
     private List<File> mapFileList;
 
     public SelectPanel() {
-
       setUpTopPanel();
       setUpBrowsePanel();
       setUpBottomPanel();
@@ -1764,7 +1877,6 @@ public class MergeMapsChooser extends JPanel
 
       browseButton.addActionListener(this);
       addButton.addActionListener(this);
-
     }
 
     public void setUpBottomPanel() {
@@ -1791,8 +1903,13 @@ public class MergeMapsChooser extends JPanel
       }
       if (e.getSource() == browseButton) {
         VueFileChooser fileChooser = VueFileChooser.getVueFileChooser();
-        fileChooser.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
-        fileChooser.showDialog(this, VueResources.getString("dialog.addmap.title"));
+        fileChooser.setFileFilter(
+          new VueFileFilter(VueFileFilter.VUE_DESCRIPTION)
+        );
+        fileChooser.showDialog(
+          this,
+          VueResources.getString("dialog.addmap.title")
+        );
         selectedFile = fileChooser.getSelectedFile();
         if (selectedFile != null) {
           fileField.setText(selectedFile.getName());
@@ -1835,7 +1952,6 @@ public class MergeMapsChooser extends JPanel
     public void loadMergeSourceMaps(LWMergeMap mergeMap) {
       if (mergeMap.getMapListSelectionType() == 0) {
         List<LWMap> mapList = mergeMap.getMapList();
-
       } else {
         // List<File> mapFileList = mergeMap.getMapFileList();
       }
@@ -1881,7 +1997,8 @@ public class MergeMapsChooser extends JPanel
         mapFileList = new ArrayList<File>();
         ArrayList<Boolean> activeFileList = new ArrayList<Boolean>();
         for (int i = 0; i < listPanel.getComponentCount(); i++) {
-          MapListElementPanel mlep = (MapListElementPanel) listPanel.getComponent(i);
+          MapListElementPanel mlep =
+            (MapListElementPanel) listPanel.getComponent(i);
           if (mlep.isActive()) {
             listPanelMaps.add(mlep.getMap());
           }
@@ -1911,8 +2028,10 @@ public class MergeMapsChooser extends JPanel
       baseMap = baseChoice.getSelectedMap();
 
       if (baseMap == null) {
-        VueUtil.alert(VueResources.getString("dialog.basemapnot.message"),
-            VueResources.getString("dialog.basemapnot.title"));
+        VueUtil.alert(
+          VueResources.getString("dialog.basemapnot.message"),
+          VueResources.getString("dialog.basemapnot.title")
+        );
         return;
       }
 
@@ -1948,8 +2067,10 @@ public class MergeMapsChooser extends JPanel
          * mapList.addAll(listPanelMaps);
          */
         if (getMapFileList().size() == 0) {
-          VueUtil.alert(VueResources.getString("dialog.npmapselected.message"),
-              VueResources.getString("dialog.npmapselected.title"));
+          VueUtil.alert(
+            VueResources.getString("dialog.npmapselected.message"),
+            VueResources.getString("dialog.npmapselected.title")
+          );
           return;
         }
         map.setMapFileList(getMapFileList());
@@ -1964,7 +2085,11 @@ public class MergeMapsChooser extends JPanel
       float y = VUE.getActiveViewer().getOriginY();
       // map.setUserOrigin(VUE.getActiveViewer().getOriginX(),VUE.getActiveViewer().getOriginY());
       MapViewer v = VUE.displayMap(map);
-      tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(v, map, new LWComponent.Key("Merge Map Displayed"));
+      tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(
+        v,
+        map,
+        new LWComponent.Key("Merge Map Displayed")
+      );
       v.LWCChanged(event);
       // v.grabVueApplicationFocus("Merge Map",null);
       // VUE.getActiveMap().notifyProxy(event);
@@ -1984,7 +2109,7 @@ public class MergeMapsChooser extends JPanel
 
       /*
        * java.awt.Component[] comps = VUE.getTabbedPane().getComponents();
-       * 
+       *
        * for(int compc=0;compc<comps.length;compc++)
        * {
        * if(comps[compc] instanceof MapViewer)
@@ -1997,7 +2122,7 @@ public class MergeMapsChooser extends JPanel
        * }
        * }
        * }
-       * 
+       *
        * v.setMapOriginOffset(x,y);
        */
 
@@ -2021,13 +2146,11 @@ public class MergeMapsChooser extends JPanel
     public void setMapListSelectionType(int choice) {
       this.choice.setSelectedIndex(choice);
     }
-
   }
-
   /*
    * private class BaseMapPanel extends JPanel implements ActionListener
    * {
-   * 
+   *
    * private JComboBox choice;
    * private JTextField fileField;
    * private JButton browseButton;
@@ -2037,17 +2160,17 @@ public class MergeMapsChooser extends JPanel
    * private JTextField baseFileField;
    * private JComboBox baseChoice;
    * private LWMap baseMap;
-   * 
+   *
    * public BaseMapPanel()
    * {
    * setUpPanel();
    * }
-   * 
+   *
    * public void actionPerformed(ActionEvent e)
    * {
-   * 
+   *
    * }
-   * 
+   *
    * public void setUpPanel()
    * {
    * GridBagLayout baseGridBag = new GridBagLayout();
@@ -2080,8 +2203,8 @@ public class MergeMapsChooser extends JPanel
    * baseChoice.addActionListener(this);
    * baseBrowseButton.addActionListener(this);
    * }
-   * 
-   * 
+   *
+   *
    * }
    */
 

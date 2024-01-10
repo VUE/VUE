@@ -3,30 +3,33 @@ package edu.mit.osidimpl.repository;
 /**
  This class forces any search criteria to uppercase.  Search properties are not adjusted.
 */
-public class UppercaseQueryAdjuster
-implements edu.tufts.vue.fsm.QueryAdjuster
-{
-	public edu.tufts.vue.fsm.Query adjustQuery(org.osid.repository.Repository repository,
-											   java.io.Serializable searchCriteria,
-											   org.osid.shared.Type searchType,
-											   org.osid.shared.Properties searchProperties) 
-	{
-		if (searchCriteria instanceof String) {
-			return new Query( "",
-							  repository,
-							  ((String)searchCriteria).toUpperCase(),
-							  searchType,
-							  searchProperties);			
-		} else {
-			return new Query("",
-							 repository,
-							 searchCriteria,
-							 searchType,
-							 searchProperties);
-		}
-			
-	}
-	/**
+public class UppercaseQueryAdjuster implements edu.tufts.vue.fsm.QueryAdjuster {
+
+  public edu.tufts.vue.fsm.Query adjustQuery(
+    org.osid.repository.Repository repository,
+    java.io.Serializable searchCriteria,
+    org.osid.shared.Type searchType,
+    org.osid.shared.Properties searchProperties
+  ) {
+    if (searchCriteria instanceof String) {
+      return new Query(
+        "",
+        repository,
+        ((String) searchCriteria).toUpperCase(),
+        searchType,
+        searchProperties
+      );
+    } else {
+      return new Query(
+        "",
+        repository,
+        searchCriteria,
+        searchType,
+        searchProperties
+      );
+    }
+  }
+  /**
 	<p>MIT O.K.I&#46; SID Implementation License.
 	 <p>	<b>Copyright and license statement:</b>
 	 </p>  <p>	Copyright &copy; 2003 Massachusetts Institute of

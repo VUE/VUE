@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -15,12 +15,11 @@
 
 package tufts.vue.gui;
 
-import tufts.vue.DEBUG;
-
-import javax.swing.Icon;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
+import tufts.vue.DEBUG;
 
 /**
  * An exension of MenuButton that specifically handles pop-up menu
@@ -30,45 +29,41 @@ import javax.swing.JMenuItem;
  * @author Scott Fraize
  */
 
-public class VuePopupMenu<T> extends MenuButton<T>
-{
-    public VuePopupMenu(Object propertyKey, Object[] valuesOrActions)
-    {
-        setPropertyKey(propertyKey);
-        buildMenu(valuesOrActions);
-        displayValue(getMenuValueAt(0));
-        setName(propertyKey.toString());
-    }
+public class VuePopupMenu<T> extends MenuButton<T> {
 
-    public T getMenuValueAt(int index) {
-        JComponent c = (JComponent) mPopup.getComponent(0);
-        return (T) c.getClientProperty(ValueKey);
-    }
+  public VuePopupMenu(Object propertyKey, Object[] valuesOrActions) {
+    setPropertyKey(propertyKey);
+    buildMenu(valuesOrActions);
+    displayValue(getMenuValueAt(0));
+    setName(propertyKey.toString());
+  }
 
-    public void displayValue(T newValue) {
-        if (DEBUG.TOOL) System.out.println(this + " displayValue " + newValue);
-        if (mCurrentValue == null || !mCurrentValue.equals(newValue)) {
-            mCurrentValue = newValue;
-            Icon i = getIconForPropertyValue(newValue);
-            if (i != null)
-                setButtonIcon(i);
-        }
-    }
+  public T getMenuValueAt(int index) {
+    JComponent c = (JComponent) mPopup.getComponent(0);
+    return (T) c.getClientProperty(ValueKey);
+  }
 
-    public Icon getIconForPropertyValue(T value) {
-        int count = mPopup.getComponentCount();
-        for (int i = 0; i < count; i++) {
-            JComponent c = (JComponent) mPopup.getComponent(i);
-            if (c instanceof JMenuItem) {
-                JMenuItem mi = (JMenuItem) c;
-                //if (mi.getClientProperty(ValueKey).equals(value))
-                if (value != null && value.equals(mi.getClientProperty(ValueKey)))
-                    return mi.getIcon();
-            }
-        }
-        return null;
+  public void displayValue(T newValue) {
+    if (DEBUG.TOOL) System.out.println(this + " displayValue " + newValue);
+    if (mCurrentValue == null || !mCurrentValue.equals(newValue)) {
+      mCurrentValue = newValue;
+      Icon i = getIconForPropertyValue(newValue);
+      if (i != null) setButtonIcon(i);
     }
-    
-    
+  }
 
+  public Icon getIconForPropertyValue(T value) {
+    int count = mPopup.getComponentCount();
+    for (int i = 0; i < count; i++) {
+      JComponent c = (JComponent) mPopup.getComponent(i);
+      if (c instanceof JMenuItem) {
+        JMenuItem mi = (JMenuItem) c;
+        //if (mi.getClientProperty(ValueKey).equals(value))
+        if (
+          value != null && value.equals(mi.getClientProperty(ValueKey))
+        ) return mi.getIcon();
+      }
+    }
+    return null;
+  }
 }

@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -26,22 +26,22 @@ package tufts.vue.filter;
  * @author  akumar03
  */
 public class Statement {
-    
-    /** Creates a new instance of Statement */
-    //Type type;
-    Operator operartor;
-    Key key;
-    Object value;
-    public Statement() {
-    }
-    
-    public Statement(String key,String value) {
-        setKey(new Key(key, TypeFactory.getStringType()));
-        setOperator(TypeFactory.getStringType().getDefaultOperator());
-        setValue(value);
-    }
-    
-    /**
+
+  /** Creates a new instance of Statement */
+  //Type type;
+  Operator operartor;
+  Key key;
+  Object value;
+
+  public Statement() {}
+
+  public Statement(String key, String value) {
+    setKey(new Key(key, TypeFactory.getStringType()));
+    setOperator(TypeFactory.getStringType().getDefaultOperator());
+    setValue(value);
+  }
+
+  /**
     public void setType(Type type) {
         this.type= type;
     }
@@ -50,41 +50,39 @@ public class Statement {
         return this.type;
     }
      */
-    
-    public void setOperator(Operator operator) {
-        this.operartor = operator;
-    }
-    
-    public Operator getOperator() {
-        return this.operartor;
-    }
-    
-    public void setKey(Key key) {
-        this.key = key;
-        setValue(key.getDefaultValue());
-        setOperator(key.getType().getDefaultOperator());
-    }
-    
-    public Key getKey() {
-        return this.key;
-    }
-    
-    public void setValue(Object value) {
-        this.value = value;
-    }
-    
-    public Object getValue() {
-       return this.value;
-    }
-    
-  
-    public boolean compare(Statement statement2) {
-        return getKey().getType().compare(this, statement2);
-    }
 
-    public String toString() {
-        return "Statement[" + key + " " + operartor + " '" + value + "']";
-        //return "Statement[op=" + operartor + " key=" + key + " val=" + value + "]";
-    }
-        
+  public void setOperator(Operator operator) {
+    this.operartor = operator;
+  }
+
+  public Operator getOperator() {
+    return this.operartor;
+  }
+
+  public void setKey(Key key) {
+    this.key = key;
+    setValue(key.getDefaultValue());
+    setOperator(key.getType().getDefaultOperator());
+  }
+
+  public Key getKey() {
+    return this.key;
+  }
+
+  public void setValue(Object value) {
+    this.value = value;
+  }
+
+  public Object getValue() {
+    return this.value;
+  }
+
+  public boolean compare(Statement statement2) {
+    return getKey().getType().compare(this, statement2);
+  }
+
+  public String toString() {
+    return "Statement[" + key + " " + operartor + " '" + value + "']";
+    //return "Statement[op=" + operartor + " key=" + key + " val=" + value + "]";
+  }
 }

@@ -2,20 +2,19 @@ package edu.tufts.vue.mbs;
 
 import com.clearforest.calais.simple.Entity;
 
-public class CalaisEntity extends Entity{
+public class CalaisEntity extends Entity {
 
-	private double relevance;
+  private double relevance;
 
-	public CalaisEntity()
-	{
-		super();
-	}
-	public void setRelevance(double relevance) {
-		this.relevance = relevance;
-	}
+  public CalaisEntity() {
+    super();
+  }
 
-	public double getRelevance() {
-		return relevance;
-	}
-	
+  public void setRelevance(double relevance) {
+    this.relevance = relevance;
+  }
+
+  public double getRelevance() {
+    return relevance;
+  }
 }

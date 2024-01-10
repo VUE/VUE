@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -14,25 +14,22 @@
  */
 package tufts.vue.gui;
 
-import tufts.Util;
-import tufts.vue.Actions;
-import tufts.vue.VUE;
-import tufts.vue.LWMap;
-import tufts.vue.DEBUG;
-import tufts.vue.MapViewer;
-import tufts.vue.VueTool;
-import tufts.vue.VueToolbarController;
-import tufts.vue.ZoomTool;
-
-import tufts.macosx.MacOSX;
-
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-
 import javax.swing.JFrame;
 import javax.swing.JWindow;
 import org.apache.log4j.NDC;
+import tufts.Util;
+import tufts.macosx.MacOSX;
+import tufts.vue.Actions;
+import tufts.vue.DEBUG;
+import tufts.vue.LWMap;
+import tufts.vue.MapViewer;
+import tufts.vue.VUE;
+import tufts.vue.VueTool;
+import tufts.vue.VueToolbarController;
+import tufts.vue.ZoomTool;
 
 /**
  * Code for providing, entering and exiting VUE full screen modes.
@@ -50,99 +47,92 @@ import org.apache.log4j.NDC;
 // -- SMF 2007-05-22
 // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6373178
 
-public class FullScreen
-{
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(FullScreen.class);
-    
-    private static boolean fullScreenWorking = false;
-    private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
-    private static boolean nativeModeHidAllDockWindows;
-    private static FSWindow FullScreenWindow;
-    private static MapViewer FullScreenViewer;
-    private static MapViewer FullScreenLastActiveViewer;
+public class FullScreen {
 
-    private static GraphicsDevice FullScreenDevice;
-    
-    private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
+  private static final org.apache.log4j.Logger Log =
+    org.apache.log4j.Logger.getLogger(FullScreen.class);
 
-    public static final String VIEWER_NAME = "FULL";
+  private static boolean fullScreenWorking = false;
+  private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
+  private static boolean nativeModeHidAllDockWindows;
+  private static FSWindow FullScreenWindow;
+  private static MapViewer FullScreenViewer;
+  private static MapViewer FullScreenLastActiveViewer;
 
-    //private static final boolean ExtraDockWindowHiding = !Util.isMacPlatform(); // must be done on WinXP
+  private static GraphicsDevice FullScreenDevice;
 
-    // this "must be done" on XP -- need to recall why
+  private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
 
-    // It also is nice to be done on Mac OS X or the DockWindows appear over the temporary "working"
-    // full screen window during a presentation (as would be expected), when we drop into that mode
-    // to allow the display of an external app for content display (e.g., a web browser)
+  public static final String VIEWER_NAME = "FULL";
 
-    // This may also end up being required for Leopard, tho it's anyones guess what that might
-    // take at this point...
-    private static final boolean ExtraDockWindowHiding = true;
-    
+  //private static final boolean ExtraDockWindowHiding = !Util.isMacPlatform(); // must be done on WinXP
+
+  // this "must be done" on XP -- need to recall why
+
+  // It also is nice to be done on Mac OS X or the DockWindows appear over the temporary "working"
+  // full screen window during a presentation (as would be expected), when we drop into that mode
+  // to allow the display of an external app for content display (e.g., a web browser)
+
+  // This may also end up being required for Leopard, tho it's anyones guess what that might
+  // take at this point...
+  private static final boolean ExtraDockWindowHiding = true;
+
+  /**
+   * The special full-screen window for VUE -- overrides setVisible for special handling
+   */
+  public static class FSWindow extends javax.swing.JWindow {
+
+    private VueMenuBar mainMenuBar;
+    private boolean isHidden = false;
+    private boolean screenBlacked = false;
+
+    FSWindow() {
+      super(VUE.getApplicationFrame());
+      if (GUI.isMacBrushedMetal()) setName(GUI.OVERRIDE_REDIRECT); // so no background flashing of the texture
+      else setName(FULLSCREEN_NAME);
+
+      GUI.setRootPaneNames(this, FULLSCREEN_NAME);
+
+      if (DEBUG.DOCK) {
+        Util.printStackTrace("creating FSWindow");
+        setOffScreen();
+
+        if (Util.isMacPlatform() && DockWindow.useManagedWindowHacks()) {
+          setVisibleImpl(true, true);
+          setVisibleImpl(false, true);
+        } else {
+          super.setVisible(true);
+          setFocusableWindowState(false);
+        }
+      } else {
+        setOffScreen();
+        setBackground(Color.black);
+
+        if (Util.isMacPlatform() && DockWindow.useManagedWindowHacks()) {
+          //=============================================================================
+
+          // On the Mac, this window *MUST* be shown before any DockWindows display, or they
+          // won't stay on top of their parents (On top of the main VUE window).  This is a
+          // mac bug; as of 2006 anyway -- SMF 2007-05-22.
+
+          // SMF UPDATE 2008-04-21: Still needed on Mac OS X Tiger (10.4.x) for this to work, and
+          // we must call our setVisible impl, not just super.setVisible().  Unfortunately,
+          // this is NO LONGER WORKING to keep DockWindow's on top on Mac OSX Leopard
+          // (10.5+), however, there is SOME way to get it to happen (iconifying the whole
+          // app and de-iconifying seems to do it), but I don't know if we can find another
+          // workaround...
+
+          //=============================================================================
+
+          setVisibleImpl(true, true);
+          setVisibleImpl(false, true);
+        }
+      }
+
+      VUE.addActiveListener(tufts.vue.LWMap.class, FSWindow.this);
+    }
 
     /**
-     * The special full-screen window for VUE -- overrides setVisible for special handling
-     */
-    public static class FSWindow extends javax.swing.JWindow
-    {
-        private VueMenuBar mainMenuBar;
-        private boolean isHidden = false;
-        private boolean screenBlacked = false;
-        
-        FSWindow() {
-            super(VUE.getApplicationFrame());
-            if (GUI.isMacBrushedMetal())
-                setName(GUI.OVERRIDE_REDIRECT); // so no background flashing of the texture
-            else
-                setName(FULLSCREEN_NAME);
-
-            GUI.setRootPaneNames(this, FULLSCREEN_NAME);
-            
-
-            if (DEBUG.DOCK) {
-                
-                Util.printStackTrace("creating FSWindow");
-                setOffScreen();
-
-                if (Util.isMacPlatform() && DockWindow.useManagedWindowHacks()) {
-                    setVisibleImpl(true, true);
-                    setVisibleImpl(false, true);
-                } else {
-                    super.setVisible(true);
-                    setFocusableWindowState(false);
-                }
-                
-            } else {
-                setOffScreen();
-                setBackground(Color.black);
-                
-                if (Util.isMacPlatform() && DockWindow.useManagedWindowHacks()) {
-
-                    //=============================================================================
-                    
-                    // On the Mac, this window *MUST* be shown before any DockWindows display, or they
-                    // won't stay on top of their parents (On top of the main VUE window).  This is a
-                    // mac bug; as of 2006 anyway -- SMF 2007-05-22.
-                    
-                    // SMF UPDATE 2008-04-21: Still needed on Mac OS X Tiger (10.4.x) for this to work, and
-                    // we must call our setVisible impl, not just super.setVisible().  Unfortunately,
-                    // this is NO LONGER WORKING to keep DockWindow's on top on Mac OSX Leopard
-                    // (10.5+), however, there is SOME way to get it to happen (iconifying the whole
-                    // app and de-iconifying seems to do it), but I don't know if we can find another
-                    // workaround...
-                    
-                    //=============================================================================
-                    
-                    setVisibleImpl(true, true);
-                    setVisibleImpl(false, true);
-                    
-                }
-            }
-
-            VUE.addActiveListener(tufts.vue.LWMap.class, FSWindow.this);
-        }
-
-        /**
            
          * When set to hide, this instead sets us off-screen and forces us to be
          * non-focusable (we don't want an "invisible" window accidentally having the
@@ -158,200 +148,192 @@ public class FullScreen
          * implementations left them behind something.
          
          */
-        
-        @Override
-        public void setVisible(boolean show) {
-            if (DEBUG.DOCK) Log.debug("FSW setVisible " + show);
-            setVisibleImpl(show, false);
+
+    @Override
+    public void setVisible(boolean show) {
+      if (DEBUG.DOCK) Log.debug("FSW setVisible " + show);
+      setVisibleImpl(show, false);
+    }
+
+    private void setOffScreen() {
+      if (DEBUG.DOCK && DEBUG.META) {
+        // instead of hiding it, keep it around so we can observe it and
+        // it's layering relative to other VUE windows (it should always
+        // be OVER the main window, and UNDER all DockWindow's)
+
+        // we set the color so we notice this window in its debug state, but it
+        // turns out it's also important on Leopard for this to work at all (see
+        // comment below)
+        setBackground(Color.red);
+        //setSize(GUI.getScreenWidth() / 10, GUI.getScreenHeight() / 10);
+        setSize(240, 135);
+      } else {
+        GUI.setOffScreen(this);
+
+        if (Util.isMacLeopard()) {
+          //------------------------------------------------------------------
+
+          // This odd workaround, which I was lucky to stumble upon, is to
+          // allow us to enter native full screen mode on Leopard more than
+          // onnce.  Forcing an actual color change through to the peer is
+          // changing some kind of state such that the bug, which normally
+          // leaves the full screen window entirely blank the second time it's
+          // set in place appears to go away.  Note: the resulting bad case
+          // behavior of this bug is similar to the other bug that happens if
+          // any other windows try to appear/get focus while in native full
+          // screen -- we get a blank screen, except at least in this case, it
+          // doesn't lock up the entire Mac operating system event loop.
+          //
+          // -- SMF 2008-04-21
+
+          //------------------------------------------------------------------
+
+          Color c = getBackground();
+          if (Color.black.equals(c)) setBackground(
+            Color.darkGray
+          ); else setBackground(Color.black);
         }
 
-        private void setOffScreen() {
-            if (DEBUG.DOCK && DEBUG.META) {
-                // instead of hiding it, keep it around so we can observe it and
-                // it's layering relative to other VUE windows (it should always
-                // be OVER the main window, and UNDER all DockWindow's)
+        if (DEBUG.PAINT) setBackground(Color.orange);
+      }
+    }
 
-                // we set the color so we notice this window in its debug state, but it
-                // turns out it's also important on Leopard for this to work at all (see
-                // comment below)
-                setBackground(Color.red);
-                //setSize(GUI.getScreenWidth() / 10, GUI.getScreenHeight() / 10);
-                setSize(240,135);
-                
-            } else {
-                GUI.setOffScreen(this);
-                
-                if (Util.isMacLeopard()) {
+    private void setVisibleImpl(boolean show, boolean init) {
+      setFocusableWindowState(show);
 
-                    //------------------------------------------------------------------
-                    
-                    // This odd workaround, which I was lucky to stumble upon, is to
-                    // allow us to enter native full screen mode on Leopard more than
-                    // onnce.  Forcing an actual color change through to the peer is
-                    // changing some kind of state such that the bug, which normally
-                    // leaves the full screen window entirely blank the second time it's
-                    // set in place appears to go away.  Note: the resulting bad case
-                    // behavior of this bug is similar to the other bug that happens if
-                    // any other windows try to appear/get focus while in native full
-                    // screen -- we get a blank screen, except at least in this case, it
-                    // doesn't lock up the entire Mac operating system event loop.
-                    //
-                    // -- SMF 2008-04-21
-                    
-                    //------------------------------------------------------------------
-                    
-                    Color c = getBackground();
-                    if (Color.black.equals(c))
-                        setBackground(Color.darkGray);
-                    else
-                        setBackground(Color.black);
-                }
-                
-                if (DEBUG.PAINT) setBackground(Color.orange);
+      // if set we allow it to actually go invisible
+      // all children will hide (hiding all the DockWindow's)
 
+      if (show) {
+        super.setVisible(true);
+      } else {
+        setOffScreen();
+      }
+      // Let this be handled by our callers -- was important before ExtraDockWindowHiding, which is
+      // pretty much mandatory now.
+      //             if (!init && show && !inNativeFullScreen())  {
+      //                 // just in case
+      //                 //if (DEBUG.Enabled) Util.printStackTrace("FS DW RAISE ALL");
+      //                 DockWindow.raiseAll();
+      //             }
+    }
+
+    public void activeChanged(tufts.vue.ActiveEvent e, tufts.vue.LWMap map) {
+      if (fullScreenWorking) {
+        if (VUE.multipleMapsVisible()) {
+          // TODO:
+          // bug when multiple maps visible: if right viewer ever becomes
+          // the active viewer, then it sets it's map to the active map,
+          // and then we thing the map has changed here, and we
+          // open up the full screen viewer with the wrong map!
+
+          // This is a convenience feature anyway: the only
+          // time this can be used (in production) is if
+          // the recently opened files menu is used while in working
+          // full screen.
+
+          // Ideally, we would be best to completely ignore these events
+          // while we're entering/exiting full-screen mode.
+        } else {
+          FullScreenViewer.loadFocal(map);
+        }
+      }
+    }
+
+    @Override
+    public void paint(Graphics g) {
+      //boolean offscreen = getX() < 0 || getY() < 0;
+      final boolean offscreen = getY() >= GUI.getOffScreenY();
+
+      if (DEBUG.Enabled) Log.debug(
+        "paint " + this + ";  hidden=" + isHidden + "; offscreen=" + offscreen
+      );
+
+      // don't paint if we're offscreen.  This is important for the presentation tool,
+      // as it actually configures some of it's special button locations when it
+      // paints, so only one viewer at a time should be painting, otherwise the
+      // buttons could get the wrong location for the visible viewer.
+      if (offscreen) return;
+
+      super.paint(g);
+
+      if (isHidden) {
+        // wait for paint to finish, then fade us up
+        fadeUp();
+      }
+
+      if (screenBlacked) {
+        fadeFromBlack();
+        screenBlacked = false;
+      }
+    }
+
+    void screenToBlack() {
+      screenBlacked = true;
+      goBlack();
+    }
+
+    private void fadeUp() {
+      isHidden = false;
+      if (Util.isMacCocoaSupported()) {
+        if (DEBUG.Enabled) Log.debug("requesting fadeup");
+        GUI.invokeAfterAWT(
+          new Runnable() {
+            public void run() {
+              doFadeUp();
             }
+          }
+        );
+      }
+    }
+
+    private void doFadeUp() {
+      if (DEBUG.Enabled) Log.debug("fadeup invoked");
+      if (Util.isMacCocoaSupported()) {
+        try {
+          //if (MacOSX.isMainInvisible())
+          MacOSX.fadeUpMainWindow();
+        } catch (Throwable t) {
+          Log.error("doFadeUp", t);
         }
+      }
+      isHidden = false;
+    }
 
-        private void setVisibleImpl(boolean show, boolean init)
-        {
-            setFocusableWindowState(show);
-            
-            // if set we allow it to actually go invisible
-            // all children will hide (hiding all the DockWindow's)
-            
-            if (show) {
-                super.setVisible(true);
-            } else {
-                setOffScreen();
-            }
+    void makeInvisible() {
+      if (!isHidden && Util.isMacCocoaSupported()) {
+        isHidden = true;
+        MacOSX.setWindowAlpha(this, 0);
+      }
+    }
 
-// Let this be handled by our callers -- was important before ExtraDockWindowHiding, which is
-// pretty much mandatory now.
-//             if (!init && show && !inNativeFullScreen())  {
-//                 // just in case
-//                 //if (DEBUG.Enabled) Util.printStackTrace("FS DW RAISE ALL");
-//                 DockWindow.raiseAll(); 
-//             }
-        }
-        
-        public void activeChanged(tufts.vue.ActiveEvent e, tufts.vue.LWMap map) {
-            if (fullScreenWorking) {
-                if (VUE.multipleMapsVisible()) {
-                    
-                    // TODO:
-                    // bug when multiple maps visible: if right viewer ever becomes
-                    // the active viewer, then it sets it's map to the active map,
-                    // and then we thing the map has changed here, and we
-                    // open up the full screen viewer with the wrong map!
-                    
-                    // This is a convenience feature anyway: the only
-                    // time this can be used (in production) is if
-                    // the recently opened files menu is used while in working
-                    // full screen.
+    //         void makeVisible() {
+    //             if (isHidden) {
+    //                 isHidden = false;
+    //                 //MacOSX.cycleAlpha(this, 0f, 1f);
+    //                 MacOSX.setAlpha(this, 1f);
+    //             }
+    //         }
 
-                    // Ideally, we would be best to completely ignore these events
-                    // while we're entering/exiting full-screen mode.
-                } else {
-                    FullScreenViewer.loadFocal(map);
-                }
-            }
-        }
+    //         void makeVisibleLater() {
+    //             if (isHidden) {
+    //                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+    //                     makeVisible();
+    //                 }});
+    //             }
+    //         }
 
-        @Override
-        public void paint(Graphics g) {
+    private javax.swing.JMenuBar getMainMenuBar() {
+      if (mainMenuBar == null) {
+        // fyi, if this is ever called before all the DockWindow's have
+        // been constructed, the Windows menu in the VueMenuBar
+        // will be awfully sparse...
+        mainMenuBar = new VueMenuBar();
+      }
+      return mainMenuBar;
+    }
 
-            //boolean offscreen = getX() < 0 || getY() < 0;
-            final boolean offscreen = getY() >= GUI.getOffScreenY();
-            
-            if (DEBUG.Enabled) Log.debug("paint " + this + ";  hidden=" + isHidden + "; offscreen=" + offscreen);
-
-            // don't paint if we're offscreen.  This is important for the presentation tool,
-            // as it actually configures some of it's special button locations when it
-            // paints, so only one viewer at a time should be painting, otherwise the
-            // buttons could get the wrong location for the visible viewer.
-            if (offscreen)
-                return;
-            
-            super.paint(g);
-
-            if (isHidden) {
-                // wait for paint to finish, then fade us up
-                fadeUp();
-            }
-
-            if (screenBlacked) {
-                fadeFromBlack();
-                screenBlacked = false;
-            }
-        }
-
-        void screenToBlack() {
-            screenBlacked = true;
-            goBlack();
-        }
-
-
-        private void fadeUp()
-        {
-            isHidden = false;
-            if (Util.isMacCocoaSupported()) {
-                if (DEBUG.Enabled) Log.debug("requesting fadeup");
-                GUI.invokeAfterAWT(new Runnable() { public void run() {
-                    doFadeUp();
-                }});
-            }
-        }
-        
-        private void doFadeUp()
-        {
-            if (DEBUG.Enabled) Log.debug("fadeup invoked");
-            if (Util.isMacCocoaSupported()) {
-                try {
-                    //if (MacOSX.isMainInvisible())
-                    MacOSX.fadeUpMainWindow();
-                } catch (Throwable t) {
-                    Log.error("doFadeUp", t);
-                }
-            }
-            isHidden = false;
-        }
-
-        void makeInvisible() {
-            if (!isHidden && Util.isMacCocoaSupported() ) {
-                isHidden = true;
-                MacOSX.setWindowAlpha(this, 0);
-            }
-        }
-
-//         void makeVisible() {
-//             if (isHidden) {
-//                 isHidden = false;
-//                 //MacOSX.cycleAlpha(this, 0f, 1f);
-//                 MacOSX.setAlpha(this, 1f);
-//             }
-//         }
-
-//         void makeVisibleLater() {
-//             if (isHidden) {
-//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
-//                     makeVisible();
-//                 }});
-//             }
-//         }
-        
-        
-
-        private javax.swing.JMenuBar getMainMenuBar() {
-            if (mainMenuBar == null) {
-                // fyi, if this is ever called before all the DockWindow's have
-                // been constructed, the Windows menu in the VueMenuBar
-                // will be awfully sparse...
-                mainMenuBar = new VueMenuBar();
-            }
-            return mainMenuBar;
-        }
-
-        /**
+    /**
            
          * Allow a menu bar at the top for full-screen working mode on non-mac
          * platforms.  (Mac always has a menu bar at the top in any working mode, as
@@ -360,596 +342,628 @@ public class FullScreen
          * the full-screen window during a presentation.
          
          */
-        
-        private void setMenuBarEnabled(boolean enabled) {
-            if (GUI.isMacAqua()) {
-                // we never need to do this in Mac Aqua, as the application
-                // always has the Mac menu bar at the top of the screen
-                return;
-            }
-            
-            if (enabled)
-                getRootPane().setJMenuBar(getMainMenuBar());
-            else
-                getRootPane().setJMenuBar(null);
-        }
-        
+
+    private void setMenuBarEnabled(boolean enabled) {
+      if (GUI.isMacAqua()) {
+        // we never need to do this in Mac Aqua, as the application
+        // always has the Mac menu bar at the top of the screen
+        return;
+      }
+
+      if (enabled) getRootPane()
+        .setJMenuBar(getMainMenuBar()); else getRootPane().setJMenuBar(null);
     }
+  }
 
-    
-
-    private static boolean goBlack() {
-        if (Util.isMacCocoaSupported()) {
-            try {
-                MacOSX.goBlack();
-                return true;
-            } catch (Error e) {
-                Log.error(e);
-                return false;
-            }
-        }
+  private static boolean goBlack() {
+    if (Util.isMacCocoaSupported()) {
+      try {
+        MacOSX.goBlack();
+        return true;
+      } catch (Error e) {
+        Log.error(e);
         return false;
+      }
+    }
+    return false;
+  }
+
+  private static void goClear() {
+    if (Util.isMacCocoaSupported()) {
+      try {
+        MacOSX.hideFSW();
+      } catch (Error e) {
+        Log.error(e);
+      }
+    }
+  }
+
+  private static void fadeFromBlack() {
+    if (Util.isMacCocoaSupported()) {
+      try {
+        MacOSX.fadeFromBlack();
+      } catch (Error e) {
+        Log.error(e);
+      }
+    }
+  }
+
+  //     public static void fadeToBlack() {
+  //         // None of the MacOSX utils that use a separate NSWindow drawn
+  //         // black on top of everything else work in full-screen native
+  //         // mode -- the full screen window itself always stays on-top,
+  //         // even if we order the special NSWindow to the front.
+
+  // //         if (Util.isMacPlatform()) {
+  // //             try {
+  // //                 MacOSX.fadeToBlack();
+  // //             } catch (Error e) {
+  // //                 Log.error(e);
+  // //             }
+  // //         }
+  //     }
+
+  public static boolean inFullScreen() {
+    return fullScreenWorking || fullScreenNative;
+  }
+
+  public static boolean inWorkingFullScreen() {
+    return fullScreenWorking;
+  }
+
+  public static boolean inNativeFullScreen() {
+    return fullScreenNative;
+    //return fullScreenNative || (DEBUG.PRESENT && inWorkingFullScreen());
+  }
+
+  public static void toggleFullScreen() {
+    toggleFullScreen(false);
+  }
+
+  //     public static void setFullScreenWorkingMode() {
+  //         dropFromNativeToWorking();
+  //     }
+
+  public static void dropFromNativeToWorking() {
+    // TODO: merge this code with exitFullScreen
+
+    FullScreenWindow.screenToBlack(); // will auto-fade-up next time it completes a paint
+
+    final GraphicsEnvironment ge =
+      GraphicsEnvironment.getLocalGraphicsEnvironment();
+    final GraphicsDevice device = ge.getDefaultScreenDevice();
+
+    if (device.getFullScreenWindow() != null) {
+      // this will take us out of true full screen mode
+      Log.debug(
+        "clearing native full screen window:" +
+        "\n\t  controlling device: " +
+        device +
+        "\n\tcur device FS window: " +
+        device.getFullScreenWindow()
+      );
+      device.setFullScreenWindow(null);
+    }
+    FullScreenWindow.setMenuBarEnabled(true);
+    VUE.getActiveTool().handleFullScreen(true, false);
+    GUI.setFullScreenVisible(FullScreenWindow);
+    fullScreenWorking = true;
+    fullScreenNative = false;
+    //FullScreenViewer.grabVueApplicationFocus("FullScreen.nativeDrop", null);
+
+    //         GUI.invokeAfterAWT(new Runnable() { public void run() {
+    //             VUE.getActiveTool().handleFullScreen(true, false);
+    //         }});
+
+  }
+
+  public static void dropFromNativeToFrame() {
+    Actions.ToggleFullScreen.act();
+  }
+
+  public static synchronized void toggleFullScreen(boolean goNative) {
+    //agoNative=false;
+    // TODO: getMapAt in MapTabbedPane fails returning null when, of course, MapViewer is parented out!
+
+    // On the mac, the order in which the tool windows are shown (go from hidden to visible) is the
+    // z-order, with the last being on top -- this INCLUDES the full-screen window, so when it get's
+    // shown, all the tool windows will always go below it, (including the main VUE frame) so we have
+    // have to hide/show all the tool windows each time so they come back to the front.
+
+    // If the tool window was open when fs popped, you can get it back by hitting it's shortcuut
+    // twice, hiding it then bringing it back, tho it appeared on mac that this didn't always work.
+
+    // More Mac Problems: We need the FSW (full screen window) to be a frame so we can set a
+    // jmenu-bar for the top (MRJAdapter non-active jmenu bar won't help: it's for only for when
+    // there's NO window active).  But then as a sibling frame, to VUE.frame instead ofa child to it,
+    // VUE.frame can appear on top of you Option-~.  Trying to move VUE.frame off screen doesn't
+    // appear to be working -- maybe we could set it to zero size?  Furthermore, all the tool
+    // Windows, which are children to VUE.frame, won't stay on top of the FSW after it takes focus.
+    // We need to see what happens if they're frames, as they're going to need to be anyway.  (There
+    // is the nice ability to Option-~ them all front/back at once, as children of the VUE.frame, if
+    // they're windows tho...)
+
+    // What about using a JDialog instead of a JFrame?  JDialog's can have
+    // a parent frame AND a JMenuBar...
+
+    //         final boolean doBlack = (goNative || inNativeFullScreen());
+    //         if (doBlack)
+    //             goBlack();
+
+    if (fullScreenWorking) {
+      if (goNative && !inNativeFullScreen()) enterFullScreenMode(
+        true
+      ); else exitFullScreenMode();
+    } else {
+      enterFullScreenMode(goNative);
     }
 
-    private static void goClear() {
-        if (Util.isMacCocoaSupported()) {
-            try {
-                MacOSX.hideFSW();
-            } catch (Error e) {
-                Log.error(e);
+    if (!inWorkingFullScreen()) {
+      tufts.vue.VueToolbarController
+        .getController()
+        .setSelectedTool(
+          tufts.vue.VueToolbarController.getController().getSelectedTool()
+        );
+    } else if (!goNative) {
+      // TODO: this is problematic: this will unexepectly switch the user to a
+      // different tool when they enter full screen mode.  The floating tool panel is
+      // not being synced with the main VUE tool panel (it may not be capable of this
+      // -- it has it's own smaller sub-set of tools on it).
+
+      tufts.vue.VueToolbarController
+        .getController()
+        .setSelectedTool(VUE.getFloatingZoomPanel().getSelectedTool());
+      // Is causing event loop:
+      //VUE.setActive(VueTool.class, FullScreen.class, VUE.getFloatingZoomPanel().getSelectedTool());
+
+    }
+
+    //VUE.getActiveViewer().requestFocus();
+    ////ToolWindow.adjustMacWindows();
+    VueMenuBar.toggleFullScreenTools();
+    //         if (doBlack)
+    //             VUE.invokeAfterAWT(new Runnable() {
+    //                     public void run() { tufts.Util.screenFadeFromBlack();}
+    //                 });
+  }
+
+  private static LWMap activeMap = null;
+  private static MapViewer activeViewer = null;
+
+  public static LWMap getObscuredMap() {
+    return activeMap;
+  }
+
+  public static MapViewer getObscuredViewer() {
+    return activeViewer;
+  }
+
+  private static synchronized void enterFullScreenMode(final boolean goNative) {
+    NDC.push("[FS->]");
+
+    GUI.reloadGraphicsInfo();
+
+    boolean wentBlack = false;
+    if (goNative && inWorkingFullScreen()) {
+      // as the working full-screen window is the same window as the native
+      // full-screen window, we need to show the black window when transitioning
+      // from working full-screen to native full-screen, otherwise we see the
+      // working full-screen tear-down and the underlying VUE app/desktop before
+      // seeing the black screen of the initial native window at 0 alpha.
+      // Okay to leave this up while in native, as it'll be torn down automatically
+      // on exit, tho it safer to tear it down just in case.
+      wentBlack = goBlack();
+    }
+
+    activeMap = VUE.getActiveMap();
+    activeViewer = VUE.getActiveViewer();
+
+    tufts.vue.LWComponent _activeFocal = null;
+
+    if (activeViewer != null) _activeFocal = activeViewer.getFocal();
+    if (_activeFocal == null && activeMap != null) _activeFocal = activeMap;
+
+    if (activeViewer != FullScreenViewer) {
+      FullScreenLastActiveViewer = activeViewer;
+      activeViewer.setFocusable(false);
+    }
+
+    final tufts.vue.LWComponent activeFocal = _activeFocal;
+
+    if (goNative) {
+      // Can't use heavy weights, as they're windows that can't be seen,
+      // and actually the screen goes blank on Mac OS X trying to handle this.
+      javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
+      // also: appear to need to do this before anything else
+      // to have it property take effect?
+    }
+
+    Log.debug("Entering full screen mode; goNative=" + goNative);
+    if (FullScreenWindow == null) {
+      FullScreenWindow = (FSWindow) GUI.getFullScreenWindow();
+      FullScreenWindow
+        .getContentPane()
+        .add(FullScreenViewer = new MapViewer(null, VIEWER_NAME));
+      //fullScreenWindow.pack();
+    }
+
+    FullScreenViewer.setLoading(true);
+
+    FullScreenWindow.setMenuBarEnabled(!goNative);
+    // FullScreenViewer.loadFocal(VUE.getActiveMap()); // can't do till we're sure it has a size!
+    fullScreenWorking = true; // we're in the mode as soon as the add completes (no going back then)
+    fullScreenNative = goNative;
+
+    // TODO: above two bits need to be more semantic: e.g., inFullScreen
+    // and inFullScreenPresentation
+
+    final boolean useNativeMode =
+      goNative &&
+      !Util.isWindowsPlatform() &&
+      !tufts.vue.Actions.SuperScreen.getToggleState();
+
+    if (useNativeMode) {
+      // MAC & LINUX ONLY:
+
+      //final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      final GraphicsDevice device = GUI.getActiveDevice();
+
+      if (DEBUG.Enabled) {
+        Log.debug("entering NATIVE full-screen on " + Util.tags(device));
+        GUI.dumpGraphicsDevice(device, "VUE-ACTIVE");
+      }
+      //out("Native full screen support available: " + device.isFullScreenSupported());
+      // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
+
+      // Try and prevent us from flashing a big white screen while we load.
+      // Tho immediately loading the focal below will quickly override this...
+      FullScreenWindow.setBackground(Color.black);
+      FullScreenViewer.setBackground(Color.black);
+
+      // On Mac, must use native full-screen to get the window over
+      // the mac menu bar.
+
+      FullScreenWindow.makeInvisible();
+      device.setFullScreenWindow(FullScreenWindow);
+      FullScreenDevice = device;
+
+      // We run into a serious problem using the special java full-screen mode on the mac: if
+      // you right-click, it attemps to pop-up a menu over the full screen window, which is not
+      // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
+      // but just leaves you at a fully blank screen that you can sometimes never recover from
+      // without powering off!  This true as of java version "1.4.2_05-141.3", Mac OS X 10.3.5/6.
+      // [TODO: JAN 2010: we at worst run in java 1.5 now, and usually java 1.6 -- probably
+      // don't need this anymore -- retest]
+
+      if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
+        nativeModeHidAllDockWindows = true;
+        DockWindow.HideAllWindows();
+      }
+    } else {
+      // WINDOWS: (why don't we ever use native full-screen w/windows?)
+
+      // Or: Mac/Linux when All Screens (SuperScreen) is being used.
+      // Note that on Mac, this means that the top menu bar will NOT be hidden.
+
+      if (goNative) {
+        if (
+          ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()
+          /*&& !GUI.hasMultipleScreens()*/
+        ) {
+          nativeModeHidAllDockWindows = true;
+          DockWindow.HideAllWindows();
+        }
+      }
+
+      GUI.setFullScreenVisible(FullScreenWindow);
+    }
+
+    FullScreenViewer.loadFocal(activeFocal);
+
+    if (
+      !goNative &&
+      activeViewer != null &&
+      activeMap != null &&
+      !(VUE.getActiveViewer().getFocal() instanceof tufts.vue.LWSlide)
+    ) {
+      //if (activeViewer.getWidth() != activeViewer.getVisibleWidth() ||activeViewer.getHeight() != activeViewer.getVisibleHeight())
+      ZoomTool.setZoomFitRegion(
+        FullScreenViewer,
+        activeViewer.getVisibleMapBounds()
+      );
+      //	else
+      //	ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getMap().getMapBounds(),activeViewer.getMap().getFocalMargin(),false);
+
+    }
+
+    if (
+      !goNative &&
+      (Util.isUnixPlatform() ||
+        (DockWindow.useManagedWindowHacks() && Util.isMacPlatform()))
+    ) {
+      // need this on Leopard for sure, and seems also to help on Linux
+
+      // Pretty sure this only needs to be done the first
+      // time (yet another java / java mac impl bug), but
+      // can't hurt to do it always.
+      DockWindow.raiseAll();
+    }
+
+    FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-1", null);
+
+    final VueTool activeTool = VueToolbarController.getActiveTool();
+
+    GUI.invokeAfterAWT(
+      new Runnable() {
+        public void run() {
+          if (DEBUG.PRESENT) Log.debug(
+            "AWT thread activeTool.handleFullScreen for " + activeTool
+          );
+          activeTool.handleFullScreen(true, goNative);
+        }
+      }
+    );
+
+    if (wentBlack) {
+      GUI.invokeAfterAWT(
+        new Runnable() {
+          public void run() {
+            // shouldn't ever be able to see this happen, as the native full-screen should be
+            // on top of us, but just in case we make sure to clear it out behind us...
+            goClear();
+          }
+        }
+      );
+    }
+
+    GUI.invokeAfterAWT(
+      new Runnable() {
+        public void run() {
+          // The initial request for focus sometimes happens while the
+          // FullScreenViewer already has focus, and immediately after that it
+          // completely loses focus (to null), so we request again here to be
+          // absolutely sure we have keyboard focus.
+
+          FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-2", null);
+          if (activeFocal != null) {
+            // leave as loading if we're clearing out (leaving full-screen) so we'll be ready with it at the next display
+            FullScreenViewer.setLoading(false);
+          }
+          // added this repaint for going native full-screen on the NON-DEFAULT device
+          // in a Mac OSX multi-monitor setup -- window was appearing, but needed to
+          // move mouse to see the first paint.
+          FullScreenViewer.repaint();
+          NDC.pop();
+        }
+      }
+    );
+  }
+
+  public static MapViewer getLastActive() {
+    return FullScreenLastActiveViewer;
+  }
+
+  private static synchronized void exitFullScreenMode() {
+    NDC.push("[<-FS]");
+
+    GUI.reloadGraphicsInfo();
+
+    //final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    //final GraphicsDevice device = ge.getDefaultScreenDevice();
+
+    final GraphicsDevice device;
+
+    if (FullScreenDevice == null) {
+      // this should only happen if an external display was literally disconnected
+      // while we were in full-screen mode
+      device = GUI.getActiveDevice();
+    } else {
+      device = FullScreenDevice;
+    }
+
+    final boolean wasNative = inNativeFullScreen();
+    final tufts.vue.LWComponent fullScreenFocal = FullScreenViewer.getFocal();
+    final tufts.vue.LWMap fullScreenMap = FullScreenViewer.getMap();
+
+    final Rectangle2D fullScreenVisibleMapBounds =
+      FullScreenViewer.getVisibleMapBounds();
+    //final Rectangle2D fullScreenMapBounds = fullScreenMap.getBounds();
+
+    Log.debug("Exiting full screen mode; inNative=" + wasNative);
+
+    final boolean fadeBack = wasNative && Util.isMacPlatform();
+
+    if (fadeBack) {
+      // For Mac: this won't be visible till full-screen is torn down (nothing
+      // can go over the FSW), but it will be there all full and black once
+      // the java FSW *is* torn down, then we can fade that out to reveal
+      // the desktop.
+      goBlack();
+    }
+
+    //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
+
+    // PROBLEM / QUESTION: WHAT HAPPENS IF THE FS DEVICE LITERALLY
+    // GOES AWAY (is disconnected) while we're in FS mode?
+
+    if (device == null) {
+      Log.error("missing device exiting FS mode");
+    } else if (device.getFullScreenWindow() != null) {
+      // this will take us out of true full screen mode
+      Log.info(
+        "clearing native full screen window:" +
+        "\n\t  controlling device: " +
+        device +
+        "\n\tcur device FS window: " +
+        device.getFullScreenWindow()
+      );
+
+      // note that when coming out of full screen, the java impl
+      // first restores the given  window to it's state before
+      // we made it the FSW, which is annoying on the mac cause
+      // it flashes a small window briefly in the upper left.
+      device.setFullScreenWindow(null);
+    } else {
+      Log.warn("device no longer has FS window: " + device);
+    }
+    FullScreenDevice = null; // ensure global record of current FS device is nulled
+
+    fullScreenWorking = false;
+    fullScreenNative = false;
+    FullScreenWindow.setVisible(false);
+    FullScreenViewer.loadFocal(null);
+
+    // Note: several of these invokeAfterAWT calls are probably overkill,
+    // but the focus issues we're dealing with here can be very delicate,
+    // so be careful in here...
+
+    if (ExtraDockWindowHiding && nativeModeHidAllDockWindows) {
+      nativeModeHidAllDockWindows = false;
+      GUI.invokeAfterAWT(
+        new Runnable() {
+          public void run() {
+            DockWindow.ShowPreviouslyHiddenWindows();
+            if (Util.isMacPlatform()) {
+              // This will ensure the windows are fully painted when we return
+              // from fade-back.
+
+              // Only need to do this on mac, as we can't hide what's happening on
+              // WinXP by fading to/from black anyway.
+
+              DockWindow.ImmediatelyRepaintAllWindows();
             }
+          }
         }
+      );
     }
-    
 
-    private static void fadeFromBlack() {
-        if (Util.isMacCocoaSupported()) {
-            try {
-                MacOSX.fadeFromBlack();
-            } catch (Error e) {
-                Log.error(e);
+    if (FullScreenLastActiveViewer != FullScreenViewer) {
+      GUI.invokeAfterAWT(
+        new Runnable() {
+          public void run() {
+            // todo: we do NOT want to do this if the active map has changed while in
+            // full-screen mode: we want to activate the viewer for the map currently
+            // displayed
+            FullScreenLastActiveViewer.grabVueApplicationFocus(
+              "FullScreen.exit",
+              null
+            );
+          }
+        }
+      );
+    }
+
+    GUI.invokeAfterAWT(
+      new Runnable() {
+        public void run() {
+          VueToolbarController
+            .getActiveTool()
+            .handleFullScreen(false, wasNative);
+          //Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
+          //VUE.getActiveViewer().popToMapFocal(); // old active viewer shouldn't have changed...
+        }
+      }
+    );
+
+    GUI.invokeAfterAWT(
+      new Runnable() {
+        public void run() {
+          // Do not now ask for the currently active viewer: use the reference to the one that
+          // was active when we entered full-screen mode: the java focus system can be very
+          // unpredicable -- we can't be sure who is getting the focus back.  E.g., the active
+          // viewer at this point may even still be the full-screen viewer, with a null
+          // map, as it's been unloaded at this point.
+
+          // Todo: if the active map has changed while in full screen mode, we should actually
+          // return to the open viewer that has the same map.  Checking the ActiveViewer almost
+          // works for this, but the corner cases need handling.  Easiest approach may be to have
+          // FullScreenLastActiveViewer actually repoint to the standard viewer for the active
+          // map if the active map changes.
+
+          final MapViewer returnViewer = FullScreenLastActiveViewer;
+          //final MapViewer returnViewer = VUE.getActiveViewer();
+
+          if (DEBUG.Enabled) Log.debug(
+            "exit FS cleanup;" +
+            "\n\tlastActiveViewer: " +
+            FullScreenLastActiveViewer +
+            "\n\t nowActiveViewer: " +
+            VUE.getActiveViewer() +
+            "\n\t    returnViewer: " +
+            returnViewer +
+            "\n\t fullScreenFocal: " +
+            fullScreenFocal
+          );
+
+          try {
+            if (!wasNative && returnViewer != null) {
+              // If the focal has changed while in full screen mode, and it's still a
+              // focal from the same map that's in the viewer we're returning back to,
+              // swap load the same focal into the returning viewer.  (e.g., a slide
+              // was being edited in full screen mode: make the same slide visible in
+              // the regular viewer when we return to it).
+
+              if (fullScreenMap == returnViewer.getMap()) {
+                if (
+                  returnViewer.getFocal() != fullScreenFocal
+                ) returnViewer.loadFocal(fullScreenFocal);
+              }
+
+              // have the returning viewer zoom to the same region
+              // that is visible in the full-screen viewer
+              // problem with this method: the region keeps shrinking on repeated in/out of working FS mode
+              // ZoomTool.setZoomFitRegion(returnViewer, fullScreenVisibleMapBounds, 0, false, false);
+
+              // Current logic: this seems to keep the same region visible if the region is
+              // "zoomed in" -- there are parts of the map visible off screen, or just force
+              // a zoom-fit otherwise.
+
+              if (
+                returnViewer.getWidth() != returnViewer.getVisibleWidth() ||
+                returnViewer.getHeight() != returnViewer.getVisibleHeight()
+              ) {
+                if (DEBUG.Enabled) Log.debug(
+                  "size mismatch (viewer probably scroll-enabled) re-zoom"
+                );
+                ZoomTool.setZoomFitRegion(
+                  returnViewer,
+                  returnViewer.getVisibleMapBounds()
+                );
+              } else {
+                if (DEBUG.Enabled) Log.debug("default re-zoom");
+                ZoomTool.setZoomFitRegion(
+                  returnViewer,
+                  returnViewer.getMap().getMapBounds(),
+                  returnViewer.getMap().getFocalMargin(),
+                  false
+                );
+              }
             }
+          } finally {
+            if (!fadeBack) NDC.pop();
+          }
         }
-    }
-    
-//     public static void fadeToBlack() {
-//         // None of the MacOSX utils that use a separate NSWindow drawn
-//         // black on top of everything else work in full-screen native
-//         // mode -- the full screen window itself always stays on-top,
-//         // even if we order the special NSWindow to the front.
-        
-// //         if (Util.isMacPlatform()) {
-// //             try {
-// //                 MacOSX.fadeToBlack();
-// //             } catch (Error e) {
-// //                 Log.error(e);
-// //             }
-// //         }
-//     }
+      }
+    );
 
-    
+    // This works to have the toolbar painted, vut the tabbed pane and viewer apparently aren't ready yet (just shows dark gray)
+    //         if (Util.isMacPlatform())
+    //             ((javax.swing.JComponent)VUE.getApplicationFrame().getContentPane()).paintImmediately(new Rectangle(-256,-256,4096,4096));
 
-    
-    
-    public static boolean inFullScreen() {
-        return fullScreenWorking || fullScreenNative;
-    }
-
-    public static boolean inWorkingFullScreen() {
-        return fullScreenWorking;
-    }
-    public static boolean inNativeFullScreen() {
-        return fullScreenNative;
-        //return fullScreenNative || (DEBUG.PRESENT && inWorkingFullScreen());
-    }
-
-    public static void toggleFullScreen() {
-        toggleFullScreen(false);
-    }
-
-//     public static void setFullScreenWorkingMode() {
-//         dropFromNativeToWorking();
-//     }
-    
-    public static void dropFromNativeToWorking() {
-
-        // TODO: merge this code with exitFullScreen
-
-        FullScreenWindow.screenToBlack(); // will auto-fade-up next time it completes a paint
-
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice device = ge.getDefaultScreenDevice();
-        
-        if (device.getFullScreenWindow() != null) {
-            // this will take us out of true full screen mode
-            Log.debug("clearing native full screen window:"
-                          + "\n\t  controlling device: " + device
-                          + "\n\tcur device FS window: " + device.getFullScreenWindow());
-            device.setFullScreenWindow(null);
-        }
-        FullScreenWindow.setMenuBarEnabled(true);
-        VUE.getActiveTool().handleFullScreen(true, false);
-        GUI.setFullScreenVisible(FullScreenWindow);
-        fullScreenWorking = true;
-        fullScreenNative = false;
-
-        //FullScreenViewer.grabVueApplicationFocus("FullScreen.nativeDrop", null);
-
-//         GUI.invokeAfterAWT(new Runnable() { public void run() {
-//             VUE.getActiveTool().handleFullScreen(true, false);
-//         }});
-        
-        
-    }
-    
-    public static void dropFromNativeToFrame() {
-        Actions.ToggleFullScreen.act();
-    }
-    
-    public static synchronized void toggleFullScreen(boolean goNative)
-    {
-        //agoNative=false;
-        // TODO: getMapAt in MapTabbedPane fails returning null when, of course, MapViewer is parented out!
-                
-        // On the mac, the order in which the tool windows are shown (go from hidden to visible) is the
-        // z-order, with the last being on top -- this INCLUDES the full-screen window, so when it get's
-        // shown, all the tool windows will always go below it, (including the main VUE frame) so we have
-        // have to hide/show all the tool windows each time so they come back to the front.
-
-        // If the tool window was open when fs popped, you can get it back by hitting it's shortcuut
-        // twice, hiding it then bringing it back, tho it appeared on mac that this didn't always work.
-
-        // More Mac Problems: We need the FSW (full screen window) to be a frame so we can set a
-        // jmenu-bar for the top (MRJAdapter non-active jmenu bar won't help: it's for only for when
-        // there's NO window active).  But then as a sibling frame, to VUE.frame instead ofa child to it,
-        // VUE.frame can appear on top of you Option-~.  Trying to move VUE.frame off screen doesn't
-        // appear to be working -- maybe we could set it to zero size?  Furthermore, all the tool
-        // Windows, which are children to VUE.frame, won't stay on top of the FSW after it takes focus.
-        // We need to see what happens if they're frames, as they're going to need to be anyway.  (There
-        // is the nice ability to Option-~ them all front/back at once, as children of the VUE.frame, if
-        // they're windows tho...)
-
-        // What about using a JDialog instead of a JFrame?  JDialog's can have
-        // a parent frame AND a JMenuBar...
-
-//         final boolean doBlack = (goNative || inNativeFullScreen());
-//         if (doBlack)
-//             goBlack();
-
-        if (fullScreenWorking) {
-            if (goNative && !inNativeFullScreen())
-                enterFullScreenMode(true);
-            else           
-                exitFullScreenMode();
-        } else {
-            enterFullScreenMode(goNative);
-        }
-
-        if (!inWorkingFullScreen())
-        {
-            tufts.vue.VueToolbarController.getController()
-                .setSelectedTool(tufts.vue.VueToolbarController.getController().getSelectedTool());
-
-        }
-        else if (!goNative)
-        {
-
-            // TODO: this is problematic: this will unexepectly switch the user to a
-            // different tool when they enter full screen mode.  The floating tool panel is
-            // not being synced with the main VUE tool panel (it may not be capable of this
-            // -- it has it's own smaller sub-set of tools on it).
-            
-            tufts.vue.VueToolbarController.getController()
-                .setSelectedTool(VUE.getFloatingZoomPanel().getSelectedTool());
-            // Is causing event loop:
-            //VUE.setActive(VueTool.class, FullScreen.class, VUE.getFloatingZoomPanel().getSelectedTool());
-            
-        	
-        }
-        
-        //VUE.getActiveViewer().requestFocus();
-        ////ToolWindow.adjustMacWindows();
-        VueMenuBar.toggleFullScreenTools();
-
-//         if (doBlack)
-//             VUE.invokeAfterAWT(new Runnable() {
-//                     public void run() { tufts.Util.screenFadeFromBlack();}
-//                 });
-    }
-
-    private static LWMap activeMap = null;
-    private static MapViewer activeViewer= null;
-    
-    public static LWMap getObscuredMap()
-    {
-    	return activeMap;
-    }
-    
-    public static MapViewer getObscuredViewer()
-    {
-    	return activeViewer;
-    }
-    
-    private synchronized static void enterFullScreenMode(final boolean goNative)
-    {
-        NDC.push("[FS->]");
-        
-        GUI.reloadGraphicsInfo();
-
-        boolean wentBlack = false;
-        if (goNative && inWorkingFullScreen()) {
-            // as the working full-screen window is the same window as the native
-            // full-screen window, we need to show the black window when transitioning
-            // from working full-screen to native full-screen, otherwise we see the
-            // working full-screen tear-down and the underlying VUE app/desktop before
-            // seeing the black screen of the initial native window at 0 alpha.
-            // Okay to leave this up while in native, as it'll be torn down automatically
-            // on exit, tho it safer to tear it down just in case.
-            wentBlack = goBlack();
-        }
-
-        activeMap = VUE.getActiveMap();
-        activeViewer = VUE.getActiveViewer();
-        
-        tufts.vue.LWComponent _activeFocal = null;
-
-        if (activeViewer != null)
-            _activeFocal = activeViewer.getFocal();
-        if (_activeFocal == null && activeMap != null)
-            _activeFocal = activeMap;
-
-        if (activeViewer != FullScreenViewer) {
-            FullScreenLastActiveViewer = activeViewer;
-            activeViewer.setFocusable(false);
-        }
-        
-        final tufts.vue.LWComponent activeFocal = _activeFocal;
-        
-        if (goNative) {
-            // Can't use heavy weights, as they're windows that can't be seen,
-            // and actually the screen goes blank on Mac OS X trying to handle this.
-            javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
-            // also: appear to need to do this before anything else
-            // to have it property take effect?
-        }
-
-        Log.debug("Entering full screen mode; goNative=" + goNative);
-        if (FullScreenWindow == null) {
-            FullScreenWindow = (FSWindow) GUI.getFullScreenWindow();
-            FullScreenWindow.getContentPane().add(FullScreenViewer = new MapViewer(null, VIEWER_NAME));
-            //fullScreenWindow.pack();
-        }
-
-        FullScreenViewer.setLoading(true);
-                
-        FullScreenWindow.setMenuBarEnabled(!goNative);
-        // FullScreenViewer.loadFocal(VUE.getActiveMap()); // can't do till we're sure it has a size!
-        fullScreenWorking = true; // we're in the mode as soon as the add completes (no going back then)
-        fullScreenNative = goNative;
-
-        // TODO: above two bits need to be more semantic: e.g., inFullScreen
-        // and inFullScreenPresentation
-
-        final boolean useNativeMode =
-            goNative &&
-            !Util.isWindowsPlatform() &&
-            !tufts.vue.Actions.SuperScreen.getToggleState();
-
-        if (useNativeMode) {
-
-            // MAC & LINUX ONLY:
-
-            //final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            final GraphicsDevice device = GUI.getActiveDevice();
-
-            if (DEBUG.Enabled) {
-                Log.debug("entering NATIVE full-screen on " + Util.tags(device));
-                GUI.dumpGraphicsDevice(device, "VUE-ACTIVE");
-            }
-            //out("Native full screen support available: " + device.isFullScreenSupported());
-            // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
-            
-            // Try and prevent us from flashing a big white screen while we load.
-            // Tho immediately loading the focal below will quickly override this...
-            FullScreenWindow.setBackground(Color.black);
-            FullScreenViewer.setBackground(Color.black);
-            
-            // On Mac, must use native full-screen to get the window over
-            // the mac menu bar.
-                    
-            FullScreenWindow.makeInvisible();
-            device.setFullScreenWindow(FullScreenWindow);
-            FullScreenDevice = device;
-
-            // We run into a serious problem using the special java full-screen mode on the mac: if
-            // you right-click, it attemps to pop-up a menu over the full screen window, which is not
-            // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
-            // but just leaves you at a fully blank screen that you can sometimes never recover from
-            // without powering off!  This true as of java version "1.4.2_05-141.3", Mac OS X 10.3.5/6.
-            // [TODO: JAN 2010: we at worst run in java 1.5 now, and usually java 1.6 -- probably
-            // don't need this anymore -- retest]
-
-            if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
-                nativeModeHidAllDockWindows = true;
-                DockWindow.HideAllWindows();
-            }
-
-        } else {
-
-            // WINDOWS: (why don't we ever use native full-screen w/windows?)
-
-            // Or: Mac/Linux when All Screens (SuperScreen) is being used.
-            // Note that on Mac, this means that the top menu bar will NOT be hidden.
-            
-            if (goNative) {
-                if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden() /*&& !GUI.hasMultipleScreens()*/) {
-                    nativeModeHidAllDockWindows = true;
-                    DockWindow.HideAllWindows();
-                }
-            }
-
-            GUI.setFullScreenVisible(FullScreenWindow);
-        }
-                
-        FullScreenViewer.loadFocal(activeFocal);
-        
-        if (!goNative && activeViewer != null && activeMap != null && !(VUE.getActiveViewer().getFocal() instanceof tufts.vue.LWSlide))        
-        {
-        	//if (activeViewer.getWidth() != activeViewer.getVisibleWidth() ||activeViewer.getHeight() != activeViewer.getVisibleHeight())
-        		ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getVisibleMapBounds());
-        //	else
-        	//	ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getMap().getMapBounds(),activeViewer.getMap().getFocalMargin(),false);
-        		
-        }
-
-        if (!goNative && (Util.isUnixPlatform() || (DockWindow.useManagedWindowHacks() && Util.isMacPlatform()))) {
-
-            // need this on Leopard for sure, and seems also to help on Linux
-            
-            // Pretty sure this only needs to be done the first
-            // time (yet another java / java mac impl bug), but
-            // can't hurt to do it always.
-            DockWindow.raiseAll();
-        }
-        
-        FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-1", null);
-        
-        final VueTool activeTool = VueToolbarController.getActiveTool();
-        
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            if (DEBUG.PRESENT) Log.debug("AWT thread activeTool.handleFullScreen for " + activeTool);
-            activeTool.handleFullScreen(true, goNative);
-        }});
-
-        if (wentBlack) {
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                // shouldn't ever be able to see this happen, as the native full-screen should be
-                // on top of us, but just in case we make sure to clear it out behind us...
-                goClear();
-            }});
-        }
-
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-
-            // The initial request for focus sometimes happens while the
-            // FullScreenViewer already has focus, and immediately after that it
-            // completely loses focus (to null), so we request again here to be
-            // absolutely sure we have keyboard focus.
-
-            FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-2", null);
-            if (activeFocal != null) {
-                // leave as loading if we're clearing out (leaving full-screen) so we'll be ready with it at the next display
-                FullScreenViewer.setLoading(false);
-            }
-            // added this repaint for going native full-screen on the NON-DEFAULT device
-            // in a Mac OSX multi-monitor setup -- window was appearing, but needed to
-            // move mouse to see the first paint.
-            FullScreenViewer.repaint(); 
+    if (fadeBack) {
+      if (DEBUG.Enabled) Log.debug("requesting fadeFromBlack");
+      GUI.invokeAfterAWT(
+        new Runnable() {
+          public void run() {
+            fadeFromBlack();
             NDC.pop();
-        }});
-        
+          }
+        }
+      );
     }
+  }
 
-    public static MapViewer getLastActive()
-    {
-    	return FullScreenLastActiveViewer;
-    }
-
-    
-    private synchronized static void exitFullScreenMode()
-    {
-        NDC.push("[<-FS]");
-
-        GUI.reloadGraphicsInfo();
-        
-        //final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        //final GraphicsDevice device = ge.getDefaultScreenDevice();
-        
-        final GraphicsDevice device;
-
-        if (FullScreenDevice == null) {
-            // this should only happen if an external display was literally disconnected
-            // while we were in full-screen mode
-            device = GUI.getActiveDevice();
-        } else {
-            device = FullScreenDevice;
-        }
-
-        final boolean wasNative = inNativeFullScreen();
-        final tufts.vue.LWComponent fullScreenFocal = FullScreenViewer.getFocal();
-        final tufts.vue.LWMap fullScreenMap = FullScreenViewer.getMap();
-
-        final Rectangle2D fullScreenVisibleMapBounds = FullScreenViewer.getVisibleMapBounds();
-        //final Rectangle2D fullScreenMapBounds = fullScreenMap.getBounds();
-
-        Log.debug("Exiting full screen mode; inNative=" + wasNative);
-
-        final boolean fadeBack = wasNative && Util.isMacPlatform();
-
-        if (fadeBack) {
-            // For Mac: this won't be visible till full-screen is torn down (nothing
-            // can go over the FSW), but it will be there all full and black once
-            // the java FSW *is* torn down, then we can fade that out to reveal
-            // the desktop.
-            goBlack();
-        }
-
-        //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
-
-        // PROBLEM / QUESTION: WHAT HAPPENS IF THE FS DEVICE LITERALLY
-        // GOES AWAY (is disconnected) while we're in FS mode?
-        
-        if (device == null) {
-            Log.error("missing device exiting FS mode");
-        } else if (device.getFullScreenWindow() != null) {
-            // this will take us out of true full screen mode
-            Log.info("clearing native full screen window:"
-                      + "\n\t  controlling device: " + device
-                      + "\n\tcur device FS window: " + device.getFullScreenWindow());
-
-            // note that when coming out of full screen, the java impl
-            // first restores the given  window to it's state before
-            // we made it the FSW, which is annoying on the mac cause
-            // it flashes a small window briefly in the upper left.
-            device.setFullScreenWindow(null);
-        } else {
-            Log.warn("device no longer has FS window: " + device);
-        }
-        FullScreenDevice = null; // ensure global record of current FS device is nulled
-        
-        fullScreenWorking = false;
-        fullScreenNative = false;
-        FullScreenWindow.setVisible(false);
-        FullScreenViewer.loadFocal(null);
-
-        // Note: several of these invokeAfterAWT calls are probably overkill,
-        // but the focus issues we're dealing with here can be very delicate,
-        // so be careful in here...
-
-        if (ExtraDockWindowHiding && nativeModeHidAllDockWindows) {
-            nativeModeHidAllDockWindows = false;
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                DockWindow.ShowPreviouslyHiddenWindows();
-                if (Util.isMacPlatform()) {
-
-                    // This will ensure the windows are fully painted when we return
-                    // from fade-back.
-                    
-                    // Only need to do this on mac, as we can't hide what's happening on
-                    // WinXP by fading to/from black anyway.
-                    
-                    DockWindow.ImmediatelyRepaintAllWindows();
-                }
-            }});
-        }
-
-        if (FullScreenLastActiveViewer != FullScreenViewer) {
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                // todo: we do NOT want to do this if the active map has changed while in
-                // full-screen mode: we want to activate the viewer for the map currently
-                // displayed
-                FullScreenLastActiveViewer.grabVueApplicationFocus("FullScreen.exit", null);
-            }});
-        }
-        
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
-            //Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
-            //VUE.getActiveViewer().popToMapFocal(); // old active viewer shouldn't have changed...
-        }});
-
-
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-
-            // Do not now ask for the currently active viewer: use the reference to the one that
-            // was active when we entered full-screen mode: the java focus system can be very
-            // unpredicable -- we can't be sure who is getting the focus back.  E.g., the active
-            // viewer at this point may even still be the full-screen viewer, with a null
-            // map, as it's been unloaded at this point.
-
-            // Todo: if the active map has changed while in full screen mode, we should actually
-            // return to the open viewer that has the same map.  Checking the ActiveViewer almost
-            // works for this, but the corner cases need handling.  Easiest approach may be to have
-            // FullScreenLastActiveViewer actually repoint to the standard viewer for the active
-            // map if the active map changes.
-            
-            final MapViewer returnViewer = FullScreenLastActiveViewer;
-            //final MapViewer returnViewer = VUE.getActiveViewer();
-
-            if (DEBUG.Enabled) Log.debug("exit FS cleanup;"
-                                         + "\n\tlastActiveViewer: " + FullScreenLastActiveViewer
-                                         + "\n\t nowActiveViewer: " + VUE.getActiveViewer()
-                                         + "\n\t    returnViewer: " + returnViewer
-                                         + "\n\t fullScreenFocal: " + fullScreenFocal
-                                         );
-
-            try {
-                if (!wasNative && returnViewer != null) {
-                    
-                    // If the focal has changed while in full screen mode, and it's still a
-                    // focal from the same map that's in the viewer we're returning back to,
-                    // swap load the same focal into the returning viewer.  (e.g., a slide
-                    // was being edited in full screen mode: make the same slide visible in
-                    // the regular viewer when we return to it).
-
-                    if (fullScreenMap == returnViewer.getMap()) {
-                        if (returnViewer.getFocal() != fullScreenFocal)
-                            returnViewer.loadFocal(fullScreenFocal);
-                    }
-            		
-                    // have the returning viewer zoom to the same region
-                    // that is visible in the full-screen viewer
-                    // problem with this method: the region keeps shrinking on repeated in/out of working FS mode
-                    // ZoomTool.setZoomFitRegion(returnViewer, fullScreenVisibleMapBounds, 0, false, false);
-
-                    // Current logic: this seems to keep the same region visible if the region is
-                    // "zoomed in" -- there are parts of the map visible off screen, or just force
-                    // a zoom-fit otherwise.
-
-                    if (returnViewer.getWidth() != returnViewer.getVisibleWidth() ||
-                        returnViewer.getHeight() != returnViewer.getVisibleHeight()) {
-                        if (DEBUG.Enabled) Log.debug("size mismatch (viewer probably scroll-enabled) re-zoom");
-                        ZoomTool.setZoomFitRegion(returnViewer,
-                                                  returnViewer.getVisibleMapBounds());
-                    } else {
-                        if (DEBUG.Enabled) Log.debug("default re-zoom");
-                        ZoomTool.setZoomFitRegion(returnViewer,
-                                                  returnViewer.getMap().getMapBounds(),
-                                                  returnViewer.getMap().getFocalMargin(),
-                                                  false);
-                    }
-
-                }
-            } finally {
-                if (!fadeBack) NDC.pop();
-            }
-            
-        }});
-
-
-// This works to have the toolbar painted, vut the tabbed pane and viewer apparently aren't ready yet (just shows dark gray)
-//         if (Util.isMacPlatform())
-//             ((javax.swing.JComponent)VUE.getApplicationFrame().getContentPane()).paintImmediately(new Rectangle(-256,-256,4096,4096));
-        
-        
-        if (fadeBack) {
-            if (DEBUG.Enabled) Log.debug("requesting fadeFromBlack");
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                fadeFromBlack();
-                NDC.pop();
-            }});
-        }
-
-        
-
-    
-    }
-
-
-
-
-
-    /*
+  /*
     private static void exitFullScreenMode()
     {
         NDC.push("[<-FS]");
@@ -1011,10 +1025,9 @@ public class FullScreen
         //NDC.pop();
         
     }
-    */      
+    */
 
-
-    /*
+  /*
     private static void enterFullScreenMode(boolean goNative)
     {
         NDC.push("[FS->]");
@@ -1185,10 +1198,9 @@ public class FullScreen
 
         NDC.pop();
     }
-*/      
+*/
 
-    private static void out(String s) {
-        System.out.println("VUE FullScreen: " + s);
-    }
-    
+  private static void out(String s) {
+    System.out.println("VUE FullScreen: " + s);
+  }
 }

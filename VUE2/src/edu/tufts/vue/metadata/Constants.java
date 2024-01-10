@@ -1,11 +1,11 @@
 /*
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -20,21 +20,23 @@
 package edu.tufts.vue.metadata;
 
 public class Constants {
-   public static final String ONTOLOGY_URL  = "http://vue.tufts.edu/ontology/vue.rdfs";
-   public static final String RESOURCE_URL = "http://vue.tufts.edu/rdf/resource/";
 
-    // todo: make this an array of std properties
-   public static final String ID = "id";
-   public static final String LABEL = "label";
-   public static final String CHILD  = "child";
-   public static final String AUTHOR = "author";
-   public static final String COLOR = "color";
-   public static final String NOTES = "notes";
-   public static final String CONTENT_INFO_PROPERTY = "property"; // leave as same for now in case any 3rd party dependencies
-    //public static final String CONTENT_INFO_PROPERTY = "vrkey"; // VUE content resource property key
-    // Todo: could create at least two new domains (sub-domains of VUE): 1 for "public" resource
-    // data -- a name-space where all the OSID meta-data collides, and and another for the meta-data
-    // that VUE adds to resources.
-   public static final String TAG ="tag";
-    
+  public static final String ONTOLOGY_URL =
+    "http://vue.tufts.edu/ontology/vue.rdfs";
+  public static final String RESOURCE_URL =
+    "http://vue.tufts.edu/rdf/resource/";
+
+  // todo: make this an array of std properties
+  public static final String ID = "id";
+  public static final String LABEL = "label";
+  public static final String CHILD = "child";
+  public static final String AUTHOR = "author";
+  public static final String COLOR = "color";
+  public static final String NOTES = "notes";
+  public static final String CONTENT_INFO_PROPERTY = "property"; // leave as same for now in case any 3rd party dependencies
+  //public static final String CONTENT_INFO_PROPERTY = "vrkey"; // VUE content resource property key
+  // Todo: could create at least two new domains (sub-domains of VUE): 1 for "public" resource
+  // data -- a name-space where all the OSID meta-data collides, and and another for the meta-data
+  // that VUE adds to resources.
+  public static final String TAG = "tag";
 }

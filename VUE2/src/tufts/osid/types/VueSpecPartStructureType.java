@@ -1,13 +1,11 @@
 package tufts.osid.types;
 
-public class VueSpecPartStructureType
-extends org.osid.shared.Type
-{
-    public VueSpecPartStructureType()
-    {
-        super ("tufts.edu","partStructure","vueSpec");
-    }
-/**
+public class VueSpecPartStructureType extends org.osid.shared.Type {
+
+  public VueSpecPartStructureType() {
+    super("tufts.edu", "partStructure", "vueSpec");
+  }
+  /**
 <p>MIT O.K.I&#46; SID Implementation License.
   <p>	<b>Copyright and license statement:</b>
   </p>  <p>	Copyright &copy; 2003 Massachusetts Institute of

@@ -3,7 +3,7 @@
  *
  * Created on July 15, 2008, 5:40 PM
  *
-* Copyright 2003-2010 Tufts University  Licensed under the
+ * Copyright 2003-2010 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -24,144 +24,157 @@
  */
 package edu.tufts.vue.dataset;
 
-
-import java.util.*;
+import au.com.bytecode.opencsv.CSVReader;
+import edu.tufts.vue.layout.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.*;
+import java.util.*;
+import javax.swing.Timer;
 import tufts.vue.*;
 import tufts.vue.ds.DataAction;
 import tufts.vue.ds.XmlDataSource;
 
-import java.net.*;
-
-import javax.swing.Timer;
-
-
-
-import au.com.bytecode.opencsv.CSVReader;
-
-import edu.tufts.vue.layout.*;
-
 public class Dataset {
-    
-    public static final int MAX_SIZE = tufts.vue.VueResources.getInt("dataset.maxSize");
-    public static final int MAX_LABEL_SIZE = 10000;
-    String fileName;
-    String label;
-    ArrayList<String> heading;
-    ArrayList<ArrayList<String>> rowList;
-    
-    String          baseClass;
-    XmlDataSource   datasource;
-    LWMap           map;
-    ActionListener  createMapListener = null;
-    Timer           timer = null;
 
-    /** Creates a new instance of Dataset */
-    
-    Layout layout = new ListRandomLayout(); // this is the default if no layout is set
-    public Dataset() {
+  public static final int MAX_SIZE = tufts.vue.VueResources.getInt(
+    "dataset.maxSize"
+  );
+  public static final int MAX_LABEL_SIZE = 10000;
+  String fileName;
+  String label;
+  ArrayList<String> heading;
+  ArrayList<ArrayList<String>> rowList;
+
+  String baseClass;
+  XmlDataSource datasource;
+  LWMap map;
+  ActionListener createMapListener = null;
+  Timer timer = null;
+
+  /** Creates a new instance of Dataset */
+
+  Layout layout = new ListRandomLayout(); // this is the default if no layout is set
+
+  public Dataset() {}
+
+  public void setLayout(Layout layout) {
+    this.layout = layout;
+  }
+
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
+
+  public String getFileName() {
+    return this.fileName;
+  }
+
+  public void setHeading(ArrayList<String> heading) {
+    this.heading = heading;
+  }
+
+  public ArrayList<String> getHeading() {
+    return heading;
+  }
+
+  public String getBaseClass() {
+    return baseClass;
+  }
+
+  public ArrayList<ArrayList<String>> getRowList() {
+    return rowList;
+  }
+
+  public LWMap createMap() throws Exception {
+    String mapName = getMapName(fileName);
+    datasource = new XmlDataSource(mapName, getFileName());
+    Properties props = new Properties();
+    props.put("displayName", mapName);
+    props.put("name", mapName);
+    props.put("address", getFileName());
+    datasource.setConfiguration(props);
+    VUE.getContentDock().setVisible(true);
+    VUE.getContentPanel().showDatasetsTab();
+    DataSetViewer.getDataSetList().addOrdered(datasource);
+    VUE
+      .getContentPanel()
+      .getDSBrowser()
+      .getDataSetViewer()
+      .setActiveDataSource(datasource);
+    DataSourceViewer.saveDataSourceViewer();
+    LWMap map = new LWMap(getMapName(fileName));
+    List<LWComponent> nodes = DataAction.makeRowNodes(datasource.getSchema());
+    for (LWComponent component : nodes) {
+      map.add(component);
     }
-    
-    public void setLayout(Layout layout) {
-        this.layout = layout;
-    }
-    
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-    public String getFileName() {
-    	return this.fileName;
-    }
-    public void setHeading(ArrayList<String> heading) {
-        this.heading = heading;
-    }
-    public ArrayList<String> getHeading() {
-        return heading;
-    }
-    
-    public String getBaseClass() {
-        return baseClass;
-    }
-    
-    public ArrayList<ArrayList<String>> getRowList() {
-        return rowList;
-    }
-    
-    public LWMap createMap() throws Exception{
-    	String mapName = getMapName(fileName);
-        datasource = new XmlDataSource(mapName,getFileName());
-        Properties props = new Properties();
- 		props.put("displayName", mapName);
- 		props.put("name", mapName);
- 		props.put("address", getFileName());
- 		datasource.setConfiguration(props);
- 		VUE.getContentDock().setVisible(true);
- 		VUE.getContentPanel().showDatasetsTab();
- 		DataSetViewer.getDataSetList().addOrdered(datasource);
- 		VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(datasource);			
- 		DataSourceViewer.saveDataSourceViewer();	
-    	LWMap map  = new LWMap(getMapName(fileName));
-    	List<LWComponent> nodes =  DataAction.makeRowNodes(datasource.getSchema());
-        for(LWComponent component: nodes) {
-            map.add(component);
+    LayoutAction.random.act(new LWSelection(nodes));
+    return map;
+  }
+
+  public LWMap createMap(QuickImportAction listener) throws Exception {
+    createMapListener = listener;
+
+    String mapName = getMapName(fileName);
+    datasource = new XmlDataSource(mapName, getFileName());
+    Properties props = new Properties();
+    props.put("displayName", mapName);
+    props.put("name", mapName);
+    props.put("address", getFileName());
+    datasource.setConfiguration(props);
+    VUE.getContentDock().setVisible(true);
+    VUE.getContentPanel().showDatasetsTab();
+    DataSetViewer.getDataSetList().addOrdered(datasource);
+    VUE
+      .getContentPanel()
+      .getDSBrowser()
+      .getDataSetViewer()
+      .setActiveDataSource(datasource);
+    DataSourceViewer.saveDataSourceViewer();
+
+    map = new LWMap(getMapName(fileName));
+
+    // Must wait until XmlDataSource.isLoading() returns false before creating map.
+    timer =
+      new Timer(
+        100,
+        new ActionListener() {
+          public void actionPerformed(ActionEvent event) {
+            try {
+              if (!datasource.isLoading()) {
+                timer.stop();
+
+                List<LWComponent> nodes = DataAction.makeRowNodes(
+                  datasource.getSchema()
+                );
+
+                for (LWComponent component : nodes) {
+                  map.add(component);
+                }
+
+                LayoutAction.random.act(new LWSelection(nodes));
+              }
+            } catch (Exception ex) {
+              ex.printStackTrace();
+              timer.stop();
+            } finally {
+              // Call back to the listener to tell it the map is ready to be displayed.
+              createMapListener.actionPerformed(event);
+            }
+          }
         }
-        LayoutAction.random.act(new LWSelection(nodes));
-        return map;
-    }
+      );
 
-    public LWMap createMap(QuickImportAction listener) throws Exception{
-    	createMapListener = listener;
+    timer.setInitialDelay(100);
+    timer.start();
 
-    	String mapName = getMapName(fileName);
-        datasource = new XmlDataSource(mapName, getFileName());
-        Properties props = new Properties();
- 		props.put("displayName", mapName);
- 		props.put("name", mapName);
- 		props.put("address", getFileName());
- 		datasource.setConfiguration(props);
- 		VUE.getContentDock().setVisible(true);
- 		VUE.getContentPanel().showDatasetsTab();
- 		DataSetViewer.getDataSetList().addOrdered(datasource);
- 		VUE.getContentPanel().getDSBrowser().getDataSetViewer().setActiveDataSource(datasource);
- 		DataSourceViewer.saveDataSourceViewer();
+    return map;
+  }
 
-		map = new LWMap(getMapName(fileName));
+  public void loadDataset() throws Exception {}
 
- 		// Must wait until XmlDataSource.isLoading() returns false before creating map.
-		timer = new Timer(100, new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				try {
-			    	if (!datasource.isLoading()) {
-						timer.stop();
-
-			    		List<LWComponent> nodes =  DataAction.makeRowNodes(datasource.getSchema());
-
-			    		for(LWComponent component: nodes) {
-			    			map.add(component);
-			    		}
-
-			    		LayoutAction.random.act(new LWSelection(nodes));
-			    	}
-				} catch(Exception ex) {
-					ex.printStackTrace();
-					timer.stop();
-				} finally {
-		    		// Call back to the listener to tell it the map is ready to be displayed.
-		    		createMapListener.actionPerformed(event);
-				}
-		}});
-
-		timer.setInitialDelay(100);
-		timer.start();
-
-		return map;
-    }
-
-    public void loadDataset() throws Exception {
-    }
-    /**
+  /**
     public  void loadDataset() throws Exception {
         rowList = new ArrayList<ArrayList<String>>();
         label = fileName;
@@ -195,13 +208,15 @@ public class Dataset {
         reader.close();
     }
     **/
-    
-    public static final  String getMapName(String fileName) {
-        String mapName = fileName.substring(fileName.lastIndexOf(File.separator)+1,fileName.length());
-        if(mapName.lastIndexOf(".")>0)
-            mapName = mapName.substring(0,mapName.lastIndexOf("."));
-        if(mapName.length() == 0)
-            mapName = "Text Import";
-        return mapName;
-    }
+
+  public static final String getMapName(String fileName) {
+    String mapName = fileName.substring(
+      fileName.lastIndexOf(File.separator) + 1,
+      fileName.length()
+    );
+    if (mapName.lastIndexOf(".") > 0) mapName =
+      mapName.substring(0, mapName.lastIndexOf("."));
+    if (mapName.length() == 0) mapName = "Text Import";
+    return mapName;
+  }
 }

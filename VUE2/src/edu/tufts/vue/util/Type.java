@@ -1,25 +1,20 @@
 package edu.tufts.vue.util;
 
-public class Type
-extends org.osid.shared.Type
-{
+public class Type extends org.osid.shared.Type {
 
-    public Type(String authority,
-				String domain,
-				String keyword,
-				String description)
-    {
-        super(authority,domain,keyword,description);
-    }
+  public Type(
+    String authority,
+    String domain,
+    String keyword,
+    String description
+  ) {
+    super(authority, domain, keyword, description);
+  }
 
-    public Type(String authority,
-				String domain,
-				String keyword)
-    {
-        super(authority,domain,keyword);
-    }
-
-/**
+  public Type(String authority, String domain, String keyword) {
+    super(authority, domain, keyword);
+  }
+  /**
 <p>MIT O.K.I&#46; SID Implementation License.
   <p>	<b>Copyright and license statement:</b>
   </p>  <p>	Copyright &copy; 2003 Massachusetts Institute of
