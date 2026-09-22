@@ -23,3 +23,6 @@ signing_code/VUE.app
 
 # ignore the installer package
 signing_code/VUE.pkg
+
+# compiled Mac integration classes (ant mac-lib)
+VUE2/src/maclib/classes/

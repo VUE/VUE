@@ -28,7 +28,6 @@ package tufts.vue;
  * @author  sfraize
  */
 
-import sun.net.www.protocol.file.FileURLConnection;
 import tufts.Util;
 import tufts.vue.DEBUG;
 
@@ -365,7 +364,7 @@ public abstract class BrowseDataSource implements DataSource
 
         String encoding = null;
 
-        if (conn instanceof FileURLConnection)
+        if ("file".equalsIgnoreCase(conn.getURL().getProtocol()))
         {
            
             BufferedReader bufferedReader = null;

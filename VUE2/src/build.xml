@@ -41,7 +41,7 @@
   These properties generally define file and directory names (or paths) that
   affect where the build process stores its outputs.
 -->
-  <property name="version"     value="4.0.0"/>
+  <property name="version"     value="4.0.1"/>
   <property name="top.dir"     value="./.."/>
   <property name="top"     value=".."/>
   <property name="src"         value="${basedir}"/>
@@ -63,7 +63,9 @@
   <property name="test.home"   value="${top.dir}/test" />
   <property name="test.lib"   value="${test.home}/lib" />
   <property name="junit.jar"   value="${test.lib}/junit.jar" />
-  <property name="target.version" value="1.6"/>
+  <property name="target.version" value="17"/>
+  <!-- JVM flags needed on modern (17+) JDKs: some bundled libraries load native code / use reflection into the JDK -->
+  <property name="modern.jvm.args" value="--enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.desktop/java.awt=ALL-UNNAMED --add-opens=java.desktop/javax.swing=ALL-UNNAMED --add-exports=java.desktop/com.apple.laf=ALL-UNNAMED"/>
   <property name="MacDist" value="MacDist"/>
   <property name="MacDist16" value="MacDist16"/>
   <property name="jre.home" value="/usr/local/atsys/jenkins/jre/jre7"/>
@@ -542,7 +544,7 @@
 
     <!--
     
-   <javac srcdir="${linux.src}"
+   <javac includeantruntime="false" srcdir="${linux.src}"
    	  destdir="${linux.class}"
    	  debug="${compile.debug}"
    	  deprecation="${compile.deprecation}"
@@ -559,13 +561,13 @@
    -->
     
   </target>
-  <target name="compile" depends="prepare,version"
+  <target name="compile" depends="prepare,version,mac-lib"
     description="Compile Java sources using default javac">
     <!-- echo message="lib.home is ${lib.home}"/ -->
 
    
 
-    <javac srcdir="${basedir}"
+    <javac includeantruntime="false" srcdir="${basedir}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -582,7 +584,7 @@
       <exclude name="**/old/**"/>
     </javac>
     
-    <javac srcdir="${basedir}" 
+    <javac includeantruntime="false" srcdir="${basedir}"
            destdir="${build.class}"
               debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -597,7 +599,7 @@
       <exclude name="**/old/**"/>
     </javac>
 
-    <javac srcdir="${basedir}" 
+    <javac includeantruntime="false" srcdir="${basedir}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -610,7 +612,7 @@
       <include name="tufts/oki/**/*.java"/>
     </javac>
 
-    <javac srcdir="${basedir}" 
+    <javac includeantruntime="false" srcdir="${basedir}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -627,7 +629,7 @@
       <exclude name="**/old/**"/>
     </javac>
 
-    <javac srcdir="${basedir}" 
+    <javac includeantruntime="false" srcdir="${basedir}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -647,7 +649,7 @@
       <exclude name="**/old/**"/>
     </javac>
 
-    <javac srcdir="${basedir}" 
+    <javac includeantruntime="false" srcdir="${basedir}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -664,7 +666,7 @@
       <exclude name="**/bak/**"/>
       <exclude name="**/old/**"/>
     </javac>
-     <javac srcdir="${basedir}"
+     <javac includeantruntime="false" srcdir="${basedir}"
            destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -1036,6 +1038,10 @@
         <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
         <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
         <attribute name="Main-Class" value="tufts.vue.VUE"/>
+        <!-- Let "java -jar VUE.jar" work on modern JDKs without extra command-line flags -->
+        <attribute name="Add-Opens" value="java.base/java.lang java.base/java.util java.desktop/java.awt java.desktop/javax.swing"/>
+        <attribute name="Add-Exports" value="java.desktop/com.apple.laf"/>
+        <attribute name="Enable-Native-Access" value="ALL-UNNAMED"/>
       </manifest>
         <!-- zipfileset src="${basedir}/VUE-core.jar" excludes="**/*.properties"/ example excludes that works for one file -->
         <zipfileset src="${vue-core.jar}"/>
@@ -1109,34 +1115,9 @@
   </target>
   
   <target name="mac-lib" depends="prepare"
-          description="Create the library containing Mac OS X specific VUE code (Mac OS X platform build only)">
-    <!-- Build for stuff that makes use of the Apple com.apple.cocoa.{application,foundation}.* classes
-         that reside in /System/Library/Java in Mac OS X, which can access native OS X features via
-         classes such as NSWindow, NSApplcation, etc. -->
+          description="Create the library containing Mac OS X specific VUE code (uses java.awt.Desktop, builds on any platform)">
     <mkdir dir="maclib/classes"/>
-    <javac srcdir="${basedir}" 
-           destdir="maclib/classes"
-             debug="${compile.debug}"
-        deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}"
-           listfiles="yes"
-           classpath="/System/Library/Java"
-           source="${target.version}"
-           target="${target.version}"
-           >
-      <include name="maclib/**/*.java"/>
-    </javac>
-    <jar destfile="${lib.home}/VUE-MacOSX.jar" compress="true" index="false" update="false">
-      <fileset dir="maclib/classes" includes="tufts/macosx/**"/>
-    </jar>
-  </target>
-  <target name="mac-lib-safe" depends="prepare"
-          description="Create a minimal library containing Mac OS X specific noop calls for building w/out the deprecated cocoa classes">
-    <!-- Build for stuff that makes use of the Apple com.apple.cocoa.{application,foundation}.* classes
-         that reside in /System/Library/Java in Mac OS X, which can access native OS X features via
-         classes such as NSWindow, NSApplcation, etc. -->
-    <mkdir dir="maclib/classes"/>
-    <javac srcdir="${basedir}" 
+    <javac srcdir="${basedir}"
            destdir="maclib/classes"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
@@ -1145,6 +1126,7 @@
            classpath="${lib.home}/log4j-1.2.12.jar"
            source="${target.version}"
            target="${target.version}"
+           includeantruntime="false"
            >
       <include name="maclib/MacOSX16Safe.java"/>
       <include name="maclib/MacOSX.java"/>
@@ -1153,7 +1135,7 @@
       <fileset dir="maclib/classes" includes="tufts/macosx/**"/>
     </jar>
   </target>
-     
+
   <target name="all" depends="clean,mac-dist,linux-jar" description="Rebuild everything from scratch."/>
   <target name="vue-applet" depends="jar-core">
 	
@@ -1232,37 +1214,48 @@
   </target>
  
 
-  <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
-      <taskdef name="bundleapp"               
-              classpath="${lib.home}/appbundler-1.0ea.jar"
-              classname="com.oracle.appbundler.AppBundlerTask"/>
-      <mkdir dir="build/${MacDist}"/>      
-
-      <property environment="env" />
-      <bundleapp 
-                outputdirectory="build/${MacDist}"
-                name="VUE"
-                displayname="VUE"
-                executableName="VUE"
-                identifier="tufts.vue.VUE"
-                shortversion="${version}"
-                version="${version}"
-                icon="MacOS/VUE.icns"
-                mainclassname="tufts.vue.VUE"
-                copyright="2003-2020"
-                applicationCategory="public.app-category.finance">
-                <classpath file="${build.home}/VUE.jar"/>
-                <option value="-Dapple.laf.useScreenMenuBar=true"/>
-                <option value="-Dcom.apple.macos.use-file-dialog-packages=true"/>
-                <option value="-Dcom.apple.macos.useScreenMenuBar=true"/>
-                <option value="-Dapple.awt.application.name=VUE"/>
-                <option value="-Dsun.java2d.d3d=false"/>
-                <option value="-Dcom.apple.smallTabs=true"/>
-                <option value="-Dfile.encoding=UTF-8"/>
-                <option value="-Xmx4096M"/>
-                
-
-      </bundleapp>
+  <target name="mac-dist" depends="jar" description="Creates a self-contained Mac OS X VUE.app (bundled Java runtime) using jpackage">
+      <property name="jpackage.input" value="${build.home}/jpackage-input"/>
+      <delete dir="${jpackage.input}"/>
+      <delete dir="${build.home}/${MacDist}/VUE.app"/>
+      <mkdir dir="${jpackage.input}"/>
+      <mkdir dir="${build.home}/${MacDist}"/>
+      <copy file="${vue.jar}" todir="${jpackage.input}"/>
+      <!-- Register .vue files with the app (jpackage wants absolute paths in this file, and the
+           document icon must not share a file name with the application icon) -->
+      <copy file="${basedir}/MacOS/VUE.icns" tofile="${build.home}/VUEDocument.icns"/>
+      <echo file="${build.home}/vue-file-association.properties">extension=vue
+mime-type=application/x-vue-map
+description=VUE Concept Map
+icon=${build.home}/VUEDocument.icns
+</echo>
+      <exec executable="jpackage" failonerror="true">
+        <arg value="--type"/>              <arg value="app-image"/>
+        <arg value="--name"/>              <arg value="VUE"/>
+        <arg value="--app-version"/>       <arg value="${version}"/>
+        <arg value="--input"/>             <arg value="${jpackage.input}"/>
+        <arg value="--dest"/>              <arg value="${build.home}/${MacDist}"/>
+        <arg value="--main-jar"/>          <arg value="VUE.jar"/>
+        <arg value="--main-class"/>        <arg value="tufts.vue.VUE"/>
+        <arg value="--icon"/>              <arg value="${basedir}/MacOS/VUE.icns"/>
+        <arg value="--copyright"/>         <arg value="2003-2020 Tufts University, 2026 Arnaud Denis-Remillard"/>
+        <arg value="--vendor"/>            <arg value="Tufts University"/>
+        <arg value="--mac-package-identifier"/> <arg value="tufts.vue.VUE"/>
+        <arg value="--mac-package-name"/>  <arg value="VUE"/>
+        <arg value="--file-associations"/> <arg value="${build.home}/vue-file-association.properties"/>
+        <arg value="--java-options"/>      <arg value="-Dapple.laf.useScreenMenuBar=true"/>
+        <arg value="--java-options"/>      <arg value="-Dapple.awt.application.name=VUE"/>
+        <arg value="--java-options"/>      <arg value="-Dcom.apple.macos.use-file-dialog-packages=true"/>
+        <arg value="--java-options"/>      <arg value="-Dfile.encoding=UTF-8"/>
+        <arg value="--java-options"/>      <arg value="-Xmx4096M"/>
+        <arg value="--java-options"/>      <arg value="--enable-native-access=ALL-UNNAMED"/>
+        <arg value="--java-options"/>      <arg value="--add-opens=java.base/java.lang=ALL-UNNAMED"/>
+        <arg value="--java-options"/>      <arg value="--add-opens=java.base/java.util=ALL-UNNAMED"/>
+        <arg value="--java-options"/>      <arg value="--add-opens=java.desktop/java.awt=ALL-UNNAMED"/>
+        <arg value="--java-options"/>      <arg value="--add-opens=java.desktop/javax.swing=ALL-UNNAMED"/>
+        <arg value="--java-options"/>      <arg value="--add-exports=java.desktop/com.apple.laf=ALL-UNNAMED"/>
+      </exec>
+      <echo message="Built ${build.home}/${MacDist}/VUE.app"/>
   </target>
 
     <target name="test" depends="mac-dist"/>
@@ -1292,7 +1285,7 @@ public static final String
 }
 </echo>
 <!-- Compile file as part of regular compile target - peter 21-Jul-06  
-	<javac srcdir="${build.home}" 
+	<javac includeantruntime="false" srcdir="${build.home}"
            destdir="${build.class}"
            optimize="${compile.optimize}"
            listfiles="yes"
@@ -1325,6 +1318,7 @@ cclass Version {
         <jvmarg value="-Xms10m"/>
         <!-- Increase max allowed memory from default 64MB to 2GB -->
         <jvmarg value="-Xmx1024m"/>
+        <jvmarg line="${modern.jvm.args}"/>
         <!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
         <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
         <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
@@ -1341,6 +1335,7 @@ cclass Version {
 	        <jvmarg value="-Xms10m"/>
 	        <!-- Increase max allowed memory from default 64MB to 2GB -->
 	        <jvmarg value="-Xmx1024m"/>
+	        <jvmarg line="${modern.jvm.args}"/>
 	        <!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
 	        <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
 	        <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
@@ -1357,6 +1352,7 @@ cclass Version {
         <jvmarg value="-Xms10m"/>
         <!-- Increase max allowed memory from default 64MB to 2GB -->
         <jvmarg value="-Xmx1024m"/>
+        <jvmarg line="${modern.jvm.args}"/>
         <!-- Below wo JVM args are for the Mac runtime, and will be ignored on Windows. -->
         <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
         <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
@@ -1411,6 +1407,7 @@ cclass Version {
     <target name="vue-dr" depends="" description="Run just the VUE Digital Repository GUI">
         <java classname="tufts.vue.DRBrowser" failonerror="true" fork="true">
           <jvmarg value="-Xmx1024m"/>
+        <jvmarg line="${modern.jvm.args}"/>
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
           <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUEDR"/>
           <arg value="${vue.args}"/>

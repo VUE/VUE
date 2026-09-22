@@ -1,7 +1,5 @@
 package tufts.macosx;
 
-import com.apple.eawt.Application;
-import com.apple.eawt.ApplicationEvent;
 
 import java.awt.*;
 import java.util.*;

@@ -80,6 +80,7 @@ public class AboutAction extends tufts.vue.VueAction
                                 + "&nbsp;&nbsp;&nbsp;Developed by Tufts University<br> " 
                                 + "&nbsp;&nbsp;&nbsp;University Information Technology<br>" 
                                 + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2003-2020 Tufts University<br>"
+                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; " + VueResources.getString("vue.copyright.contributor") + "<br>"
                                 + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                                 + "&nbsp;&nbsp;&nbsp;Version "+VueResources.getString("vue.version")+" <br>"
                                 + "&nbsp;&nbsp;&nbsp;Built " + Version.Date + " at " + Version.Time

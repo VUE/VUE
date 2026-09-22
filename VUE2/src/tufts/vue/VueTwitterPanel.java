@@ -206,7 +206,7 @@ public class VueTwitterPanel extends JPanel implements ItemListener, ActionListe
 			}
 			else
 			{
-				t.stop();
+				t.interrupt(); // Thread.stop() no longer exists in modern Java
 				followButton.setText(VueResources.getString("twitter.button.activate"));
 			}		
 		}

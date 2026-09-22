@@ -1005,12 +1005,9 @@ public class DockWindow
 
     private static void dumpGC(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        sun.java2d.SurfaceData sd = null;
-        if (g instanceof sun.java2d.SunGraphics2D)
-            sd = ((sun.java2d.SunGraphics2D)g).surfaceData;
-        
+        // (sun.java2d internals are no longer accessible on modern JDKs; just print the graphics object)
         System.out.println("\t" +
-                           Util.objectTag(g) + " surface=" + sd
+                           Util.objectTag(g) + " deviceConfig=" + g2.getDeviceConfiguration()
                            + "\n\t      clip " + g.getClip()
                            + "\n\tclipBounds " + g.getClipBounds()
                            //+ "\n\t     hints " + g2.getRenderingHints()

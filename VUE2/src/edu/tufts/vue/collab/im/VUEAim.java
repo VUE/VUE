@@ -52,7 +52,6 @@ import edu.tufts.vue.collab.im.*;
 import edu.tufts.vue.collab.im.security.SecureSession;
 import edu.tufts.vue.collab.im.security.SecureSessionException;
 
-import sun.net.ProgressSource.State;
 import tufts.vue.VueResources;
 import tufts.vue.VueUtil;
 
@@ -422,7 +421,7 @@ public class VUEAim {
 			if (bosConn !=null)
 			{
 
-				return bosConn.getState().toString().equals(State.CONNECTED.toString());
+				return bosConn.getState().toString().equals("CONNECTED");
 			}
 			else
 				return false;
