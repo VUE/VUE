@@ -5360,11 +5360,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.arrange"), Actions.ARRANGE_MENU_ACTIONS));
         sSinglePopup.add(GUI.buildMenu(VueResources.getString("menu.layout"),LayoutAction.LAYOUT_ACTIONS));
 
-    	if (VUE.isApplet() && VueApplet.isZoteroApplet() && r!=null) {
-        	sSinglePopup.addSeparator();
-    		sSinglePopup.add(Actions.AddResourceToZotero);
-    	}
-
     	sSinglePopup.addSeparator();
     	
     	//sSinglePopup.add(AnalyzerAction.calais);

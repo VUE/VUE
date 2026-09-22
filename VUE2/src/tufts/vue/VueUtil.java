@@ -131,23 +131,11 @@ public class VueUtil extends tufts.Util
             }
         }
 
-        if (VUE.isApplet()) {
-            java.net.URL url = null;
-            try {
-                url = new java.net.URL(platformURL);
-                System.out.println("Applet URL display: " + url);
-                VUE.getAppletContext().showDocument(url, "_blank");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
+        // already handled in Util.openURL
+        //if (isMacPlatform() && platformURL.startsWith("/"))
+        //    platformURL = "file:" + platformURL;
 
-            // already handled in Util.openURL
-            //if (isMacPlatform() && platformURL.startsWith("/"))
-            //    platformURL = "file:" + platformURL;
-                
-            tufts.Util.openURL(platformURL);
-        }
+        tufts.Util.openURL(platformURL);
     }
     
     public static void  setCurrentDirectoryPath(String cdp) {

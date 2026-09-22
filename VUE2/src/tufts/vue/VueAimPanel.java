@@ -46,7 +46,6 @@ import net.kano.joscar.net.ClientConnEvent;
 import net.kano.joscar.net.ClientConnListener;
 import net.kano.joscar.snaccmd.FullUserInfo;
 import net.kano.joscar.snaccmd.chat.ChatMsg;
-import sun.net.ProgressSource.State;
 import tufts.vue.gui.GUI;
 
 /**

@@ -32,8 +32,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
+import org.apache.xml.serialize.OutputFormat;
+import org.apache.xml.serialize.XMLSerializer;
 
 public class WriteSearchXMLData {
 	private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(WriteSearchXMLData.class);

@@ -14,7 +14,6 @@
  */
 package tufts.vue;
 
-import java.applet.AppletContext;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -58,7 +57,6 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -138,7 +136,6 @@ public class VUE
 
     private static final Logger Log = Logger.getLogger(VUE.class);
     
-    private static AppletContext sAppletContext 	= null;
     
     /** The currently active selection.
      * elements in ModelSelection should always be from the ActiveModel */
@@ -556,8 +553,6 @@ public class VUE
         //Util.printStackTrace("ENABLED MAP ACTIONS " + enable);    	
         VueMenuBar.RootMenuBar.saveAction.setEnabled(enable);
         VueMenuBar.RootMenuBar.saveAsAction.setEnabled(enable);
-        if (VUE.isApplet() && VueApplet.isZoteroApplet())
-        	Actions.SaveCopyToZotero.setEnabled(enable);
         VueMenuBar.RootMenuBar.publishMenu.setEnabled(enable);
         Actions.CloseMap.setEnabled(enable);
         VueMenuBar.RootMenuBar.printAction.setEnabled(enable);
@@ -704,18 +699,9 @@ public class VUE
         ActiveInstance.removeListener(clazz, reflectedListener);
     }	
     
-    public static void setAppletContext(AppletContext ac) {
-        sAppletContext = ac;
-    }
-    public static AppletContext getAppletContext() {
-        return sAppletContext;
-    }
+    /** Applet support was removed along with the Java Applet API; VUE now only runs as a desktop application. */
     public static boolean isApplet() {
-    	if (VueApplet.getInstance() !=null)
-    		return VueApplet.getInstance().getAppletContext() != null;
-    	else
-    		return false;
-      //  return sAppletContext != null;
+        return false;
     }
 
     public static String getSystemProperty(String name) {
@@ -3742,20 +3728,7 @@ public class VUE
     
     /** return the root VUE window, mainly for those who'd like it to be their parent */
     public static Window getRootWindow() {
-    	if (!VUE.isApplet())
-    		return VUE.ApplicationFrame;
-    	else
-    	{
-    		Frame[] frames = JFrame.getFrames();
-    		//System.out.println("FRAME LENGTH " + frames.length);
-    		JApplet app =  VueApplet.getInstance();
-    		Container c = app.getParent();
-    		while (!(c instanceof Window))
-    		{
-    			c = c.getParent();
-    		}
-    		return (Window)c;
-    	}
+        return VUE.ApplicationFrame;
     	/*
         if (true) {
             return VUE.frame;

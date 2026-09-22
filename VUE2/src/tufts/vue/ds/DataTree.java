@@ -1949,8 +1949,10 @@ public class DataTree extends javax.swing.JTree
 
         protected DataNode() {}
 
+        @SuppressWarnings("unchecked")
         Vector<DataNode> getChildren() {
-            return super.children;
+            // DefaultMutableTreeNode.children became Vector<TreeNode> in Java 9
+            return (Vector<DataNode>) (Vector<?>) super.children;
         }
 
         Schema getSchema() {
