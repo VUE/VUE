@@ -41,7 +41,7 @@
   These properties generally define file and directory names (or paths) that
   affect where the build process stores its outputs.
 -->
-  <property name="version"     value="4.0.0"/>
+  <property name="version"     value="4.0.1"/>
   <property name="top.dir"     value="./.."/>
   <property name="top"     value=".."/>
   <property name="src"         value="${basedir}"/>
@@ -1238,7 +1238,7 @@ icon=${build.home}/VUEDocument.icns
         <arg value="--main-jar"/>          <arg value="VUE.jar"/>
         <arg value="--main-class"/>        <arg value="tufts.vue.VUE"/>
         <arg value="--icon"/>              <arg value="${basedir}/MacOS/VUE.icns"/>
-        <arg value="--copyright"/>         <arg value="2003-2020 Tufts University"/>
+        <arg value="--copyright"/>         <arg value="2003-2020 Tufts University, 2026 Arnaud Denis-Remillard"/>
         <arg value="--vendor"/>            <arg value="Tufts University"/>
         <arg value="--mac-package-identifier"/> <arg value="tufts.vue.VUE"/>
         <arg value="--mac-package-name"/>  <arg value="VUE"/>
